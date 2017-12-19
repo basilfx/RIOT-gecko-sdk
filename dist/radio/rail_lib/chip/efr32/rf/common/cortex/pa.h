@@ -34,9 +34,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "timing_state.h"
-#include "rail_chip_specific.h"
-
 // Once this is a RAIL API this code can be removed as rail-types.h does this
 #ifndef RAIL_ENUM
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -70,6 +67,55 @@ extern "C" {
  ******************************************************************************/
 
 /*******************************************************************************
+ ****************************   CONFIGURATION   ********************************
+ ******************************************************************************/
+/** Scaling factor applied to all dBm power level inputs and outputs *   */
+#define PA_SCALING_FACTOR     10
+
+// *INDENT-OFF*
+/**
+ * @brief Selection of the rf power amplifier (PA) to use
+ */
+RAIL_ENUM(RADIO_PASel_t) {
+  /** High power PA */
+  PA_SEL_2P4_HP,
+  /** Low power PA */
+  PA_SEL_2P4_LP,
+  /** SubGig PA*/
+  PA_SEL_SUBGIG,
+  /** Invalid PA Selection */
+  PA_SEL_INVALID
+};
+
+/**
+ * @brief Selection should match the configuration of the voltage on the vPa pin
+ *        of the chip.
+ */
+RAIL_ENUM(RADIO_PAVoltMode_t) {
+  /** Vpa = Vbat = 3.3V */
+  PA_VOLTMODE_VBAT,
+  /** Vpa = DCDC Vout = 1.8V */
+  PA_VOLTMODE_DCDC
+};
+// *INDENT-ON*
+
+/**
+ * @brief Configuration structure for the rf power amplifier (PA)
+ */
+typedef struct RADIO_PAInit {
+  /** Power Amplifier mode */
+  RADIO_PASel_t paSel;
+  /** Power Amplifier vPA Voltage mode */
+  RADIO_PAVoltMode_t voltMode;
+  /** Desired output power in dBm * \ref PA_SCALING_FACTOR */
+  int16_t power;
+  /** Output power offset in dBm * \ref PA_SCALING_FACTOR */
+  int16_t offset;
+  /** Desired ramp time in us */
+  uint16_t rampTime;
+} RADIO_PAInit_t;
+
+/*******************************************************************************
  ******************************   PROTOTYPES   *********************************
  ******************************************************************************/
 
@@ -78,38 +124,65 @@ extern "C" {
  *   Initilize the PA settings based on the settings provided in the paInit
  *   structure.
  *
- * @param[in] paConfig
+ * @param[in] paInit
  *   Pointer to a structure containing the desired PA configuration settings.
  *
  * @return
- *   RAIL_Status_t indicating success
+ *   True if the settings were accepted.
+ *   False if settings were invalid.
  *
  * @warning
  *   The radio should not be transmitting when this function is called!
  */
-RAIL_Status_t PA_Config(const RAIL_TxPowerConfig_t *paConfig);
-
-/**
- * @brief
- *   Get the current PA settings in use
- *
- * @param[out] config
- *   Pointer to memory location into which the configuration will be
- *   copied
- *
- * @return
- *   RAIL_Status_t indicating success
- */
-RAIL_Status_t PA_GetTxPowerConfig(RAIL_TxPowerConfig_t *config);
+bool RADIO_PA_Init(RADIO_PAInit_t * paInit);
 
 /**
  * @brief
  *   Returns the current power level of transmit power
  *
  * @return
- *   Current power level in deci-dBm
+ *   Current power level in dBm * \ref PA_SCALING_FACTOR
  */
-RAIL_TxPowerLevel_t PA_GetPowerLevel(void);
+int32_t PA_OutputPowerGet(void);
+
+/**
+ * @brief
+ *   Sets the output power of the PA.
+ *
+ *   Each PA has distinct maximum power, minimum power, and power step sizes.
+ *   This API will calculate the best pa output power level setting to acheieve
+ *   the desired output power.
+ *
+ * @note
+ *   Board and chip variations will affect the accuracy of this API.  Use
+ *   of the RADIO_PAInit_t.offset paramter can help account for this variation.
+ *
+ * @param[in] power
+ *   Power value in dBm * \ref PA_SCALING_FACTOR
+ *
+ *   Examples with \ref PA_SCALING_FACTOR of 10:
+ *     - 10  dBm --> 100
+ *     - 5.5 dBm -->  55
+ *
+ * @return
+ *   Returns the actual power that was set in dBm * \ref PA_SCALING_FACTOR
+ *
+ * @warning
+ *   The radio should not be transmitting when this function is called!
+ */
+int32_t PA_OutputPowerSet(int32_t power);
+
+/**
+ * @brief
+ *   Set the maximum possible output power for the selected PA.
+ *
+ * @return
+ *   Returns the actual power that was set in dBm * \ref PA_SCALING_FACTOR
+ *
+ * @warning
+ *   The radio should not be transmitting when this function is called!
+ */
+int32_t PA_MaxOutputPowerSet(void);
 
 /**
  * @brief
@@ -118,7 +191,7 @@ RAIL_TxPowerLevel_t PA_GetPowerLevel(void);
  * @return
  *   Current ramp time in microseconds
  */
-uint32_t PA_GetRampTime(void);
+uint32_t PA_RampTimeGet(void);
 
 /**
  * @brief
@@ -138,7 +211,7 @@ uint32_t PA_GetRampTime(void);
  * @warning
  *   The radio should not be transmitting when this function is called!
  */
-uint32_t PA_SetRampTime(uint32_t ramptime, StateTimings_t *timings);
+uint32_t PA_RampTimeSet(uint32_t ramptime);
 
 /**
  * Enable/Disable PA calibration
@@ -167,13 +240,13 @@ void PA_EnableCal(bool enable);
  * @param[in] rxPaCtuneValue
  *   Receive value for pa ctune
  *
- * @note PACTUNE will reset to default values when PA_Config() or
- *       RAIL_ConfigRadio() are called.
+ * @note PACTUNE will reset to default values when RADIO_PA_Init() or
+ *       RAIL_RadioConfig() are called.
  *
  * @warning
  *   The radio should not be transmitting when this function is called!
  */
-void PA_SetCTune(uint8_t txPaCtuneValue, uint8_t rxPaCtuneValue);
+void PA_CTuneSet(uint8_t txPaCtuneValue, uint8_t rxPaCtuneValue);
 
 /**
  * @brief
@@ -187,47 +260,39 @@ void PA_SetCTune(uint8_t txPaCtuneValue, uint8_t rxPaCtuneValue);
  * @param[in] pwrLevel
  *   Output power level.  Note that the maximum power level will change
  *   depending on PA selection.
+ * @param[in]  boostMode
+ *   Output boost mode.  Some PA selections have a mode that will increase the
+ *   output power for each step if this is enabled.
  *
  * @return
- *   Power level set in the current PA.
+ *   MSB Configured boost mode. \n
+ *   LSB Configured power level
  *
  * @warning
  *   The radio should not be transmitting when this function is called!
  */
-RAIL_TxPowerLevel_t PA_SetPowerLevel(RAIL_TxPowerLevel_t pwrLevel);
+uint16_t PA_PowerLevelSet(uint8_t pwrLevel, uint8_t boostMode);
+
+/**
+ * @brief
+ *   Optimize the PA settings based on expected output power level.
+ *
+ * @details
+ *   This API optimizes the current consumption of the radio based on the
+ *   provided output power.  This is only necessary when output power is
+ *   controlled by PA_PowerLevelSet().
+ *
+ * @param[in] power
+ *   Power value in dBm * \ref PA_SCALING_FACTOR
+ *
+ * @warning
+ *   The radio should not be transmitting when this function is called!
+ */
+void PA_PowerLevelOptimize(int32_t power);
 
 /** @} (end addtogroup EFR32xG1x_PA_Advanced) */
 /** @} (end addtogroup EFR32xG1x_PA) */
 /** @} (end addtogroup Chip_Specific) */
-
-/**
- * Non RAIL functions.
- *
- * The following functions can only be safely used by customers not yet on the
- * RAIL platform yet. For those on RAIL, please see RAIL_ConvertDbmToRaw and
- * RAIL_ConvertRawToDbm.
- */
-
-/**
- * Function used to convert deci-dBm values to raw values that can be used in
- * SetTxPower.
- *
- * @param[in] power deci-dBm value that should be converted to the appropriate
- * raw power for the current PA
- * @return equivalent raw power for the deci-dBm value supplied, for the active
- * PA.
- */
-RAIL_TxPowerLevel_t PA_ConvertDbmToRaw(RAIL_TxPower_t power);
-
-/**
- * Function to convert the raw power levels returned from GetTxPower to
- * the equivalent deci-dBm value for the current PA.
- *
- * @param[in] powerLevel Raw PA power level that should be converted into
- * the equivalent deci-dBm value for the active PA
- * @return equivalent deci-dBm value for the raw power level passed in.
- */
-RAIL_TxPower_t PA_ConvertRawToDbm(RAIL_TxPowerLevel_t powerLevel);
 
 #ifdef __cplusplus
 }

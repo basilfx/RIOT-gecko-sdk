@@ -16,8 +16,6 @@ extern "C" {
 
 #include "em_gpio.h"
 
-#include "rail_chip_specific.h"
-
 // Once this is a RAIL API this code can be removed as rail-types.h does this
 #ifndef RAIL_ENUM
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -47,6 +45,57 @@ extern "C" {
  * @brief EFR32 Packet Trace Interface (PTI) setup and configuration
  ******************************************************************************/
 
+/********************************  TYPEDEFS   *********************************/
+
+/** Channel type enumeration. */
+RAIL_ENUM(RADIO_PTIMode_t) {
+  /** SPI mode. */
+  RADIO_PTI_MODE_SPI = 0U,
+  /** UART mode. */
+  RADIO_PTI_MODE_UART = 1U,
+  /** 9bit UART mode. */
+  RADIO_PTI_MODE_UART_ONEWIRE = 2U,
+  /** Turn PTI off entirely */
+  RADIO_PTI_MODE_DISABLED = 3U,
+};
+
+/**
+ * @struct RADIO_PTIInit_t
+ * @brief Configuration structure for the packet trace interface (PTI)
+ *
+ * This structure requires information about the pins to use as well as the
+ * route locations for those pins. To find the route locations consult your
+ * datasheet for the appropriate values on your particular part.
+ */
+typedef struct RADIO_PTIInit {
+  /** Packet Trace mode (UART or SPI) */
+  RADIO_PTIMode_t mode;
+
+  /** Output baudrate for PTI in Hz */
+  uint32_t baud;
+
+  /** Data output location for pin/port (FRC_DOUT) */
+  uint8_t doutLoc;
+  /** Data output GPIO port */
+  GPIO_Port_TypeDef doutPort;
+  /** Data output GPIO pin */
+  uint8_t doutPin;
+
+  /** Data clock location for pin/port. Only used in SPI mode (FRC_DCLK) */
+  uint8_t dclkLoc;
+  /** Data clock GPIO port. Only used in SPI mode */
+  GPIO_Port_TypeDef dclkPort;
+  /** Data clock GPIO pin. Only used in SPI mode */
+  uint8_t dclkPin;
+
+  /** Data frame location for pin/port (FRC_DFRAME) */
+  uint8_t dframeLoc;
+  /** Data frame GPIO port */
+  GPIO_Port_TypeDef dframePort;
+  /** Data frame GPIO pin */
+  uint8_t dframePin;
+} RADIO_PTIInit_t;
+
 /*************************  FUNCTION PROTOTYPES   *****************************/
 
 /**
@@ -58,28 +107,28 @@ extern "C" {
  * This API will initialize the packet trace interface. It allows you to
  * configure what mode and pins to use for packet trace output. You must call
  * this API either before RAIL initialization or before an explicit call to
- * \ref PTI_Enable() to properly initialize PTI.
+ * \ref RADIO_PTI_Enable() to properly initialize PTI.
  */
-RAIL_Status_t PTI_Config(const RAIL_PtiConfig_t *config);
+void RADIO_PTI_Init(RADIO_PTIInit_t *ptiInit);
 
 /**
- * Enable or disable the PTI interface
+ * Enabled the PTI interface
  *
- * This API will turn on or off the packet trace interface (PTI). By default
- * this is turned on already during init time. Note that you must call \ref
+ * This API will turn on the packet trace interface (PTI). By default this is
+ * turned on already during init time. Note that you must call \ref
  * RADIO_PTI_Init() with a valid initialization structure before calling this
  * API or PTI will not actually turn on.
  */
-RAIL_Status_t PTI_Enable(bool enable);
+void RADIO_PTI_Enable(void);
 
 /**
- * Get the current state of the PTI
+ * Disable the PTI interface
  *
- * This function will return a pointer to a copy of the PTI state. If you
- * actually want to change the settings, the referenced structure must be
- * updated and then passed back to \ref RADIO_PTI_Config
+ * This API will turn off the packet trace interface (PTI). By default this is
+ * enabled while initializing RAIL. You may also turn this off by calling \ref
+ * RADIO_PTI_Init() with a mode of \ref RADIO_PTI_MODE_DISABLED.
  */
-RAIL_Status_t PTI_GetConfig(RAIL_PtiConfig_t *ptiConfig);
+void RADIO_PTI_Disable(void);
 
 /** @} (end addtogroup EFR32xG1x_PTI) */
 /** @} (end addtogroup Chip_Specific) */

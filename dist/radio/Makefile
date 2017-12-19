@@ -15,5 +15,3 @@ endif
 $(BINDIR)/$(MODULE).a: 
 	        cp $(RAIL_LIB) $@
 
-
-include $(RIOTBASE)/Makefile.base

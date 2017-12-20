@@ -1,4 +1,4 @@
-MODULE = gecko_sdk_librail_v2.0
+MODULE = gecko_sdk_librail_v2_0
 
 RAIL_SDK_SRCDIR = $(PKGDIRBASE)/gecko_sdk/dist/radio/rail_lib
 

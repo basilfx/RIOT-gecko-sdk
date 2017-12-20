@@ -1,6 +1,6 @@
 MODULE = gecko_sdk_librail_v1_1
 
-RAIL_SDK_SRCDIR = $(PKGDIRBASE)/gecko_sdk/dist/radio/rail_lib
+RAIL_SDK_SRCDIR = $(PKGDIRBASE)/gecko_sdk/dist/radio/rail_lib_v1.1
 
 ifeq ($(EFM32_FAMILY),efr32mg1p)
 	RAIL_LIB = $(RAIL_SDK_SRCDIR)/autogen/librail_release/librail_efr32xg1_gcc_release.a

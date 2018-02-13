@@ -3465,7 +3465,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       /* HFCLKCLE can not be used as LFACLK */
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
-      /* Fall through and select clock source */
+      /* fallthrough */
 
 #if defined(_CMU_LFCCLKSEL_MASK)
     case CMU_LFCCLKSEL_REG:
@@ -3475,7 +3475,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
 #endif
-    /* Fall through and select clock source */
+    /* fallthrough */
 
     case CMU_LFECLKSEL_REG:
       selReg = (selReg == NULL) ? &CMU->LFECLKSEL : selReg;
@@ -3483,7 +3483,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       /* HFCLKCLE can not be used as LFECLK */
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
-    /* Fall through and select clock source */
+    /* fallthrough */
 
     case CMU_LFBCLKSEL_REG:
       selReg = (selReg == NULL) ? &CMU->LFBCLKSEL : selReg;

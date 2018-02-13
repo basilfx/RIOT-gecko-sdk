@@ -33,7 +33,9 @@ rm -rf "${DIST_DIR}/radio/rail_lib/plugin"
 find "${DIST_DIR}" -name "*.c" -type f -exec dos2unix -k -s -o {} ';'
 find "${DIST_DIR}" -name "*.h" -type f -exec dos2unix -k -s -o {} ';'
 
+sed -i "s/Fall through and select clock source/fallthrough/g" "${DIST_DIR}/emlib/src/em_cmu.c"
+
 rsync -avp --ignore-existing "${SRC_DIR}/" "${DIST_DIR}"
 
-# Cleanup
+# Cleanup.
 rm -rf "${TEMP_DIR}"

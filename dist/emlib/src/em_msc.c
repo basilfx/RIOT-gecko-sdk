@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_msc.c
  * @brief Flash controller (MSC) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -38,6 +38,10 @@
 #include "em_cmu.h"
 #endif
 #include "em_assert.h"
+#if defined(_MSC_ECCCTRL_MASK)
+#include "em_cmu.h"
+#include "em_core.h"
+#endif
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
@@ -51,6 +55,9 @@
 #error "Running Flash write/erase operations from Flash is not supported on EFM32G."
 #endif
 
+/*******************************************************************************
+ ******************************      DEFINES      ******************************
+ ******************************************************************************/
 #if defined(MSC_WRITECTRL_WDOUBLE)
 #define WORDS_PER_DATA_PHASE (FLASH_SIZE < (512 * 1024) ? 1 : 2)
 #else
@@ -62,11 +69,80 @@
 #define ERRATA_FIX_FLASH_E201_EN
 #endif
 
+#if defined(_MSC_ECCCTRL_MASK)
+#if defined(_SILICON_LABS_32B_SERIES_1_CONFIG_1)
+/* On Series 1 Config 1, aka EFM32GG11, ECC is supported for RAM0 and RAM1
+   banks (not RAM2). We need to figure out which is biggest in order to
+   calculate the number of DMA descriptors needed. */
+#define ECC_RAM_SIZE_MAX   (SL_MAX(RAM0_MEM_SIZE, RAM1_MEM_SIZE))
+
+#define ECC_RAM0_MEM_BASE  (RAM0_MEM_BASE)
+#define ECC_RAM0_MEM_SIZE  (RAM0_MEM_SIZE)
+
+#define ECC_RAM1_MEM_BASE  (RAM1_MEM_BASE)
+#define ECC_RAM1_MEM_SIZE  (RAM1_MEM_SIZE)
+
+#define ECC_CTRL_REG_ADDR  (&MSC->ECCCTRL)
+#define ECC_RAM0_WRITE_EN  (_MSC_ECCCTRL_RAMECCEWEN_SHIFT)
+#define ECC_RAM0_CHECK_EN  (_MSC_ECCCTRL_RAMECCCHKEN_SHIFT)
+#define ECC_RAM1_WRITE_EN  (_MSC_ECCCTRL_RAM1ECCEWEN_SHIFT)
+#define ECC_RAM1_CHECK_EN  (_MSC_ECCCTRL_RAM1ECCCHKEN_SHIFT)
+
+#define ECC_IFC_REG_ADDR   (&MSC->IFC)
+#define ECC_IFC_MASK       (MSC_IFC_RAMERR1B | MSC_IFC_RAMERR2B \
+                            | MSC_IFC_RAM1ERR1B | MSC_IFC_RAM1ERR2B)
+#else
+#error Unknown device.
+#endif
+
+#define ECC_DMA_MAX_XFERCNT (_LDMA_CH_CTRL_XFERCNT_MASK \
+                             >> _LDMA_CH_CTRL_XFERCNT_SHIFT)
+#define ECC_DMA_DESC_SIZE   ((ECC_DMA_MAX_XFERCNT + 1) * 4)  /* 4 bytes units */
+
+#define ECC_DMA_DESCS       (ECC_RAM_SIZE_MAX / ECC_DMA_DESC_SIZE)
+
+#endif
+
+/*******************************************************************************
+ ******************************      TYPEDEFS     ******************************
+ ******************************************************************************/
 typedef enum {
   mscWriteIntSafe,
   mscWriteFast,
 } MSC_WriteStrategy_Typedef;
 
+#if defined(_MSC_ECCCTRL_MASK)
+typedef struct {
+  volatile uint32_t *ctrlReg;
+  uint32_t           writeEnBit;
+  uint32_t           checkEnBit;
+  volatile uint32_t *ifClearReg;
+  uint32_t           ifClearMask;
+  uint32_t           base;
+  uint32_t           size;
+} MSC_EccBank_Typedef;
+#endif
+
+/*******************************************************************************
+ ******************************      LOCALS      *******************************
+ ******************************************************************************/
+#if defined(_MSC_ECCCTRL_MASK)
+static const MSC_EccBank_Typedef eccBank[MSC_ECC_BANKS] =
+{
+  { ECC_CTRL_REG_ADDR, ECC_RAM0_WRITE_EN, ECC_RAM0_CHECK_EN,
+    ECC_IFC_REG_ADDR, ECC_IFC_MASK,
+    ECC_RAM0_MEM_BASE, ECC_RAM0_MEM_SIZE },
+#if MSC_ECC_BANKS > 1
+  { ECC_CTRL_REG_ADDR, ECC_RAM1_WRITE_EN, ECC_RAM1_CHECK_EN,
+    ECC_IFC_REG_ADDR, ECC_IFC_MASK,
+    ECC_RAM1_MEM_BASE, ECC_RAM1_MEM_SIZE },
+#endif
+};
+#endif
+
+/*******************************************************************************
+ ******************************     FUNCTIONS     ******************************
+ ******************************************************************************/
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_WriteWordI(uint32_t *address,
                void const *data,
@@ -274,6 +350,228 @@ void MSC_ExecConfigSet(MSC_ExecConfig_TypeDef *execConfig)
 
   MSC->READCTRL = mscReadCtrl;
 }
+
+#if defined(_MSC_ECCCTRL_MASK)
+
+/***************************************************************************//**
+ * @brief
+ *    DMA read and write existing values (for ECC initializaion).
+ *
+ * @details
+ *    This function uses DMA to read and write the existing data values in
+ *    the RAM region specified by start and size. The function will use the
+ *    2 DMA channels specified by the channels[2] array.
+ *
+ * @param[in] start
+ *    Start address of address range in RAM to read/write.
+ *
+ * @param[in] size
+ *    Size of address range in RAM to read/write.
+ *
+ * @param[in] channels[2]
+ *    Array of 2 DMA channels to use.
+ ******************************************************************************/
+static void mscEccReadWriteExistingDma(uint32_t start,
+                                       uint32_t size,
+                                       uint32_t channels[2])
+{
+  uint32_t descCnt = 0;
+  uint32_t dmaDesc[ECC_DMA_DESCS][4];
+  uint32_t chMask = (1 << channels[0]) | (1 << channels[1]);
+  /* Assert that the 2 DMA channel numbers are different. */
+  EFM_ASSERT(channels[0] != channels[1]);
+
+  /* Make sure ECC_RAM_SIZE_MAX is a multiple of ECC_DMA_DESC_SIZE in order
+     to match the total xfer size of the descriptor chain with the largest
+     ECC RAM bank. */
+  EFM_ASSERT((ECC_RAM_SIZE_MAX % ECC_DMA_DESC_SIZE) == 0);
+
+  /* Initialize LDMA descriptor chain. */
+  do {
+    dmaDesc[descCnt][0] =                 /* DMA desc CTRL word */
+                          LDMA_CH_CTRL_STRUCTTYPE_TRANSFER
+                          | LDMA_CH_CTRL_STRUCTREQ
+                          | _LDMA_CH_CTRL_XFERCNT_MASK
+                          | LDMA_CH_CTRL_BLOCKSIZE_ALL
+                          | LDMA_CH_CTRL_REQMODE_ALL
+                          | LDMA_CH_CTRL_SRCINC_ONE
+                          | LDMA_CH_CTRL_SIZE_WORD
+                          | LDMA_CH_CTRL_DSTINC_ONE;
+
+    /* source and destination address */
+    dmaDesc[descCnt][1] = start;
+    dmaDesc[descCnt][2] = start;
+    /* link to next descriptor */
+    dmaDesc[descCnt][3] = LDMA_CH_LINK_LINK
+                          | (((uint32_t) &dmaDesc[descCnt + 1][0])
+                             & _LDMA_CH_LINK_LINKADDR_MASK);
+
+    start += ECC_DMA_DESC_SIZE;
+    size  -= ECC_DMA_DESC_SIZE;
+    descCnt++;
+  } while (size);
+
+  /* Now, divide the descriptor list in two parts, one for each channel,
+     by setting the link bit and address 0 of the descriptor in the middle
+     to 0. */
+  dmaDesc[(descCnt / 2) - 1][3] = 0;
+
+  /* Set last descriptor link bit and address to 0. */
+  dmaDesc[descCnt - 1][3] = 0;
+
+  /* Start the LDMA clock now */
+  CMU_ClockEnable(cmuClock_LDMA, true);
+
+  /* Round robin scheduling for all channels (0 = no fixed priority channels).
+   */
+  LDMA->CTRL    = 0 << _LDMA_CTRL_NUMFIXED_SHIFT;
+  LDMA->CHEN    = 0;
+  LDMA->DBGHALT = 0;
+  LDMA->REQDIS  = 0;
+
+  /* Disable LDMA interrupts, and clear interrupt status. */
+  LDMA->IEN = 0;
+  LDMA->IFC = 0xFFFFFFFF;
+
+  /* Disable looping */
+  LDMA->CH[channels[0]].LOOP = 0;
+  LDMA->CH[channels[1]].LOOP = 0;
+
+  /* Set descriptor address for first channel. */
+  LDMA->CH[channels[0]].LINK = ((uint32_t)&dmaDesc[0][0])
+                               & _LDMA_CH_LINK_LINKADDR_MASK;
+  /* Set descriptor address for second channel. */
+  LDMA->CH[channels[1]].LINK = ((uint32_t)&dmaDesc[descCnt / 2][0])
+                               & _LDMA_CH_LINK_LINKADDR_MASK;
+  /* Clear the channel done flags.  */
+  BUS_RegMaskedClear(&LDMA->CHDONE, chMask);
+
+  /* Start transfer by loading descriptors.  */
+  LDMA->LINKLOAD = chMask;
+
+  /* Wait until finished. */
+  while (!(((LDMA->CHEN & chMask) == 0)
+           && ((LDMA->CHDONE & chMask) == chMask))) {
+  }
+
+  /* Stop the LDMA clock now */
+  CMU_ClockEnable(cmuClock_LDMA, false);
+}
+
+/***************************************************************************//**
+ * @brief
+ *    Initialize ECC for a given memory bank.
+ *
+ * @brief
+ *    This function initializes ECC for a given memory bank which is specified
+ *    with the MSC_EccBank_Typedef structure input parameter.
+ *
+ * @param[in] eccBank
+ *    ECC memory bank device structure.
+ *
+ * @param[in] dmaChannels
+ *    Array of 2 DMA channels that may be used during ECC initialization.
+ *
+ ******************************************************************************/
+static void mscEccBankInit(const MSC_EccBank_Typedef *eccBank,
+                           uint32_t dmaChannels[2])
+{
+  uint32_t ctrlReg;
+
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+
+  /* Enable ECC write. Keep ECC checking disabled during initialization. */
+  ctrlReg  = *eccBank->ctrlReg;
+  ctrlReg |= 1 << eccBank->writeEnBit;
+  *eccBank->ctrlReg = ctrlReg;
+
+  /* Initialize ECC syndromes by using DMA to read and write the existing
+     data values in RAM. */
+  mscEccReadWriteExistingDma(eccBank->base, eccBank->size, dmaChannels);
+
+  /* Clear any ECC errors that may have been reported before or during
+     initialization. */
+  *eccBank->ifClearReg = eccBank->ifClearMask;
+
+  /* Enable ECC decoder to detect and report ECC errors. */
+  ctrlReg |= 1 << eccBank->checkEnBit;
+  *eccBank->ctrlReg = ctrlReg;
+
+  CORE_EXIT_CRITICAL();
+}
+
+/***************************************************************************//**
+ * @brief
+ *    Disable ECC for a given memory bank.
+ *
+ * @brief
+ *    This function disables ECC for a given memory bank which is specified
+ *    with the MSC_EccBank_Typedef structure input parameter.
+ *
+ * @param[in] eccBank
+ *    ECC memory bank device structure.
+ *
+ ******************************************************************************/
+static void mscEccBankDisable(const MSC_EccBank_Typedef *eccBank)
+{
+  /* Disable ECC write (encoder) and checking (decoder). */
+  *eccBank->ctrlReg &= ~((1 << eccBank->writeEnBit) | (1 << eccBank->checkEnBit));
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Configure Error Correcting Code (ECC)
+ *
+ * @details
+ *   This function configures ECC support according to the configuration
+ *   input parameter. If the user requests enabling ECC for a given RAM bank
+ *   this function will initialize ECC memory (syndromes) for the bank by
+ *   reading and writing the existing values in memory. I.e. all data is
+ *   preserved. The initialization process runs in a critical section
+ *   disallowing interrupts and thread scheduling, and will consume a
+ *   considerable amount of clock cycles. Therefore the user should carefully
+ *   assess where to call this function. The user can consider to increase
+ *   the clock frequency in order to reduce the execution time.
+ *   This function makes use of 2 DMA channels to move data to/from RAM in an
+ *   efficient way. The user can select which 2 DMA channels to use in order
+ *   to avoid conflicts with the application. However the user must make sure
+ *   that no other DMA operations takes place while this function is executing.
+ *   If the application has been using the DMA controller prior to calling this
+ *   function, the application will need to reinitialize DMA registers after
+ *   this function has completed.
+ *
+ * @note
+ *   This function protects the ECC initialization procedure from interrupts
+ *   and other threads by using a critical section (defined by em_core.h)
+ *   When running on RTOS the user may need to override CORE_EnterCritical
+ *   CORE_ExitCritical which are declared as 'SL_WEAK' in em_core.c.
+ *
+ * @param[in] eccConfig
+ *   ECC configuration
+ ******************************************************************************/
+void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig)
+{
+  unsigned int cnt;
+
+#if defined(_SILICON_LABS_32B_SERIES_1_CONFIG_1)
+  /* On Series 1 Config 1, aka EFM32GG11, disable ECC fault enable. */
+  MSC->CTRL &= ~MSC_CTRL_RAMECCERRFAULTEN;
+#endif
+
+  /* Loop through the ECC banks array, enable or disable according to
+     the eccConfig->enableEccBank array. */
+  for (cnt = 0; cnt < MSC_ECC_BANKS; cnt++) {
+    if (eccConfig->enableEccBank[cnt]) {
+      mscEccBankInit(&eccBank[cnt], eccConfig->dmaChannels);
+    } else {
+      mscEccBankDisable(&eccBank[cnt]);
+    }
+  }
+}
+
+#endif /* #if defined(_MSC_ECCCTRL_MASK) */
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
@@ -838,14 +1136,16 @@ MSC_Status_TypeDef MSC_MassErase(void)
   MSC->WRITECMD = MSC_WRITECMD_ERASEMAIN0;
 
   /* Waiting for erase to complete */
-  while ((MSC->STATUS & MSC_STATUS_BUSY)) ;
+  while ((MSC->STATUS & MSC_STATUS_BUSY) != 0U) {
+  }
 
 #if ((FLASH_SIZE >= (512 * 1024)) && defined(_MSC_WRITECMD_ERASEMAIN1_MASK))
   /* Erase second 512K block */
   MSC->WRITECMD = MSC_WRITECMD_ERASEMAIN1;
 
   /* Waiting for erase to complete */
-  while ((MSC->STATUS & MSC_STATUS_BUSY)) ;
+  while ((MSC->STATUS & MSC_STATUS_BUSY) != 0U) {
+  }
 #endif
 
   /* Restore mass erase lock */

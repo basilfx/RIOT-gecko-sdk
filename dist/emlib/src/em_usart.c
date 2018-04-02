@@ -2,10 +2,10 @@
  * @file em_usart.c
  * @brief Universal synchronous/asynchronous receiver/transmitter (USART/UART)
  *   Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -742,8 +742,8 @@ void USARTn_InitIrDA(USART_TypeDef *usart, const USART_InitIrDA_TypeDef *init)
   /* Configure IrDA */
   usart->IRCTRL |= (uint32_t)init->irPw
                    | (uint32_t)init->irPrsSel
-                   | ((uint32_t)init->irFilt << _USART_IRCTRL_IRFILT_SHIFT)
-                   | ((uint32_t)init->irPrsEn << _USART_IRCTRL_IRPRSEN_SHIFT);
+                   | ((init->irFilt ? 1UL : 0UL) << _USART_IRCTRL_IRFILT_SHIFT)
+                   | ((init->irPrsEn ? 1UL : 0UL) << _USART_IRCTRL_IRPRSEN_SHIFT);
 
   /* Enable IrDA */
   usart->IRCTRL |= USART_IRCTRL_IREN;
@@ -918,8 +918,8 @@ void USART_Reset(USART_TypeDef *usart)
  ******************************************************************************/
 uint8_t USART_Rx(USART_TypeDef *usart)
 {
-  while (!(usart->STATUS & USART_STATUS_RXDATAV))
-    ;
+  while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+  }
 
   return (uint8_t)usart->RXDATA;
 }
@@ -950,8 +950,8 @@ uint8_t USART_Rx(USART_TypeDef *usart)
  ******************************************************************************/
 uint16_t USART_RxDouble(USART_TypeDef *usart)
 {
-  while (!(usart->STATUS & USART_STATUS_RXFULL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+  }
 
   return (uint16_t)usart->RXDOUBLE;
 }
@@ -982,8 +982,8 @@ uint16_t USART_RxDouble(USART_TypeDef *usart)
  ******************************************************************************/
 uint32_t USART_RxDoubleExt(USART_TypeDef *usart)
 {
-  while (!(usart->STATUS & USART_STATUS_RXFULL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+  }
 
   return usart->RXDOUBLEX;
 }
@@ -1014,8 +1014,8 @@ uint32_t USART_RxDoubleExt(USART_TypeDef *usart)
  ******************************************************************************/
 uint16_t USART_RxExt(USART_TypeDef *usart)
 {
-  while (!(usart->STATUS & USART_STATUS_RXDATAV))
-    ;
+  while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+  }
 
   return (uint16_t)usart->RXDATAX;
 }
@@ -1041,11 +1041,11 @@ uint16_t USART_RxExt(USART_TypeDef *usart)
  ******************************************************************************/
 uint8_t USART_SpiTransfer(USART_TypeDef *usart, uint8_t data)
 {
-  while (!(usart->STATUS & USART_STATUS_TXBL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXBL)) {
+  }
   usart->TXDATA = (uint32_t)data;
-  while (!(usart->STATUS & USART_STATUS_TXC))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXC)) {
+  }
   return (uint8_t)usart->RXDATA;
 }
 
@@ -1075,8 +1075,8 @@ uint8_t USART_SpiTransfer(USART_TypeDef *usart, uint8_t data)
 void USART_Tx(USART_TypeDef *usart, uint8_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(usart->STATUS & USART_STATUS_TXBL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXBL)) {
+  }
   usart->TXDATA = (uint32_t)data;
 }
 
@@ -1110,8 +1110,8 @@ void USART_Tx(USART_TypeDef *usart, uint8_t data)
 void USART_TxDouble(USART_TypeDef *usart, uint16_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(usart->STATUS & USART_STATUS_TXBL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXBL)) {
+  }
   usart->TXDOUBLE = (uint32_t)data;
 }
 
@@ -1145,8 +1145,8 @@ void USART_TxDouble(USART_TypeDef *usart, uint16_t data)
 void USART_TxDoubleExt(USART_TypeDef *usart, uint32_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(usart->STATUS & USART_STATUS_TXBL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXBL)) {
+  }
   usart->TXDOUBLEX = data;
 }
 
@@ -1172,8 +1172,8 @@ void USART_TxDoubleExt(USART_TypeDef *usart, uint32_t data)
 void USART_TxExt(USART_TypeDef *usart, uint16_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(usart->STATUS & USART_STATUS_TXBL))
-    ;
+  while (!(usart->STATUS & USART_STATUS_TXBL)) {
+  }
   usart->TXDATAX = (uint32_t)data;
 }
 

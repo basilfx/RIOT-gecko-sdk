@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file
  * @brief Real Time Counter (RTCC) peripheral API.
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -663,7 +663,7 @@ void RTCC_StatusClear(void);
  ******************************************************************************/
 __STATIC_INLINE uint32_t RTCC_StatusGet(void)
 {
-  while ( RTCC->SYNCBUSY & RTCC_SYNCBUSY_CMD ) {
+  while ((RTCC->SYNCBUSY & RTCC_SYNCBUSY_CMD) != 0U) {
     // Wait for syncronization.
   }
   return RTCC->STATUS;

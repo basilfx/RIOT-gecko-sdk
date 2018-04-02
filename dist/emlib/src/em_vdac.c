@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_vdac.c
  * @brief Digital to Analog Converter (VDAC) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -180,13 +180,13 @@ void VDAC_Init(VDAC_TypeDef *vdac, const VDAC_Init_TypeDef *init)
     case vdacRef1V25:
     case vdacRefAvdd:
     case vdacRefExtPin:
-      tmp = (DEVINFO->VDAC0CH1CAL && _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1A_MASK)
+      tmp = (DEVINFO->VDAC0CH1CAL & _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1A_MASK)
             >> _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1A_SHIFT;
       break;
 
     case vdacRef2V5Ln:
     case vdacRef2V5:
-      tmp = (DEVINFO->VDAC0CH1CAL && _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1B_MASK)
+      tmp = (DEVINFO->VDAC0CH1CAL & _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1B_MASK)
             >> _DEVINFO_VDAC0CH1CAL_GAINERRTRIMCH1B_SHIFT;
       break;
   }

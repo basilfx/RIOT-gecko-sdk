@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_cmu.h
  * @brief Clock management unit (CMU) API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -70,8 +70,8 @@ extern "C" {
 #define CMU_QSPI0REFSEL_REG       11
 #define CMU_USBRCLKSEL_REG        12
 
-#define CMU_SEL_REG_POS            0
-#define CMU_SEL_REG_MASK           0xf
+#define CMU_SEL_REG_POS            0U
+#define CMU_SEL_REG_MASK           0xfU
 
 /* Divisor/prescaler register id's, for internal use. */
 #define CMU_NODIV_REG              0
@@ -89,9 +89,9 @@ extern "C" {
 #define CMU_LFEPRESC0_REG          8
 #define CMU_ADCASYNCDIV_REG        9
 
-#define CMU_PRESC_REG_POS          4
+#define CMU_PRESC_REG_POS          4U
 #define CMU_DIV_REG_POS            CMU_PRESC_REG_POS
-#define CMU_PRESC_REG_MASK         0xf
+#define CMU_PRESC_REG_MASK         0xfU
 #define CMU_DIV_REG_MASK           CMU_PRESC_REG_MASK
 
 /* Enable register id's, for internal use. */
@@ -112,12 +112,12 @@ extern "C" {
 #define CMU_HFPERCLKEN1_EN_REG     14
 #define CMU_USBRCLK_EN_REG         15
 
-#define CMU_EN_REG_POS             8
-#define CMU_EN_REG_MASK            0xf
+#define CMU_EN_REG_POS             8U
+#define CMU_EN_REG_MASK            0xfU
 
 /* Enable register bit positions, for internal use. */
-#define CMU_EN_BIT_POS             12
-#define CMU_EN_BIT_MASK            0x1f
+#define CMU_EN_BIT_POS             12U
+#define CMU_EN_BIT_MASK            0x1fU
 
 /* Clock branch bitfield positions, for internal use. */
 #define CMU_HF_CLK_BRANCH          0
@@ -148,12 +148,12 @@ extern "C" {
 #define CMU_QSPI0REF_CLK_BRANCH    26
 #define CMU_USBR_CLK_BRANCH        27
 
-#define CMU_CLK_BRANCH_POS         17
-#define CMU_CLK_BRANCH_MASK        0x1f
+#define CMU_CLK_BRANCH_POS         17U
+#define CMU_CLK_BRANCH_MASK        0x1fU
 
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
 /* Max clock frequency for VSCALE voltages */
-#define CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX     20000000
+#define CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX     20000000UL
 #endif
 
 #if defined(USB_PRESENT) && defined(_CMU_HFCORECLKEN0_USBC_MASK)
@@ -161,6 +161,10 @@ extern "C" {
 #endif
 #if defined(USB_PRESENT) && defined(_CMU_USBCTRL_MASK)
 #define USBR_CLOCK_PRESENT
+#endif
+
+#if defined(_CMU_STATUS_PLFRCOENS_MASK) && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_95)
+#define CMU_PLFRCO_PRESENT
 #endif
 
 /** @endcond */
@@ -300,8 +304,10 @@ typedef enum {
   cmuAUXHFRCOFreq_26M0Hz        = 26000000U,            /**< 26MHz RC band  */
   cmuAUXHFRCOFreq_32M0Hz        = 32000000U,            /**< 32MHz RC band  */
   cmuAUXHFRCOFreq_38M0Hz        = 38000000U,            /**< 38MHz RC band  */
-#if defined(_DEVINFO_AUXHFRCOCAL14_MASK)
+#if defined(_DEVINFO_AUXHFRCOCAL13_MASK)
   cmuAUXHFRCOFreq_48M0Hz        = 48000000U,            /**< 48MHz RC band  */
+#endif
+#if defined(_DEVINFO_AUXHFRCOCAL14_MASK)
   cmuAUXHFRCOFreq_50M0Hz        = 50000000U,            /**< 50MHz RC band  */
 #endif
   cmuAUXHFRCOFreq_UserDefined   = 0,
@@ -309,6 +315,8 @@ typedef enum {
 #define CMU_AUXHFRCO_MIN        cmuAUXHFRCOFreq_1M0Hz
 #if defined(_DEVINFO_AUXHFRCOCAL14_MASK)
 #define CMU_AUXHFRCO_MAX        cmuAUXHFRCOFreq_50M0Hz
+#elif defined(_DEVINFO_AUXHFRCOCAL13_MASK)
+#define CMU_AUXHFRCO_MAX        cmuAUXHFRCOFreq_48M0Hz
 #else
 #define CMU_AUXHFRCO_MAX        cmuAUXHFRCOFreq_38M0Hz
 #endif
@@ -1237,7 +1245,7 @@ typedef enum {
 #if defined(CMU_LFCLKSEL_LFAE_ULFRCO) || defined(CMU_LFACLKSEL_LFA_ULFRCO)
   cmuOsc_ULFRCO,   /**< Ultra low frequency RC oscillator. */
 #endif
-#if defined(_CMU_STATUS_PLFRCOENS_MASK)
+#if defined(CMU_PLFRCO_PRESENT)
   cmuOsc_PLFRCO,   /**< Precision Low Frequency Oscillator. */
 #endif
 } CMU_Osc_TypeDef;
@@ -1274,7 +1282,7 @@ typedef enum {
 #if defined(CMU_LFCLKSEL_LFAE_ULFRCO) || defined(CMU_LFACLKSEL_LFA_ULFRCO)
   cmuSelect_ULFRCO,                     /**< Ultra low frequency RC oscillator. */
 #endif
-#if defined(_CMU_STATUS_PLFRCOENS_MASK)
+#if defined(CMU_PLFRCO_PRESENT)
   cmuSelect_PLFRCO,                     /**< Precision Low Frequency Oscillator. */
 #endif
 } CMU_Select_TypeDef;
@@ -1580,7 +1588,7 @@ void                  CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDe
 uint32_t              CMU_ClockFreqGet(CMU_Clock_TypeDef clock);
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
-void                  CMU_ClockPrescSet(CMU_Clock_TypeDef clock, uint32_t presc);
+void                  CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc);
 uint32_t              CMU_ClockPrescGet(CMU_Clock_TypeDef clock);
 #endif
 
@@ -1601,8 +1609,10 @@ CMU_HFRCOFreq_TypeDef CMU_HFRCOBandGet(void);
 void                  CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq);
 #endif
 
+#if defined(_CMU_HFRCOCTRL_SUDELAY_MASK)
 uint32_t              CMU_HFRCOStartupDelayGet(void);
 void                  CMU_HFRCOStartupDelaySet(uint32_t delay);
+#endif
 
 #if defined(_CMU_USHFRCOCTRL_FREQRANGE_MASK)
 CMU_USHFRCOFreq_TypeDef CMU_USHFRCOBandGet(void);
@@ -1631,7 +1641,6 @@ bool CMU_OscillatorTuningOptimize(CMU_Osc_TypeDef osc,
                                   CMU_HFXOTuningMode_TypeDef mode,
                                   bool wait);
 #endif
-void                  CMU_UpdateWaitStates(uint32_t freq, int vscale);
 
 bool                  CMU_PCNTClockExternalGet(unsigned int instance);
 void                  CMU_PCNTClockExternalSet(unsigned int instance, bool external);
@@ -1652,7 +1661,7 @@ void                  CMU_UpdateWaitStates(uint32_t freq, int vscale);
  ******************************************************************************/
 __STATIC_INLINE void CMU_CalibrateCont(bool enable)
 {
-  BUS_RegBitWrite(&(CMU->CALCTRL), _CMU_CALCTRL_CONT_SHIFT, enable);
+  BUS_RegBitWrite(&CMU->CALCTRL, _CMU_CALCTRL_CONT_SHIFT, (uint32_t)enable);
 }
 #endif
 
@@ -1698,7 +1707,7 @@ __STATIC_INLINE uint32_t CMU_DivToLog2(CMU_ClkDiv_TypeDef div)
   EFM_ASSERT((div > 0U) && (div <= 32768U));
 
   /* Count leading zeroes and "reverse" result */
-  log2 = (31U - __CLZ(div));
+  log2 = 31UL - __CLZ(div);
 
   return log2;
 }
@@ -1835,7 +1844,8 @@ __STATIC_INLINE void CMU_Lock(void)
  ******************************************************************************/
 __STATIC_INLINE uint32_t CMU_Log2ToDiv(uint32_t log2)
 {
-  return 1 << log2;
+  EFM_ASSERT(log2 < 32U);
+  return 1UL << log2;
 }
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
@@ -1858,10 +1868,10 @@ __STATIC_INLINE uint32_t CMU_PrescToLog2(CMU_ClkPresc_TypeDef presc)
   EFM_ASSERT(presc < 32768U);
 
   /* Count leading zeroes and "reverse" result */
-  log2 = (31U - __CLZ(presc + 1));
+  log2 = 31UL - __CLZ(presc + (uint32_t) 1);
 
   /* Check that presc is a 2^n number */
-  EFM_ASSERT(presc == (CMU_Log2ToDiv(log2) - 1));
+  EFM_ASSERT(presc == (CMU_Log2ToDiv(log2) - 1U));
 
   return log2;
 }

@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_lcd.c
  * @brief Liquid Crystal Display (LCD) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2017 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -105,7 +105,7 @@ void LCD_Init(const LCD_Init_TypeDef *lcdInit)
 #endif
 #if defined(_SILICON_LABS_32B_SERIES_1)
   dispCtrl |= lcdInit->mode;
-  dispCtrl |= (lcdInit->chgrDst << _LCD_DISPCTRL_CHGRDST_SHIFT);
+  dispCtrl |= (lcdInit->chargeRedistribution);
 #endif
 
   /* Update display controller */

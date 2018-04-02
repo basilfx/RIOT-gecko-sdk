@@ -2,10 +2,10 @@
  * @file em_rmu.c
  * @brief Reset Management Unit (RMU) peripheral module peripheral API
  *
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -324,6 +324,9 @@ uint32_t RMU_ResetCauseGet(void)
         /* Fallthrough */
         case RMU_RSTCAUSE_EM4RST:
           zeroXMask |= RMU_RSTCAUSE_EXTRST;
+          break;
+        default:
+          /* MISRA requires default case */
           break;
       }
     }

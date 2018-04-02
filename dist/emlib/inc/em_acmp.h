@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_acmp.h
  * @brief Analog Comparator (ACMP) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -181,7 +181,7 @@ typedef enum {
  */
 typedef enum {
   acmpPowerSourceAvdd      = _ACMP_CTRL_PWRSEL_AVDD,    /**< Power the ACMP using the AVDD supply */
-  acmpPowerSourceVddVreg   = _ACMP_CTRL_PWRSEL_VREGVDD, /**< Power the ACMP using the VREGVDD supply */
+  acmpPowerSourceDvdd      = _ACMP_CTRL_PWRSEL_DVDD,    /**< Power the ACMP using the DVDD supply */
   acmpPowerSourceIOVdd0    = _ACMP_CTRL_PWRSEL_IOVDD0,  /**< Power the ACMP using the IOVDD/IOVDD0 supply */
   acmpPowerSourceIOVdd1    = _ACMP_CTRL_PWRSEL_IOVDD1,  /**< Power the ACMP using the IOVDD1 supply (if part has two I/O voltages) */
 } ACMP_PowerSource_TypeDef;

@@ -2,10 +2,10 @@
  * @file em_wdog.c
  * @brief Watchdog (WDOG) peripheral API
  *   devices.
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -84,8 +84,8 @@ void WDOGn_Enable(WDOG_TypeDef *wdog, bool enable)
     if (BUS_RegBitRead(&wdog->CTRL, _WDOG_CTRL_EN_SHIFT)) {
       /* Wait for any pending previous write operation to have been completed in */
       /* low frequency domain */
-      while (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL)
-        ;
+      while ( (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL) != 0U ) {
+      }
 
       BUS_RegBitWrite(&wdog->CTRL, _WDOG_CTRL_EN_SHIFT, 0);
     }
@@ -122,8 +122,8 @@ void WDOGn_Feed(WDOG_TypeDef *wdog)
   }
   /* Before writing to the WDOG_CMD register we also need to make sure that
    * any previous write to WDOG_CTRL is complete. */
-  while ( wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL )
-    ;
+  while ( (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL) != 0U ) {
+  }
 
   wdog->CMD = WDOG_CMD_CLEAR;
 }
@@ -193,8 +193,8 @@ void WDOGn_Init(WDOG_TypeDef *wdog, const WDOG_Init_TypeDef *init)
 
   /* Wait for any pending previous write operation to have been completed in */
   /* low frequency domain */
-  while (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL)
-    ;
+  while ( (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL) != 0U ) {
+  }
 
   wdog->CTRL = setting;
 }
@@ -224,8 +224,8 @@ void WDOGn_Lock(WDOG_TypeDef *wdog)
 {
   /* Wait for any pending previous write operation to have been completed in */
   /* low frequency domain */
-  while (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL)
-    ;
+  while ( (wdog->SYNCBUSY & WDOG_SYNCBUSY_CTRL) != 0U ) {
+  }
 
   /* Disable writing to the control register */
   BUS_RegBitWrite(&wdog->CTRL, _WDOG_CTRL_LOCK_SHIFT, 1);

@@ -1,4 +1,25 @@
 ================ Revision history ============================================
+5.4.0:
+ - em_lcd: Added support for dynamic charge distribution to save power when
+   using the LCD peripheral on Series 1 devices.
+ - em_msc: Added support for ECC memory initialization using the function
+   MSC_EccConfigSet().
+ - em_core: Fixed bug in assert statement in CORE_InitNvicVectorTable().
+ - em_emu: Remove switch to bypass mode when entering EM4S on devices that do 
+   this automatically in hardware.
+ - em_emu: Fixed hardware bug when switching to EM4S when powering analog 
+   peripherals from DVDD. This bugfix is active for EFM32GG11 and EFM32TG11.
+ - em_leuart: Ensure that RX/TX is disabled when configuring RX/TX DMA wakeup.
+ - em_cmu: Fixed bug with wait state handling when MSC is locked.
+ - em_acmp: Renamed ACMP_CTRL_PWRSEL_VREGVDD to ACMP_CTRL_PWRSEL_DVDD.
+
+5.3.5:
+ - em_vdac: Fixed bug when fetching GAINERRTRIM calibration value.
+ - em_cmu: Fixed bug when tuning HFXO for external clock usage.
+
+5.3.4:
+ - Changes to move code towards MISRAC 2012 compliance.
+
 5.3.3
  - em_cmu: 48 MHz HFRCO band selectable for devices that support it.
  - em_emu: Added macro guards for BU mode functionality for series 0 devices.
@@ -6,15 +27,15 @@
 5.3.2
  - No changes.
 
-5.3.1
+5.3.1:
  - em_opamp: Corrected reload of default calibration trims in OPAMP_Enable()
    for Series 0.
- - em_core: Fixed invalid parameter in CORE_YIELD_CRITICAL and 
-   CORE_YIELD_ATOMIC macros.            
+ - em_core: Fixed invalid parameter in CORE_YIELD_CRITICAL and
+   CORE_YIELD_ATOMIC macros.
 
-5.3.0
+5.3.0:
  - em_chip: Updated PLFRCO tuning values.
- - em_can: Fixed ID filter mask bug. 
+ - em_can: Fixed ID filter mask bug.
  - em_gpio: Doc updates.
  - em_gpio: Fixed bug in GPIO pin validation to enable PD9 on BGM121 modules.
  - em_ldma: Added missing signals for EFM32GG11.

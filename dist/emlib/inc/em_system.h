@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_system.h
  * @brief System API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -101,12 +101,6 @@ typedef enum {
 #endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32JG12B)
   systemPartFamilyEfm32Jade12B  = _DEVINFO_PART_DEVICE_FAMILY_EFM32JG12B, /**< EFM32 Jade Gecko Series 1 Config 2 Basic Device Family */
-#endif
-#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32PG13B)
-  systemPartFamilyEfm32Pearl13B = _DEVINFO_PART_DEVICE_FAMILY_EFM32PG13B, /**< EFM32 Pearl Gecko Series 1 Config 3 Basic Device Family */
-#endif
-#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32JG13B)
-  systemPartFamilyEfm32Jade13B  = _DEVINFO_PART_DEVICE_FAMILY_EFM32JG13B, /**< EFM32 Jade Gecko Series 1 Config 3 Basic Device Family */
 #endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EZR32WG)
   systemPartFamilyEzr32Wonder  = _DEVINFO_PART_DEVICE_FAMILY_EZR32WG,     /**< EZR32 Wonder Device Family */
@@ -302,7 +296,7 @@ bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress);
  ******************************************************************************/
 __STATIC_INLINE void SYSTEM_FpuAccessModeSet(SYSTEM_FpuAccess_TypeDef accessMode)
 {
-  SCB->CPACR = (SCB->CPACR & ~(0xF << 20)) | accessMode;
+  SCB->CPACR = (SCB->CPACR & ~(0xFUL << 20)) | (uint32_t)accessMode;
 }
 #endif
 
@@ -328,8 +322,8 @@ __STATIC_INLINE uint64_t SYSTEM_GetUnique(void)
  ******************************************************************************/
 __STATIC_INLINE uint8_t SYSTEM_GetProdRev(void)
 {
-  return (DEVINFO->PART & _DEVINFO_PART_PROD_REV_MASK)
-         >> _DEVINFO_PART_PROD_REV_SHIFT;
+  return (uint8_t)((DEVINFO->PART & _DEVINFO_PART_PROD_REV_MASK)
+                   >> _DEVINFO_PART_PROD_REV_SHIFT);
 }
 
 /***************************************************************************//**
@@ -355,8 +349,8 @@ __STATIC_INLINE uint16_t SYSTEM_GetSRAMSize(void)
              >> _DEVINFO_MSIZE_FLASH_SHIFT;
   }
 #endif
-  sizekb = (DEVINFO->MSIZE & _DEVINFO_MSIZE_SRAM_MASK)
-           >> _DEVINFO_MSIZE_SRAM_SHIFT;
+  sizekb = (uint16_t)((DEVINFO->MSIZE & _DEVINFO_MSIZE_SRAM_MASK)
+                      >> _DEVINFO_MSIZE_SRAM_SHIFT);
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80) && defined(_EFR_DEVICE)
   /* Do not include EFR32xG1 RAMH */
@@ -387,8 +381,8 @@ __STATIC_INLINE uint16_t SYSTEM_GetFlashSize(void)
            >> _DEVINFO_MSIZE_SRAM_SHIFT;
   }
 #endif
-  return (DEVINFO->MSIZE & _DEVINFO_MSIZE_FLASH_MASK)
-         >> _DEVINFO_MSIZE_FLASH_SHIFT;
+  return (uint16_t)((DEVINFO->MSIZE & _DEVINFO_MSIZE_FLASH_MASK)
+                    >> _DEVINFO_MSIZE_FLASH_SHIFT);
 }
 
 /***************************************************************************//**
@@ -424,7 +418,7 @@ __STATIC_INLINE uint32_t SYSTEM_GetFlashPageSize(void)
   tmp = (DEVINFO->MEMINFO & _DEVINFO_MEMINFO_FLASH_PAGE_SIZE_MASK)
         >> _DEVINFO_MEMINFO_FLASH_PAGE_SIZE_SHIFT;
 
-  return 1 << ((tmp + 10) & 0xFF);
+  return 1UL << ((tmp + 10UL) & 0x1FUL);
 }
 
 #if defined(_DEVINFO_DEVINFOREV_DEVINFOREV_MASK)
@@ -437,8 +431,8 @@ __STATIC_INLINE uint32_t SYSTEM_GetFlashPageSize(void)
  ******************************************************************************/
 __STATIC_INLINE uint8_t SYSTEM_GetDevinfoRev(void)
 {
-  return (DEVINFO->DEVINFOREV & _DEVINFO_DEVINFOREV_DEVINFOREV_MASK)
-         >> _DEVINFO_DEVINFOREV_DEVINFOREV_SHIFT;
+  return (uint8_t)((DEVINFO->DEVINFOREV & _DEVINFO_DEVINFOREV_DEVINFOREV_MASK)
+                   >> _DEVINFO_DEVINFOREV_DEVINFOREV_SHIFT);
 }
 #endif
 
@@ -451,8 +445,8 @@ __STATIC_INLINE uint8_t SYSTEM_GetDevinfoRev(void)
  ******************************************************************************/
 __STATIC_INLINE uint16_t SYSTEM_GetPartNumber(void)
 {
-  return (DEVINFO->PART & _DEVINFO_PART_DEVICE_NUMBER_MASK)
-         >> _DEVINFO_PART_DEVICE_NUMBER_SHIFT;
+  return (uint16_t)((DEVINFO->PART & _DEVINFO_PART_DEVICE_NUMBER_MASK)
+                    >> _DEVINFO_PART_DEVICE_NUMBER_SHIFT);
 }
 
 /***************************************************************************//**
@@ -471,9 +465,9 @@ __STATIC_INLINE uint16_t SYSTEM_GetPartNumber(void)
  ******************************************************************************/
 __STATIC_INLINE SYSTEM_PartFamily_TypeDef SYSTEM_GetFamily(void)
 {
-  return (SYSTEM_PartFamily_TypeDef)
-         ((DEVINFO->PART & _DEVINFO_PART_DEVICE_FAMILY_MASK)
-          >> _DEVINFO_PART_DEVICE_FAMILY_SHIFT);
+  return (SYSTEM_PartFamily_TypeDef)((uint32_t)(
+                                       (DEVINFO->PART & _DEVINFO_PART_DEVICE_FAMILY_MASK)
+                                       >> _DEVINFO_PART_DEVICE_FAMILY_SHIFT));
 }
 
 /***************************************************************************//**
@@ -485,8 +479,8 @@ __STATIC_INLINE SYSTEM_PartFamily_TypeDef SYSTEM_GetFamily(void)
  ******************************************************************************/
 __STATIC_INLINE uint8_t SYSTEM_GetCalibrationTemperature(void)
 {
-  return (DEVINFO->CAL & _DEVINFO_CAL_TEMP_MASK)
-         >> _DEVINFO_CAL_TEMP_SHIFT;
+  return (uint8_t)((DEVINFO->CAL & _DEVINFO_CAL_TEMP_MASK)
+                   >> _DEVINFO_CAL_TEMP_SHIFT);
 }
 
 /** @} (end addtogroup SYSTEM) */

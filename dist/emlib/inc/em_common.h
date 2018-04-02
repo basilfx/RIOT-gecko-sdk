@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_common.h
  * @brief General purpose utilities.
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -85,6 +85,15 @@ extern "C" {
  * @{
  ******************************************************************************/
 
+/** @brief Round n up to closest interval of i. */
+#define SL_CEILING(n, i)   ((((n) + (i) - 1U) / (i)) * (i))
+
+/** @brief Round n down to closest interval of i. */
+#define SL_FLOOR(n, i) ((n / i) * i))
+
+/** @brief Stringify X */
+#define STRINGIZE(X) #X
+
 #if !defined(__GNUC__)
 /* Not GCC compilers */
 
@@ -95,7 +104,6 @@ extern "C" {
 #define SL_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 /** @brief Macros for handling packed structs. */
-#define STRINGIZE(X) #X
 #define SL_PACK_START(X) _Pragma(STRINGIZE(pack(X)))
 #define SL_PACK_END()    _Pragma("pack()")
 #define SL_ATTRIBUTE_PACKED
@@ -131,6 +139,10 @@ extern "C" {
 /* *INDENT-ON* */
 
 #define SL_ATTRIBUTE_ALIGN(X)
+
+/** @brief Macro for notifying the compiler of an intended
+ *  switch case fallthrough. */
+#define SL_FALLTHROUGH
 
 #else // !defined(__GNUC__)
 /* GCC compilers */
@@ -180,6 +192,14 @@ extern "C" {
  *  @n X denotes the section to place the variable in.
  */
 #define SL_ATTRIBUTE_SECTION(X) __attribute__ ((section(X)))
+
+/** @brief Macro for notifying the compiler of an intended
+ *  switch case fallthrough. */
+#if __GNUC__ >= 7
+  #define SL_FALLTHROUGH __attribute__ ((fallthrough));
+#else
+  #define SL_FALLTHROUGH
+#endif
 
 #endif // !defined(__GNUC__)
 

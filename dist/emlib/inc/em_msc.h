@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_msc.h
  * @brief Flash controller (MSC) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -168,6 +168,33 @@ typedef struct {
     false,                     \
     false,                     \
   }
+
+#if defined(_MSC_ECCCTRL_MASK)
+
+#if defined(_SILICON_LABS_32B_SERIES_1_CONFIG_1)
+/** Number of memory banks including ECC support. */
+#define MSC_ECC_BANKS  (2)
+/** Default MSC EccConfig initialization */
+#define MSC_ECCCONFIG_DEFAULT \
+  {                           \
+    { false, false },         \
+    { 0, 1 },                 \
+  }
+#else
+#error Device not supported.
+#endif
+
+/** ECC configuration */
+typedef struct {
+  bool     enableEccBank[MSC_ECC_BANKS]; /**< Array of bools to enable/disable
+                                            Error Correcting Code (ECC) for
+                                            each RAM bank that supports ECC on
+                                            the device. */
+  uint32_t dmaChannels[2];               /**< Array of 2 DMA channel numbers to
+                                            use for ECC initialization. */
+} MSC_EccConfig_TypeDef;
+
+#endif /* #if defined(_MSC_ECCCTRL_MASK) */
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 /* Deprecated type names */
@@ -432,6 +459,9 @@ __STATIC_INLINE void MSC_BusStrategy(mscBusStrategy_Typedef mode)
 void MSC_Init(void);
 void MSC_Deinit(void);
 void MSC_ExecConfigSet(MSC_ExecConfig_TypeDef *execConfig);
+#if defined(_MSC_ECCCTRL_MASK)
+void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig);
+#endif
 
 #if defined(EM_MSC_RUN_FROM_FLASH)
 /** @brief Expands to @ref SL_RAMFUNC_DECLARATOR if @ref EM_MSC_RUN_FROM_FLASH is undefined and to nothing if @ref EM_MSC_RUN_FROM_FLASH is defined. */

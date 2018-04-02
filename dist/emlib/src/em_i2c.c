@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_i2c.c
  * @brief Inter-integrated Circuit (I2C) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -267,6 +267,9 @@ void I2C_BusFreqSet(I2C_TypeDef *i2c,
 #elif defined(_SILICON_LABS_32B_SERIES_1)
         minFreq = 14000000; break;
 #endif
+      default:
+        /* MISRA requires default case */
+        break;
     }
   } else {
     /* For master mode, platform 1 and 2 share the same
@@ -278,6 +281,9 @@ void I2C_BusFreqSet(I2C_TypeDef *i2c,
         minFreq = 9000000; break;
       case i2cClockHLRFast:
         minFreq = 20000000; break;
+      default:
+        /* MISRA requires default case */
+        break;
     }
   }
 

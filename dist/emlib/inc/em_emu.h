@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_emu.h
  * @brief Energy management unit (EMU) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -745,7 +745,7 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit);
 void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode);
 void EMU_DCDCConductionModeSet(EMU_DcdcConductionMode_TypeDef conductionMode, bool rcoDefaultSet);
 bool EMU_DCDCOutputVoltageSet(uint32_t mV, bool setLpVoltage, bool setLnVoltage);
-void EMU_DCDCOptimizeSlice(uint32_t mALoadCurrent);
+void EMU_DCDCOptimizeSlice(uint32_t em0LoadCurrentmA);
 void EMU_DCDCLnRcoBandSet(EMU_DcdcLnRcoBand_TypeDef band);
 bool EMU_DCDCPowerOff(void);
 #endif
@@ -774,7 +774,8 @@ __STATIC_INLINE void EMU_EnterEM1(void)
  ******************************************************************************/
 __STATIC_INLINE void EMU_VScaleWait(void)
 {
-  while (BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VSCALEBUSY_SHIFT)) ;
+  while (BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VSCALEBUSY_SHIFT) != 0U) {
+  }
 }
 #endif
 
@@ -789,8 +790,9 @@ __STATIC_INLINE void EMU_VScaleWait(void)
 __STATIC_INLINE EMU_VScaleEM01_TypeDef EMU_VScaleGet(void)
 {
   EMU_VScaleWait();
-  return (EMU_VScaleEM01_TypeDef)((EMU->STATUS & _EMU_STATUS_VSCALE_MASK)
-                                  >> _EMU_STATUS_VSCALE_SHIFT);
+  return (EMU_VScaleEM01_TypeDef)((uint32_t)
+                                  ((EMU->STATUS & _EMU_STATUS_VSCALE_MASK)
+                                   >> _EMU_STATUS_VSCALE_SHIFT));
 }
 #endif
 
@@ -805,7 +807,7 @@ __STATIC_INLINE EMU_VScaleEM01_TypeDef EMU_VScaleGet(void)
  ******************************************************************************/
 __STATIC_INLINE bool EMU_VmonStatusGet(void)
 {
-  return BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VMONRDY_SHIFT);
+  return BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VMONRDY_SHIFT) != 0U;
 }
 #endif /* _EMU_STATUS_VMONRDY_MASK */
 

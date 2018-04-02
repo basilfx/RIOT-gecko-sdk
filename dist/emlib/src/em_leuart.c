@@ -2,10 +2,10 @@
  * @file em_leuart.c
  * @brief Low Energy Universal Asynchronous Receiver/Transmitter (LEUART)
  *   Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -99,8 +99,8 @@ __STATIC_INLINE void LEUART_Sync(LEUART_TypeDef *leuart, uint32_t mask)
 
   /* Wait for any pending previous write operation to have been completed */
   /* in low frequency domain */
-  while (leuart->SYNCBUSY & mask)
-    ;
+  while ((leuart->SYNCBUSY & mask) != 0U) {
+  }
 }
 
 /** @endcond */
@@ -401,8 +401,8 @@ void LEUART_FreezeEnable(LEUART_TypeDef *leuart, bool enable)
      * since modifying a register while it is in sync progress should be
      * avoided.
      */
-    while (leuart->SYNCBUSY)
-      ;
+    while (leuart->SYNCBUSY != 0U) {
+    }
 
     leuart->FREEZE = LEUART_FREEZE_REGFREEZE;
   } else {
@@ -531,8 +531,8 @@ void LEUART_Reset(LEUART_TypeDef *leuart)
  ******************************************************************************/
 uint8_t LEUART_Rx(LEUART_TypeDef *leuart)
 {
-  while (!(leuart->STATUS & LEUART_STATUS_RXDATAV))
-    ;
+  while (!(leuart->STATUS & LEUART_STATUS_RXDATAV)) {
+  }
 
   return (uint8_t)leuart->RXDATA;
 }
@@ -556,8 +556,8 @@ uint8_t LEUART_Rx(LEUART_TypeDef *leuart)
  ******************************************************************************/
 uint16_t LEUART_RxExt(LEUART_TypeDef *leuart)
 {
-  while (!(leuart->STATUS & LEUART_STATUS_RXDATAV))
-    ;
+  while (!(leuart->STATUS & LEUART_STATUS_RXDATAV)) {
+  }
 
   return (uint16_t)leuart->RXDATAX;
 }
@@ -588,8 +588,8 @@ uint16_t LEUART_RxExt(LEUART_TypeDef *leuart)
 void LEUART_Tx(LEUART_TypeDef *leuart, uint8_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(leuart->STATUS & LEUART_STATUS_TXBL))
-    ;
+  while (!(leuart->STATUS & LEUART_STATUS_TXBL)) {
+  }
 
   /* LF register about to be modified require sync. busy check */
   LEUART_Sync(leuart, LEUART_SYNCBUSY_TXDATA);
@@ -619,8 +619,8 @@ void LEUART_Tx(LEUART_TypeDef *leuart, uint8_t data)
 void LEUART_TxExt(LEUART_TypeDef *leuart, uint16_t data)
 {
   /* Check that transmit buffer is empty */
-  while (!(leuart->STATUS & LEUART_STATUS_TXBL))
-    ;
+  while (!(leuart->STATUS & LEUART_STATUS_TXBL)) {
+  }
 
   /* LF register about to be modified require sync. busy check */
   LEUART_Sync(leuart, LEUART_SYNCBUSY_TXDATAX);
@@ -643,12 +643,22 @@ void LEUART_TxExt(LEUART_TypeDef *leuart, uint16_t data)
 void LEUART_TxDmaInEM2Enable(LEUART_TypeDef *leuart, bool enable)
 {
   /* LF register about to be modified require sync. busy check */
-  LEUART_Sync(leuart, LEUART_SYNCBUSY_CTRL);
+  LEUART_Sync(leuart, LEUART_SYNCBUSY_CTRL | LEUART_SYNCBUSY_CMD);
+  bool txEnabled = (leuart->STATUS & _LEUART_STATUS_TXENS_MASK) != 0;
+
+  if (txEnabled) {
+    leuart->CMD = LEUART_CMD_TXDIS;
+    LEUART_Sync(leuart, LEUART_SYNCBUSY_CMD);
+  }
 
   if (enable) {
     leuart->CTRL |= LEUART_CTRL_TXDMAWU;
   } else {
     leuart->CTRL &= ~LEUART_CTRL_TXDMAWU;
+  }
+
+  if (txEnabled) {
+    leuart->CMD = LEUART_CMD_TXEN;
   }
 }
 
@@ -667,12 +677,22 @@ void LEUART_TxDmaInEM2Enable(LEUART_TypeDef *leuart, bool enable)
 void LEUART_RxDmaInEM2Enable(LEUART_TypeDef *leuart, bool enable)
 {
   /* LF register about to be modified require sync. busy check */
-  LEUART_Sync(leuart, LEUART_SYNCBUSY_CTRL);
+  LEUART_Sync(leuart, LEUART_SYNCBUSY_CTRL | LEUART_SYNCBUSY_CMD);
+  bool rxEnabled = (leuart->STATUS & _LEUART_STATUS_RXENS_MASK) != 0;
+
+  if (rxEnabled) {
+    leuart->CMD = LEUART_CMD_RXDIS;
+    LEUART_Sync(leuart, LEUART_SYNCBUSY_CMD);
+  }
 
   if (enable) {
     leuart->CTRL |= LEUART_CTRL_RXDMAWU;
   } else {
     leuart->CTRL &= ~LEUART_CTRL_RXDMAWU;
+  }
+
+  if (rxEnabled) {
+    leuart->CMD = LEUART_CMD_RXEN;
   }
 }
 

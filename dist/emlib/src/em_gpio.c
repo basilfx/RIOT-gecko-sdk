@@ -2,10 +2,10 @@
  * @file em_gpio.c
  * @brief General Purpose IO (GPIO) peripheral API
  *   devices.
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -85,6 +85,11 @@ void GPIO_DbgLocationSet(unsigned int location)
 
   GPIO->ROUTE = (GPIO->ROUTE & ~_GPIO_ROUTE_SWLOCATION_MASK)
                 | (location << _GPIO_ROUTE_SWLOCATION_SHIFT);
+#elif defined (_GPIO_ROUTELOC0_SWVLOC_MASK)
+  EFM_ASSERT(location < AFCHANLOC_MAX);
+
+  GPIO->ROUTELOC0 = (GPIO->ROUTELOC0 & ~_GPIO_ROUTELOC0_SWVLOC_MASK)
+                    | (location << _GPIO_ROUTELOC0_SWVLOC_SHIFT);
 #else
   (void)location;
 #endif

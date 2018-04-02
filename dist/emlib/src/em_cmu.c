@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_cmu.c
  * @brief Clock management unit (CMU) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -127,7 +127,7 @@
 #if defined(_SILICON_LABS_32B_SERIES_0) \
   && (defined(_EFM32_WONDER_FAMILY)     \
   || defined(_EZR32_WONDER_FAMILY))
-#define CMU_MAX_FREQ_HFLE                       24000000
+#define CMU_MAX_FREQ_HFLE                       24000000UL
 /** Maximum HFLE frequency for other series 0 parts with maximum core clock
     higher than 32MHz. */
 #elif defined(_SILICON_LABS_32B_SERIES_0) \
@@ -137,7 +137,7 @@
 #endif
 #elif defined(CMU_CTRL_WSHFLE)
 /** Maximum HFLE frequency for series 1 parts */
-#define CMU_MAX_FREQ_HFLE                       32000000
+#define CMU_MAX_FREQ_HFLE                       32000000UL
 #endif
 
 #if defined(CMU_STATUS_HFXOSHUNTOPTRDY)
@@ -183,38 +183,38 @@ static const struct hfrcoCtrlTableElement{
 } hfrcoCtrlTable[] =
 {
   // minFreq  maxFreq   HFRCOCTRL value  band
-  {  860000, 1050000, 0xBC601F00, cmuHFRCOFreq_1M0Hz       },
-  { 1050000, 1280000, 0xBC611F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 1280000, 1480000, 0xBCA21F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 1480000, 1800000, 0xAD231F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 1800000, 2110000, 0xBA601F00, cmuHFRCOFreq_2M0Hz       },
-  { 2110000, 2560000, 0xBA611F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 2560000, 2970000, 0xBAA21F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 2970000, 3600000, 0xAB231F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 3600000, 4220000, 0xB8601F00, cmuHFRCOFreq_4M0Hz       },
-  { 4220000, 5120000, 0xB8611F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 5120000, 5930000, 0xB8A21F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 5930000, 7520000, 0xA9231F00, cmuHFRCOFreq_7M0Hz       },
-  { 7520000, 9520000, 0x99241F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 9520000, 11800000, 0x99251F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 11800000, 14400000, 0x99261F00, cmuHFRCOFreq_13M0Hz      },
-  { 14400000, 17200000, 0x99271F00, cmuHFRCOFreq_16M0Hz      },
-  { 17200000, 19700000, 0x99481F00, cmuHFRCOFreq_19M0Hz      },
-  { 19700000, 23800000, 0x99491F35, (CMU_HFRCOFreq_TypeDef)0 },
-  { 23800000, 28700000, 0x994A1F00, cmuHFRCOFreq_26M0Hz      },
-  { 28700000, 34800000, 0x996B1F00, cmuHFRCOFreq_32M0Hz      },
+  {  860000UL, 1050000UL, 0xBC601F00UL, cmuHFRCOFreq_1M0Hz       },
+  { 1050000UL, 1280000UL, 0xBC611F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 1280000UL, 1480000UL, 0xBCA21F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 1480000UL, 1800000UL, 0xAD231F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 1800000UL, 2110000UL, 0xBA601F00UL, cmuHFRCOFreq_2M0Hz       },
+  { 2110000UL, 2560000UL, 0xBA611F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 2560000UL, 2970000UL, 0xBAA21F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 2970000UL, 3600000UL, 0xAB231F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 3600000UL, 4220000UL, 0xB8601F00UL, cmuHFRCOFreq_4M0Hz       },
+  { 4220000UL, 5120000UL, 0xB8611F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 5120000UL, 5930000UL, 0xB8A21F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 5930000UL, 7520000UL, 0xA9231F00UL, cmuHFRCOFreq_7M0Hz       },
+  { 7520000UL, 9520000UL, 0x99241F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 9520000UL, 11800000UL, 0x99251F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 11800000UL, 14400000UL, 0x99261F00UL, cmuHFRCOFreq_13M0Hz     },
+  { 14400000UL, 17200000UL, 0x99271F00UL, cmuHFRCOFreq_16M0Hz     },
+  { 17200000UL, 19700000UL, 0x99481F00UL, cmuHFRCOFreq_19M0Hz     },
+  { 19700000UL, 23800000UL, 0x99491F35UL, (CMU_HFRCOFreq_TypeDef)0 },
+  { 23800000UL, 28700000UL, 0x994A1F00UL, cmuHFRCOFreq_26M0Hz      },
+  { 28700000UL, 34800000UL, 0x996B1F00UL, cmuHFRCOFreq_32M0Hz      },
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_84)  \
   || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_89) \
   || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_95)
-  { 34800000, 40000000, 0x996C1F00, cmuHFRCOFreq_38M0Hz      }
+  { 34800000UL, 40000000UL, 0x996C1F00UL, cmuHFRCOFreq_38M0Hz      }
 #elif defined(_SILICON_LABS_GECKO_INTERNAL_SDID_100)
-  { 34800000, 42800000, 0x996C1F00, cmuHFRCOFreq_38M0Hz      },
-  { 42800000, 51600000, 0x996D1F00, cmuHFRCOFreq_48M0Hz      },
-  { 51600000, 60500000, 0x998E1F00, cmuHFRCOFreq_56M0Hz      },
-  { 60500000, 72000000, 0xA98F1F00, cmuHFRCOFreq_64M0Hz      }
+  { 34800000UL, 42800000UL, 0x996C1F00UL, cmuHFRCOFreq_38M0Hz      },
+  { 42800000UL, 51600000UL, 0x996D1F00UL, cmuHFRCOFreq_48M0Hz      },
+  { 51600000UL, 60500000UL, 0x998E1F00UL, cmuHFRCOFreq_56M0Hz      },
+  { 60500000UL, 72000000UL, 0xA98F1F00UL, cmuHFRCOFreq_64M0Hz      }
 #elif defined(_SILICON_LABS_GECKO_INTERNAL_SDID_103)
-  { 34800000, 42800000, 0x996C1F00, cmuHFRCOFreq_38M0Hz      },
-  { 42800000, 48000000, 0x996D1F00, cmuHFRCOFreq_48M0Hz      }
+  { 34800000UL, 42800000UL, 0x996C1F00UL, cmuHFRCOFreq_38M0Hz      },
+  { 42800000UL, 48000000UL, 0x996D1F00UL, cmuHFRCOFreq_48M0Hz      }
 #else
   #error "HFRCOCTRL values not set for this platform."
 #endif
@@ -352,7 +352,7 @@ static void setHfLeConfig(uint32_t hfFreq)
 
   /* Check for 1 bit fields. @ref BUS_RegBitWrite() below are going to fail if the
      fields are changed to more than 1 bit. */
-  EFM_ASSERT((_GENERIC_HFLE_WS_MASK >> _GENERIC_HFLE_WS_SHIFT) == 0x1);
+  EFM_ASSERT((_GENERIC_HFLE_WS_MASK >> _GENERIC_HFLE_WS_SHIFT) == 0x1U);
 
   /* - Enable HFLE wait-state if to allow access to LE peripherals when HFBUSCLK is
        above maxLeFreq.
@@ -362,7 +362,7 @@ static void setHfLeConfig(uint32_t hfFreq)
   if (hfFreq <= CMU_MAX_FREQ_HFLE) {
     hfleWs = 0;
     hflePresc = 0;
-  } else if (hfFreq <= (2 * CMU_MAX_FREQ_HFLE)) {
+  } else if (hfFreq <= (2UL * CMU_MAX_FREQ_HFLE)) {
     hflePresc = 1;
   } else {
     hflePresc = 2;
@@ -401,7 +401,7 @@ static uint32_t auxClkGet(void)
   uint32_t ret;
 
 #if defined(_CMU_AUXHFRCOCTRL_FREQRANGE_MASK)
-  ret = auxHfrcoFreq;
+  ret = (uint32_t)auxHfrcoFreq;
 
 #elif defined(_CMU_AUXHFRCOCTRL_BAND_MASK)
   /* All series 0 families except EFM32G */
@@ -441,8 +441,8 @@ static uint32_t auxClkGet(void)
 #endif
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -499,8 +499,8 @@ static uint32_t dbgClkGet(void)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
   return ret;
@@ -532,7 +532,7 @@ static uint32_t adcAsyncClkGet(uint32_t adc)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return 0;
   }
 
@@ -554,8 +554,8 @@ static uint32_t adcAsyncClkGet(uint32_t adc)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
   return ret;
@@ -596,8 +596,8 @@ static uint32_t sdioRefClkGet(void)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
   return ret;
@@ -624,7 +624,7 @@ static uint32_t qspiRefClkGet(uint32_t qspi)
       break;
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return 0;
   }
 
@@ -646,8 +646,8 @@ static uint32_t qspiRefClkGet(uint32_t qspi)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
   return ret;
@@ -695,8 +695,8 @@ static uint32_t usbRateClkGet(void)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
   return ret;
@@ -717,15 +717,10 @@ static uint32_t usbRateClkGet(void)
 static void flashWaitStateControl(uint32_t coreFreq, int vscale)
 {
   uint32_t mode;
-  bool mscLocked;
 #if defined(MSC_READCTRL_MODE_WS0SCBTP)
   bool scbtpEn;   /* Suppressed Conditional Branch Target Prefetch setting. */
 #endif
   (void) vscale;  /* vscale parameter is only used on some devices */
-
-  /* Make sure the MSC is unlocked */
-  mscLocked = MSC->LOCK;
-  MSC->LOCK = MSC_UNLOCK_CODE;
 
   /* Get mode and SCBTP enable */
   mode = MSC->READCTRL & _MSC_READCTRL_MODE_MASK;
@@ -760,13 +755,14 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
   } else {
     mode = (scbtpEn ? MSC_READCTRL_MODE_WS0SCBTP : MSC_READCTRL_MODE_WS0);
   }
-#else
+#else /* defined(MSC_READCTRL_MODE_WS0SCBTP) */
+
   if (coreFreq <= CMU_MAX_FREQ_0WS) {
     mode = 0;
   } else if (coreFreq <= CMU_MAX_FREQ_1WS) {
     mode = 1;
   }
-#endif
+#endif /* defined(MSC_READCTRL_MODE_WS0SCBTP) */
 // End defined(_SILICON_LABS_32B_SERIES_0)
 
 #elif defined(_SILICON_LABS_32B_SERIES_1)
@@ -776,15 +772,15 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
    * depending on frequency and voltage scale level. */
   uint32_t i;
   for (i = 0; i < FLASH_WS_TABLE_ENTRIES; i++) {
-    if ((flashWsTable[i].vscale == vscale)
+    if ((flashWsTable[i].vscale == (uint8_t)vscale)
         && (coreFreq <= flashWsTable[i].maxFreq)) {
       break; // found matching entry
     }
   }
 
   if (i == FLASH_WS_TABLE_ENTRIES) {
-    EFM_ASSERT(false);
     mode = 3; // worst case flash wait state for unsupported cases
+    EFM_ASSERT(false);
   } else {
     mode = flashWsTable[i].ws;
   }
@@ -820,10 +816,6 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
   /* BUS_RegMaskedWrite cannot be used here as it would temporarily set the
      mode field to WS0 */
   MSC->READCTRL = (MSC->READCTRL & ~_MSC_READCTRL_MODE_MASK) | mode;
-
-  if (mscLocked) {
-    MSC->LOCK = 0;
-  }
 }
 
 /***************************************************************************//**
@@ -834,7 +826,15 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
  ******************************************************************************/
 static void flashWaitStateMax(void)
 {
+  /* Make sure the MSC is unlocked */
+  bool mscLocked = MSC->LOCK != 0UL;
+  MSC->LOCK = MSC_UNLOCK_CODE;
+
   flashWaitStateControl(SystemMaxCoreClockGet(), 0);
+
+  if (mscLocked) {
+    MSC->LOCK = 0;
+  }
 }
 
 #if defined(_MSC_RAMCTRL_RAMWSEN_MASK)
@@ -920,6 +920,10 @@ static void setBusWaitState(uint32_t busFreq, int vscale)
  ******************************************************************************/
 void CMU_UpdateWaitStates(uint32_t freq, int vscale)
 {
+  /* Make sure the MSC is unlocked */
+  bool mscLocked = MSC->LOCK != 0UL;
+  MSC->LOCK = MSC_UNLOCK_CODE;
+
   flashWaitStateControl(freq, vscale);
 #if defined(_MSC_RAMCTRL_RAMWSEN_MASK)
   setRamWaitState(freq, vscale);
@@ -927,6 +931,10 @@ void CMU_UpdateWaitStates(uint32_t freq, int vscale)
 #if defined(_MSC_CTRL_WAITMODE_MASK)
   setBusWaitState(freq, vscale);
 #endif
+
+  if (mscLocked) {
+    MSC->LOCK = 0;
+  }
 }
 
 #if defined(_CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_MASK)
@@ -940,7 +948,7 @@ static uint32_t getRegIshUpperVal(uint32_t steadyStateRegIsh)
   const uint32_t upperMax = _CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_MASK
                             >> _CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_SHIFT;
   /* Add 3 as specified in register description for CMU_HFXOSTEADYSTATECTRL_REGISHUPPER. */
-  regIshUpper = SL_MIN(steadyStateRegIsh + 3, upperMax);
+  regIshUpper = SL_MIN(steadyStateRegIsh + 3UL, upperMax);
   regIshUpper <<= _CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_SHIFT;
   return regIshUpper;
 }
@@ -957,9 +965,11 @@ static uint32_t getRegIshUpperVal(uint32_t steadyStateRegIsh)
 __STATIC_INLINE uint32_t getHfxoTuningMode(void)
 {
 #if defined(_CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK)
-  return (CMU->HFXOCTRL & _CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK);
+  return (CMU->HFXOCTRL & _CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK)
+         >> _CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_SHIFT;
 #else
-  return (CMU->HFXOCTRL & _CMU_HFXOCTRL_PEAKDETMODE_MASK);
+  return (CMU->HFXOCTRL & _CMU_HFXOCTRL_PEAKDETMODE_MASK)
+         >> _CMU_HFXOCTRL_PEAKDETMODE_SHIFT;
 #endif
 }
 
@@ -974,9 +984,11 @@ __STATIC_INLINE uint32_t getHfxoTuningMode(void)
 __STATIC_INLINE void setHfxoTuningMode(uint32_t mode)
 {
 #if defined(_CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK)
-  CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK) | mode;
+  CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_MASK)
+                  | (mode << _CMU_HFXOCTRL_PEAKDETSHUNTOPTMODE_SHIFT);
 #else
-  CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_PEAKDETMODE_MASK) | mode;
+  CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_PEAKDETMODE_MASK)
+                  | (mode << _CMU_HFXOCTRL_PEAKDETMODE_SHIFT);
 #endif
 }
 #endif
@@ -1009,11 +1021,11 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
       break;
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 
-  sel = CMU_ClockSelectGet(lfClkBranch);
+  sel = (uint32_t)CMU_ClockSelectGet(lfClkBranch);
 
   /* Get clock select field */
   switch (lfClkBranch) {
@@ -1023,7 +1035,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
 #elif defined(_CMU_LFACLKSEL_MASK)
       sel = (CMU->LFACLKSEL & _CMU_LFACLKSEL_LFA_MASK) >> _CMU_LFACLKSEL_LFA_SHIFT;
 #else
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
 #endif
       break;
 
@@ -1033,7 +1045,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
 #elif defined(_CMU_LFBCLKSEL_MASK)
       sel = (CMU->LFBCLKSEL & _CMU_LFBCLKSEL_LFB_MASK) >> _CMU_LFBCLKSEL_LFB_SHIFT;
 #else
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
 #endif
       break;
 
@@ -1044,7 +1056,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
 #elif defined(_CMU_LFCCLKSEL_LFC_MASK)
       sel = (CMU->LFCCLKSEL & _CMU_LFCCLKSEL_LFC_MASK) >> _CMU_LFCCLKSEL_LFC_SHIFT;
 #else
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
 #endif
       break;
 #endif
@@ -1056,7 +1068,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 
@@ -1098,8 +1110,8 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = 0U;
+      EFM_ASSERT(false);
       break;
   }
 #endif /* _CMU_LFCLKSEL_MASK */
@@ -1118,7 +1130,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
       ret = SystemULFRCOClockGet();
       break;
 
-#if defined(CMU_LFACLKSEL_LFA_PLFRCO)
+#if defined(CMU_PLFRCO_PRESENT)
     case _CMU_LFACLKSEL_LFA_PLFRCO:
       ret = SystemLFRCOClockGet();
       break;
@@ -1134,12 +1146,17 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
     case _CMU_LFBCLKSEL_LFB_HFCLKLE:
       ret = SystemCoreClockGet()
             / CMU_Log2ToDiv(((CMU->HFPRESC & _CMU_HFPRESC_HFCLKLEPRESC_MASK)
-                             >> _CMU_HFPRESC_HFCLKLEPRESC_SHIFT) + 1);
+                             >> _CMU_HFPRESC_HFCLKLEPRESC_SHIFT) + 1UL);
       break;
 #endif
 
     case _CMU_LFACLKSEL_LFA_DISABLED:
       ret = 0;
+      break;
+
+    default:
+      ret = 0U;
+      EFM_ASSERT(false);
       break;
   }
 #endif
@@ -1159,13 +1176,13 @@ __STATIC_INLINE void syncReg(uint32_t mask)
 {
   /* Avoid deadlock if modifying the same register twice when freeze mode is */
   /* activated. */
-  if (CMU->FREEZE & CMU_FREEZE_REGFREEZE) {
+  if ((CMU->FREEZE & CMU_FREEZE_REGFREEZE) != 0UL) {
     return;
   }
 
   /* Wait for any pending previous write operation to have been completed */
   /* in low frequency domain */
-  while (CMU->SYNCBUSY & mask) {
+  while ((CMU->SYNCBUSY & mask) != 0UL) {
   }
 }
 
@@ -1279,7 +1296,7 @@ void CMU_AUXHFRCOBandSet(CMU_AUXHFRCOBand_TypeDef band)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return;
   }
 
@@ -1333,10 +1350,11 @@ static uint32_t CMU_AUXHFRCODevinfoGet(CMU_AUXHFRCOFreq_TypeDef freq)
     case cmuAUXHFRCOFreq_38M0Hz:
       return DEVINFO->AUXHFRCOCAL12;
 
-#if defined(DEVINFO_AUXHFRCOCAL14)
+#if defined(_DEVINFO_AUXHFRCOCAL13_MASK)
     case cmuAUXHFRCOFreq_48M0Hz:
       return DEVINFO->AUXHFRCOCAL13;
-
+#endif
+#if defined(_DEVINFO_AUXHFRCOCAL14_MASK)
     case cmuAUXHFRCOFreq_50M0Hz:
       return DEVINFO->AUXHFRCOCAL14;
 #endif
@@ -1375,12 +1393,14 @@ void CMU_AUXHFRCOBandSet(CMU_AUXHFRCOFreq_TypeDef setFreq)
 
   /* Get DEVINFO index, set global auxHfrcoFreq */
   freqCal = CMU_AUXHFRCODevinfoGet(setFreq);
-  EFM_ASSERT((freqCal != 0) && (freqCal != UINT_MAX));
+  EFM_ASSERT((freqCal != 0UL) && (freqCal != UINT_MAX));
   auxHfrcoFreq = setFreq;
 
   /* Wait for any previous sync to complete, and then set calibration data
      for the selected frequency.  */
-  while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_AUXHFRCOBSY_SHIFT)) ;
+  while (BUS_RegBitRead(&CMU->SYNCBUSY,
+                        _CMU_SYNCBUSY_AUXHFRCOBSY_SHIFT) != 0UL) {
+  }
 
   /* Set divider in AUXHFRCOCTRL for 1, 2 and 4MHz */
   switch (setFreq) {
@@ -1428,12 +1448,12 @@ void CMU_AUXHFRCOBandSet(CMU_AUXHFRCOFreq_TypeDef setFreq)
  *   The number of ticks the reference clock after HFCycles ticks on the HF
  *   clock.
  ******************************************************************************/
-uint32_t CMU_Calibrate(uint32_t HFCycles, CMU_Osc_TypeDef ref)
+uint32_t CMU_Calibrate(uint32_t HFCycles, CMU_Osc_TypeDef reference)
 {
   EFM_ASSERT(HFCycles <= (_CMU_CALCNT_CALCNT_MASK >> _CMU_CALCNT_CALCNT_SHIFT));
 
   /* Set reference clock source */
-  switch (ref) {
+  switch (reference) {
     case cmuOsc_LFXO:
       CMU->CALCTRL = CMU_CALCTRL_UPSEL_LFXO;
       break;
@@ -1461,7 +1481,7 @@ uint32_t CMU_Calibrate(uint32_t HFCycles, CMU_Osc_TypeDef ref)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return 0;
   }
 
@@ -1473,11 +1493,11 @@ uint32_t CMU_Calibrate(uint32_t HFCycles, CMU_Osc_TypeDef ref)
 
 #if defined(CMU_STATUS_CALRDY)
   /* Wait until calibration completes */
-  while (!BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALRDY_SHIFT)) {
+  while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALRDY_SHIFT) == 0UL) {
   }
 #else
   /* Wait until calibration completes */
-  while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT)) {
+  while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT) != 0UL) {
   }
 #endif
 
@@ -1550,7 +1570,7 @@ void CMU_CalibrateConfig(uint32_t downCycles, CMU_Osc_TypeDef downSel,
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 
@@ -1586,7 +1606,7 @@ void CMU_CalibrateConfig(uint32_t downCycles, CMU_Osc_TypeDef downSel,
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 
@@ -1612,19 +1632,19 @@ uint32_t CMU_CalibrateCountGet(void)
   /* Wait until calibration completes, UNLESS continuous calibration mode is  */
   /* active */
 #if defined(CMU_CALCTRL_CONT)
-  if (!BUS_RegBitRead(&CMU->CALCTRL, _CMU_CALCTRL_CONT_SHIFT)) {
+  if (BUS_RegBitRead(&CMU->CALCTRL, _CMU_CALCTRL_CONT_SHIFT) == 0UL) {
 #if defined(CMU_STATUS_CALRDY)
     /* Wait until calibration completes */
-    while (!BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALRDY_SHIFT)) {
+    while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALRDY_SHIFT) == 0UL) {
     }
 #else
     /* Wait until calibration completes */
-    while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT)) {
+    while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT) != 0UL) {
     }
 #endif
   }
 #else
-  while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT)) {
+  while (BUS_RegBitRead(&CMU->STATUS, _CMU_STATUS_CALBSY_SHIFT) != 0UL) {
   }
 #endif
   return CMU->CALCNT;
@@ -1645,7 +1665,7 @@ uint32_t CMU_CalibrateCountGet(void)
 CMU_ClkDiv_TypeDef CMU_ClockDivGet(CMU_Clock_TypeDef clock)
 {
 #if defined(_SILICON_LABS_32B_SERIES_1)
-  return 1 + (uint32_t)CMU_ClockPrescGet(clock);
+  return 1UL + (uint32_t)CMU_ClockPrescGet(clock);
 
 #elif defined(_SILICON_LABS_32B_SERIES_0)
   uint32_t           divReg;
@@ -1710,8 +1730,8 @@ CMU_ClkDiv_TypeDef CMU_ClockDivGet(CMU_Clock_TypeDef clock)
 #endif
 
         default:
-          EFM_ASSERT(0);
           ret = cmuClkDiv_1;
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -1735,15 +1755,15 @@ CMU_ClkDiv_TypeDef CMU_ClockDivGet(CMU_Clock_TypeDef clock)
 #endif
 
         default:
-          EFM_ASSERT(0);
           ret = cmuClkDiv_1;
+          EFM_ASSERT(false);
           break;
       }
       break;
 
     default:
-      EFM_ASSERT(0);
       ret = cmuClkDiv_1;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -1773,7 +1793,7 @@ CMU_ClkDiv_TypeDef CMU_ClockDivGet(CMU_Clock_TypeDef clock)
 void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 {
 #if defined(_SILICON_LABS_32B_SERIES_1)
-  CMU_ClockPrescSet(clock, (CMU_ClkPresc_TypeDef)(div - 1));
+  CMU_ClockPrescSet(clock, (CMU_ClkPresc_TypeDef)(div - 1U));
 
 #elif defined(_SILICON_LABS_32B_SERIES_0)
   uint32_t freq;
@@ -1799,7 +1819,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
       freq = SystemCoreClockGet();
 
       /* Optimize flash access wait state setting for current core clk */
-      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
       break;
 #endif
 
@@ -1833,7 +1853,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
       freq = SystemCoreClockGet();
 
       /* Optimize wait state setting for current core clk */
-      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
       break;
 
     case CMU_LFAPRESC0_REG:
@@ -1898,7 +1918,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 #endif /* defined(LESENSE_PRESENT) */
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -1936,13 +1956,13 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 #endif
@@ -1982,7 +2002,7 @@ void CMU_ClockEnable(CMU_Clock_TypeDef clock, bool enable)
   uint32_t          sync = 0;
 
   /* Identify enable register */
-  switch ((clock >> CMU_EN_REG_POS) & CMU_EN_REG_MASK) {
+  switch (((unsigned)clock >> CMU_EN_REG_POS) & CMU_EN_REG_MASK) {
 #if defined(_CMU_CTRL_HFPERCLKEN_MASK)
     case CMU_CTRL_EN_REG:
       reg = &CMU->CTRL;
@@ -2068,20 +2088,20 @@ void CMU_ClockEnable(CMU_Clock_TypeDef clock, bool enable)
       break;
 
     default: /* Cannot enable/disable clock point */
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return;
   }
 
   /* Get bit position used to enable/disable */
-  bit = (clock >> CMU_EN_BIT_POS) & CMU_EN_BIT_MASK;
+  bit = ((unsigned)clock >> CMU_EN_BIT_POS) & CMU_EN_BIT_MASK;
 
   /* LF synchronization required? */
-  if (sync) {
+  if (sync > 0UL) {
     syncReg(sync);
   }
 
   /* Set/clear bit as requested */
-  BUS_RegBitWrite(reg, bit, enable);
+  BUS_RegBitWrite(reg, bit, (uint32_t)enable);
 }
 
 /***************************************************************************//**
@@ -2098,7 +2118,7 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
 {
   uint32_t ret;
 
-  switch (clock & (CMU_CLK_BRANCH_MASK << CMU_CLK_BRANCH_POS)) {
+  switch ((unsigned)clock & (CMU_CLK_BRANCH_MASK << CMU_CLK_BRANCH_POS)) {
     case (CMU_HF_CLK_BRANCH << CMU_CLK_BRANCH_POS):
       ret = SystemHFClockGet();
       break;
@@ -2249,7 +2269,7 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
     case (CMU_CSEN_LF_CLK_BRANCH << CMU_CLK_BRANCH_POS):
       ret = lfClkGet(cmuClock_LFB);
       ret /= CMU_Log2ToDiv(((CMU->LFBPRESC0 & _CMU_LFBPRESC0_CSEN_MASK)
-                            >> _CMU_LFBPRESC0_CSEN_SHIFT) + 4);
+                            >> _CMU_LFBPRESC0_CSEN_SHIFT) + 4UL);
       break;
 #endif
 
@@ -2312,8 +2332,8 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
 #endif
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -2339,7 +2359,7 @@ uint32_t CMU_ClockPrescGet(CMU_Clock_TypeDef clock)
   uint32_t  ret;
 
   /* Get prescaler register id. */
-  prescReg = (clock >> CMU_PRESC_REG_POS) & CMU_PRESC_REG_MASK;
+  prescReg = ((unsigned)clock >> CMU_PRESC_REG_POS) & CMU_PRESC_REG_MASK;
 
   switch (prescReg) {
     case CMU_HFPRESC_REG:
@@ -2413,8 +2433,8 @@ uint32_t CMU_ClockPrescGet(CMU_Clock_TypeDef clock)
 #endif
 
         default:
-          EFM_ASSERT(0);
           ret = 0U;
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -2444,13 +2464,13 @@ uint32_t CMU_ClockPrescGet(CMU_Clock_TypeDef clock)
           ret = (CMU->LFBPRESC0 & _CMU_LFBPRESC0_CSEN_MASK)
                 >> _CMU_LFBPRESC0_CSEN_SHIFT;
           /* Convert the exponent to prescaler value. */
-          ret = CMU_Log2ToDiv(ret + 4) - 1U;
+          ret = CMU_Log2ToDiv(ret + 4U) - 1U;
           break;
 #endif
 
         default:
-          EFM_ASSERT(0);
           ret = 0U;
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -2465,13 +2485,15 @@ uint32_t CMU_ClockPrescGet(CMU_Clock_TypeDef clock)
           break;
 
         default:
-          EFM_ASSERT(0);
           ret = 0U;
+          EFM_ASSERT(false);
           break;
 #endif
       }
       break;
 
+#if defined(_CMU_ADCCTRL_ADC0CLKDIV_MASK) \
+      || defined(_CMU_ADCCTRL_ADC1CLKDIV_MASK)
     case CMU_ADCASYNCDIV_REG:
       switch (clock) {
 #if defined(_CMU_ADCCTRL_ADC0CLKDIV_MASK)
@@ -2487,15 +2509,16 @@ uint32_t CMU_ClockPrescGet(CMU_Clock_TypeDef clock)
           break;
 #endif
         default:
-          EFM_ASSERT(0);
           ret = 0U;
+          EFM_ASSERT(false);
           break;
       }
       break;
+#endif
 
     default:
-      EFM_ASSERT(0);
       ret = 0U;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -2528,7 +2551,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
   uint32_t prescReg;
 
   /* Get divisor reg id */
-  prescReg = (clock >> CMU_PRESC_REG_POS) & CMU_PRESC_REG_MASK;
+  prescReg = ((unsigned)clock >> CMU_PRESC_REG_POS) & CMU_PRESC_REG_MASK;
 
   switch (prescReg) {
     case CMU_HFPRESC_REG:
@@ -2536,7 +2559,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 
       /* Configure worst case wait-states for flash and HFLE. */
       flashWaitStateMax();
-      setHfLeConfig(CMU_MAX_FREQ_HFLE + 1);
+      setHfLeConfig(CMU_MAX_FREQ_HFLE + 1UL);
 
       CMU->HFPRESC = (CMU->HFPRESC & ~_CMU_HFPRESC_PRESC_MASK)
                      | (presc << _CMU_HFPRESC_PRESC_SHIFT);
@@ -2544,7 +2567,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
       /* Update CMSIS core clock variable (this function updates the global variable).
          Optimize flash and HFLE wait states. */
       freq = SystemCoreClockGet();
-      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
 
       setHfLeConfig(CMU_ClockFreqGet(cmuClock_HFLE));
       break;
@@ -2582,7 +2605,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 
       /* Configure worst case wait-states for flash and HFLE. */
       flashWaitStateMax();
-      setHfLeConfig(CMU_MAX_FREQ_HFLE + 1);
+      setHfLeConfig(CMU_MAX_FREQ_HFLE + 1UL);
 
       CMU->HFCOREPRESC = (CMU->HFCOREPRESC & ~_CMU_HFCOREPRESC_PRESC_MASK)
                          | (presc << _CMU_HFCOREPRESC_PRESC_SHIFT);
@@ -2590,7 +2613,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
       /* Update CMSIS core clock variable (this function updates the global variable).
          Optimize flash and HFLE wait states. */
       freq = SystemCoreClockGet();
-      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
       setHfLeConfig(CMU_ClockFreqGet(cmuClock_HFLE));
       break;
 
@@ -2654,7 +2677,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 
 #if defined(_CMU_LFAPRESC0_LESENSE_MASK)
         case cmuClock_LESENSE:
-          EFM_ASSERT(presc <= 8);
+          EFM_ASSERT(presc <= 8U);
 
           /* Convert prescaler value to DIV exponent scale. */
           presc = CMU_PrescToLog2(presc);
@@ -2670,7 +2693,6 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 #if defined(_CMU_LFAPRESC0_LCD_MASK)
         case cmuClock_LCDpre:
         case cmuClock_LCD:
-        {
           EFM_ASSERT(presc <= 32768U);
 
           /* Convert prescaler value to DIV exponent scale. */
@@ -2681,11 +2703,11 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 
           CMU->LFAPRESC0 = (CMU->LFAPRESC0 & ~_CMU_LFAPRESC0_LCD_MASK)
                            | (presc << _CMU_LFAPRESC0_LCD_SHIFT);
-        } break;
+          break;
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -2728,7 +2750,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 
           /* Convert prescaler value to DIV exponent scale.
            * DIV16 is the lowest supported prescaler. */
-          presc = CMU_PrescToLog2(presc) - 4;
+          presc = CMU_PrescToLog2(presc) - 4U;
 
           /* LF register about to be modified require sync. Busy check. */
           syncReg(CMU_SYNCBUSY_LFBPRESC0);
@@ -2739,7 +2761,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
@@ -2759,11 +2781,13 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
 
+#if defined(_CMU_ADCCTRL_ADC0CLKDIV_MASK) \
+      ||  defined(_CMU_ADCCTRL_ADC1CLKDIV_MASK)
     case CMU_ADCASYNCDIV_REG:
       switch (clock) {
 #if defined(_CMU_ADCCTRL_ADC0CLKDIV_MASK)
@@ -2782,13 +2806,14 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
           break;
 #endif
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           break;
       }
       break;
+#endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 }
@@ -2820,7 +2845,7 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
   CMU_Select_TypeDef ret = cmuSelect_Disabled;
   uint32_t selReg;
 
-  selReg = (clock >> CMU_SEL_REG_POS) & CMU_SEL_REG_MASK;
+  selReg = ((unsigned)clock >> CMU_SEL_REG_POS) & CMU_SEL_REG_MASK;
 
   switch (selReg) {
     case CMU_HFCLKSEL_REG:
@@ -2926,7 +2951,7 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
           break;
 #endif
 
-#if defined(CMU_LFACLKSEL_LFA_PLFRCO)
+#if defined(CMU_PLFRCO_PRESENT)
         case CMU_LFACLKSEL_LFA_PLFRCO:
           ret = cmuSelect_PLFRCO;
           break;
@@ -2994,7 +3019,7 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
           ret = cmuSelect_HFCLKLE;
           break;
 
-#if defined(CMU_LFBCLKSEL_LFB_PLFRCO)
+#if defined(CMU_PLFRCO_PRESENT)
         case CMU_LFBCLKSEL_LFB_PLFRCO:
           ret = cmuSelect_PLFRCO;
           break;
@@ -3047,7 +3072,7 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
           break;
 #endif
 
-#if defined(CMU_LFECLKSEL_LFE_PLFRCO)
+#if defined(CMU_PLFRCO_PRESENT)
         case CMU_LFECLKSEL_LFE_PLFRCO:
           ret = cmuSelect_PLFRCO;
           break;
@@ -3069,6 +3094,10 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
 
         case CMU_DBGCLKSEL_DBG_AUXHFRCO:
           ret = cmuSelect_AUXHFRCO;
+          break;
+
+        default:
+          ret = cmuSelect_Disabled;
           break;
       }
 
@@ -3142,6 +3171,10 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
 
         case CMU_ADCCTRL_ADC0CLKSEL_HFSRCCLK:
           ret = cmuSelect_HFSRCCLK;
+          break;
+
+        default:
+          ret = cmuSelect_Disabled;
           break;
       }
       break;
@@ -3244,8 +3277,8 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
 #endif
 
     default:
-      EFM_ASSERT(0);
       ret = cmuSelect_Error;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -3303,12 +3336,11 @@ CMU_Select_TypeDef CMU_ClockSelectGet(CMU_Clock_TypeDef clock)
  *   @li #cmuSelect_HFCLK
  *   @ifnot DOXYDOC_EFM32_GECKO_FAMILY
  *   @li #cmuSelect_ULFRCO
- *   @li #cmuSelect_PLFRCO
  *   @endif
  ******************************************************************************/
 void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 {
-  uint32_t              select = cmuOsc_HFRCO;
+  uint32_t              select = (uint32_t)cmuOsc_HFRCO;
   CMU_Osc_TypeDef       osc    = cmuOsc_HFRCO;
   uint32_t              freq;
   uint32_t              tmp;
@@ -3328,16 +3360,19 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
     if (ref == cmuSelect_HFXO) {
       vScaleFrequency = SystemHFXOClockGet();
     } else if ((ref == cmuSelect_HFRCO)
-               && (CMU_HFRCOBandGet() > CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX)) {
-      vScaleFrequency = CMU_HFRCOBandGet();
+               && ((uint32_t)CMU_HFRCOBandGet()
+                   > CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX)) {
+      vScaleFrequency = (uint32_t)CMU_HFRCOBandGet();
+    } else {
+      /* Use default frequency. */
     }
-    if (vScaleFrequency != 0) {
+    if (vScaleFrequency != 0UL) {
       EMU_VScaleEM01ByClock(vScaleFrequency, false);
     }
   }
 #endif
 
-  selRegId = (clock >> CMU_SEL_REG_POS) & CMU_SEL_REG_MASK;
+  selRegId = ((unsigned)clock >> CMU_SEL_REG_POS) & CMU_SEL_REG_MASK;
 
   switch (selRegId) {
     case CMU_HFCLKSEL_REG:
@@ -3370,7 +3405,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #if defined(CMU_MAX_FREQ_HFLE)
           /* Set 1 HFLE wait-state until the new HFCLKLE frequency is known.
              This is known after 'select' is written below. */
-          setHfLeConfig(CMU_MAX_FREQ_HFLE + 1);
+          setHfLeConfig(CMU_MAX_FREQ_HFLE + 1UL);
 #endif
 #if defined(CMU_CTRL_HFXOBUFCUR_BOOSTABOVE32MHZ)
           /* Adjust HFXO buffer current for frequencies above 32MHz */
@@ -3394,7 +3429,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #if defined(CMU_MAX_FREQ_HFLE)
           /* Set 1 HFLE wait-state until the new HFCLKLE frequency is known.
              This is known after 'select' is written below. */
-          setHfLeConfig(CMU_MAX_FREQ_HFLE + 1);
+          setHfLeConfig(CMU_MAX_FREQ_HFLE + 1UL);
 #endif
           break;
 
@@ -3408,12 +3443,12 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #if defined(CMU_LFCLKSEL_LFAE_ULFRCO) || defined(CMU_LFACLKSEL_LFA_ULFRCO)
         case cmuSelect_ULFRCO:
           /* ULFRCO cannot be used as HFCLK  */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3425,7 +3460,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
       /* Wait for voltage upscaling to complete before clock is set. */
-      if (vScaleFrequency != 0) {
+      if (vScaleFrequency != 0UL) {
         EMU_VScaleWait();
       }
 #endif
@@ -3447,12 +3482,12 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       freq = SystemCoreClockGet();
 
       /* Optimize flash access wait state setting for currently selected core clk */
-      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
 
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
       /* Keep EMU module informed on source HF clock frequency. This will apply voltage
          downscaling after clock is set if downscaling is configured. */
-      if (vScaleFrequency == 0) {
+      if (vScaleFrequency == 0UL) {
         EMU_VScaleEM01ByClock(0, true);
       }
 #endif
@@ -3465,7 +3500,8 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       /* HFCLKCLE can not be used as LFACLK */
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
-      /* fallthrough */
+      SL_FALLTHROUGH
+      /* Fall through and select clock source */
 
 #if defined(_CMU_LFCCLKSEL_MASK)
     case CMU_LFCCLKSEL_REG:
@@ -3474,8 +3510,9 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       /* HFCLKCLE can not be used as LFCCLK */
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
+      SL_FALLTHROUGH
 #endif
-    /* fallthrough */
+    /* Fall through and select clock source */
 
     case CMU_LFECLKSEL_REG:
       selReg = (selReg == NULL) ? &CMU->LFECLKSEL : selReg;
@@ -3483,7 +3520,8 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       /* HFCLKCLE can not be used as LFECLK */
       EFM_ASSERT(ref != cmuSelect_HFCLKLE);
 #endif
-    /* fallthrough */
+      SL_FALLTHROUGH
+    /* Fall through and select clock source */
 
     case CMU_LFBCLKSEL_REG:
       selReg = (selReg == NULL) ? &CMU->LFBCLKSEL : selReg;
@@ -3516,7 +3554,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
           tmp = _CMU_LFACLKSEL_LFA_ULFRCO;
           break;
 
-#if defined(_CMU_STATUS_PLFRCOENS_MASK)
+#if defined(CMU_PLFRCO_PRESENT)
         case cmuSelect_PLFRCO:
           /* Ensure selected oscillator is enabled, waiting for it to stabilize */
           CMU_OscillatorEnable(cmuOsc_PLFRCO, true, true);
@@ -3525,7 +3563,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #endif
 
         default:
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
       *selReg = tmp;
@@ -3572,7 +3610,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for LFA/LFB selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3621,7 +3659,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for LFC selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3663,7 +3701,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for debug selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
       break;
@@ -3726,7 +3764,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for USB */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
       break;
@@ -3757,7 +3795,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for ADC0ASYNC selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3792,7 +3830,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for ADC1ASYNC selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3831,7 +3869,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for SDIOREF selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3870,7 +3908,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for QSPI0REF selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3928,7 +3966,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 
         default:
           /* Illegal clock source for USBR selected */
-          EFM_ASSERT(0);
+          EFM_ASSERT(false);
           return;
       }
 
@@ -3939,7 +3977,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 }
@@ -3972,8 +4010,8 @@ bool CMU_DPLLLock(CMU_DPLLInit_TypeDef *init)
 
   EFM_ASSERT(init->frequency >= hfrcoCtrlTable[0].minFreq);
   EFM_ASSERT(init->frequency
-             <= hfrcoCtrlTable[HFRCOCTRLTABLE_ENTRIES - 1].maxFreq);
-  EFM_ASSERT(init->n >= 32);
+             <= hfrcoCtrlTable[HFRCOCTRLTABLE_ENTRIES - 1U].maxFreq);
+  EFM_ASSERT(init->n >= 32U);
   EFM_ASSERT(init->n <= (_CMU_DPLLCTRL1_N_MASK >> _CMU_DPLLCTRL1_N_SHIFT));
   EFM_ASSERT(init->m <= (_CMU_DPLLCTRL1_M_MASK >> _CMU_DPLLCTRL1_M_SHIFT));
   EFM_ASSERT(init->ssInterval  <= (_CMU_HFRCOSS_SSINV_MASK
@@ -3993,11 +4031,11 @@ bool CMU_DPLLLock(CMU_DPLLInit_TypeDef *init)
   for (i = 0; i < HFRCOCTRLTABLE_ENTRIES; i++) {
     if ((init->frequency    >= hfrcoCtrlTable[i].minFreq)
         && (init->frequency <= hfrcoCtrlTable[i].maxFreq)) {
-      index = i;                            // Correct band found
+      index = (int)i;                       // Correct band found
       break;
     }
   }
-  if (index == HFRCOCTRLTABLE_ENTRIES) {
+  if ((uint32_t)index == HFRCOCTRLTABLE_ENTRIES) {
     EFM_ASSERT(false);
     return false;                           // Target frequency out of spec.
   }
@@ -4013,10 +4051,10 @@ bool CMU_DPLLLock(CMU_DPLLInit_TypeDef *init)
 
     // When HFRCOCTRL.FINETUNINGEN is enabled, the center frequency
     // of the band shifts down by 5.8%. We subtract 9 to compensate.
-    if (tuning > 9) {
-      tuning -= 9;
+    if (tuning > 9UL) {
+      tuning -= 9UL;
     } else {
-      tuning = 0;
+      tuning = 0UL;
     }
 
     hfrcoCtrlVal |= tuning << _CMU_HFRCOCTRL_TUNING_SHIFT;
@@ -4041,20 +4079,23 @@ bool CMU_DPLLLock(CMU_DPLLInit_TypeDef *init)
   }
 
   CMU->OSCENCMD  = CMU_OSCENCMD_DPLLDIS;
-  while ((CMU->STATUS & (CMU_STATUS_DPLLENS | CMU_STATUS_DPLLRDY)) != 0) ;
+  while ((CMU->STATUS & (CMU_STATUS_DPLLENS | CMU_STATUS_DPLLRDY)) != 0UL) {
+  }
   CMU->IFC       = CMU_IFC_DPLLRDY | CMU_IFC_DPLLLOCKFAILLOW
                    | CMU_IFC_DPLLLOCKFAILHIGH;
-  CMU->DPLLCTRL1 = (init->n   << _CMU_DPLLCTRL1_N_SHIFT)
-                   | (init->m << _CMU_DPLLCTRL1_M_SHIFT);
+  CMU->DPLLCTRL1 = ((uint32_t)init->n   << _CMU_DPLLCTRL1_N_SHIFT)
+                   | ((uint32_t)init->m << _CMU_DPLLCTRL1_M_SHIFT);
   CMU->HFRCOCTRL = hfrcoCtrlVal;
-  CMU->DPLLCTRL  = (init->refClk        << _CMU_DPLLCTRL_REFSEL_SHIFT)
-                   | (init->autoRecover << _CMU_DPLLCTRL_AUTORECOVER_SHIFT)
-                   | (init->edgeSel     << _CMU_DPLLCTRL_EDGESEL_SHIFT)
-                   | (init->lockMode    << _CMU_DPLLCTRL_MODE_SHIFT);
+  CMU->DPLLCTRL  = ((uint32_t)init->refClk << _CMU_DPLLCTRL_REFSEL_SHIFT)
+                   | ((init->autoRecover ? 1UL : 0UL)
+                      << _CMU_DPLLCTRL_AUTORECOVER_SHIFT)
+                   | ((uint32_t)init->edgeSel << _CMU_DPLLCTRL_EDGESEL_SHIFT)
+                   | ((uint32_t)init->lockMode << _CMU_DPLLCTRL_MODE_SHIFT);
   CMU->OSCENCMD  = CMU_OSCENCMD_DPLLEN;
   while ((lockStatus = (CMU->IF & (CMU_IF_DPLLRDY
                                    | CMU_IF_DPLLLOCKFAILLOW
-                                   | CMU_IF_DPLLLOCKFAILHIGH))) == 0) ;
+                                   | CMU_IF_DPLLLOCKFAILHIGH))) == 0UL) {
+  }
 
   if ((CMU_ClockSelectGet(cmuClock_HF) == cmuSelect_HFRCO)
       && (hfrcoDiv2 == false)) {
@@ -4069,7 +4110,7 @@ bool CMU_DPLLLock(CMU_DPLLInit_TypeDef *init)
     EFM_ASSERT(sysFreq <= init->frequency);
     EFM_ASSERT(sysFreq <= SystemHfrcoFreq);
     EFM_ASSERT(init->frequency == SystemHfrcoFreq);
-    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(sysFreq, (int)VSCALE_DEFAULT);
   }
 
   // Reduce HFLE frequency if possible.
@@ -4126,7 +4167,7 @@ void CMU_FreezeEnable(bool enable)
     /* - then modifies the same register again                              */
     /* since modifying a register while it is in sync progress should be    */
     /* avoided.                                                             */
-    while (CMU->SYNCBUSY) {
+    while (CMU->SYNCBUSY != 0UL) {
     }
 
     CMU->FREEZE = CMU_FREEZE_REGFREEZE;
@@ -4200,7 +4241,7 @@ void CMU_HFRCOBandSet(CMU_HFRCOBand_TypeDef band)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return;
   }
 
@@ -4221,7 +4262,7 @@ void CMU_HFRCOBandSet(CMU_HFRCOBand_TypeDef band)
   if (osc == cmuSelect_HFRCO) {
     /* Call @ref SystemCoreClockGet() to update CMSIS core clock variable. */
     freq = SystemCoreClockGet();
-    CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
   }
 
 #if defined(CMU_MAX_FREQ_HFLE)
@@ -4324,7 +4365,7 @@ void CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq)
 
   /* Get DEVINFO index, set CMSIS frequency SystemHfrcoFreq */
   freqCal = CMU_HFRCODevinfoGet(setFreq);
-  EFM_ASSERT((freqCal != 0) && (freqCal != UINT_MAX));
+  EFM_ASSERT((freqCal != 0UL) && (freqCal != UINT_MAX));
   prevFreq = SystemHfrcoFreq;
   SystemHfrcoFreq = (uint32_t)setFreq;
 
@@ -4335,7 +4376,8 @@ void CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq)
 
   /* Wait for any previous sync to complete, and then set calibration data
      for the selected frequency.  */
-  while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_HFRCOBSY_SHIFT)) ;
+  while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_HFRCOBSY_SHIFT) != 0UL) {
+  }
 
   /* Check for valid calibration data */
   EFM_ASSERT(freqCal != UINT_MAX);
@@ -4365,13 +4407,13 @@ void CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq)
      Use the new set frequency. */
   if (CMU_ClockSelectGet(cmuClock_HF) == cmuSelect_HFRCO) {
     /* setFreq is worst-case as dividers may reduce the HFLE frequency. */
-    setHfLeConfig(setFreq);
+    setHfLeConfig((uint32_t)setFreq);
   }
 
-  if (setFreq > prevFreq) {
+  if ((uint32_t)setFreq > prevFreq) {
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
     /* When increasing frequency we need to voltage scale before the change */
-    EMU_VScaleEM01ByClock(setFreq, true);
+    EMU_VScaleEM01ByClock((uint32_t)setFreq, true);
 #endif
   }
 
@@ -4384,14 +4426,14 @@ void CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq)
     sysFreq = SystemCoreClockGet();
     EFM_ASSERT(sysFreq <= (uint32_t)setFreq);
     EFM_ASSERT(sysFreq <= SystemHfrcoFreq);
-    EFM_ASSERT(setFreq == SystemHfrcoFreq);
-    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
+    EFM_ASSERT((uint32_t)setFreq == SystemHfrcoFreq);
+    CMU_UpdateWaitStates(sysFreq, (int)VSCALE_DEFAULT);
   }
 
   /* Reduce HFLE frequency if possible. */
   setHfLeConfig(CMU_ClockFreqGet(cmuClock_HFLE));
 
-  if (setFreq <= prevFreq) {
+  if ((uint32_t)setFreq <= prevFreq) {
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
     /* When decreasing frequency we need to voltage scale after the change */
     EMU_VScaleEM01ByClock(0, true);
@@ -4543,13 +4585,13 @@ void CMU_HFXOAutostartEnable(uint32_t userSel,
                                | _CMU_HFXOCTRL_AUTOSTARTSELEM0EM1_MASK);
 
   hfxoCtrl |= userSel
-              | (enEM0EM1Start ? CMU_HFXOCTRL_AUTOSTARTEM0EM1 : 0)
-              | (enEM0EM1StartSel ? CMU_HFXOCTRL_AUTOSTARTSELEM0EM1 : 0);
+              | (enEM0EM1Start ? CMU_HFXOCTRL_AUTOSTARTEM0EM1 : 0UL)
+              | (enEM0EM1StartSel ? CMU_HFXOCTRL_AUTOSTARTSELEM0EM1 : 0UL);
 
   /* Set wait-states for HFXO if automatic start and select is configured. */
-  if (userSel || enEM0EM1StartSel) {
+  if ((userSel > 0UL) || enEM0EM1StartSel) {
     hfxoFreq = SystemHFXOClockGet();
-    CMU_UpdateWaitStates(hfxoFreq, VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(hfxoFreq, (int)VSCALE_DEFAULT);
     setHfLeConfig(hfxoFreq);
   }
 
@@ -4579,7 +4621,8 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
   /* HFXO must be disabled before reconfiguration */
   CMU_OscillatorEnable(cmuOsc_HFXO, false, true);
 
-#if defined(_SILICON_LABS_32B_SERIES_1) && (_SILICON_LABS_GECKO_INTERNAL_SDID >= 100)
+#if defined(_SILICON_LABS_32B_SERIES_1) \
+  && (_SILICON_LABS_GECKO_INTERNAL_SDID >= 100)
   uint32_t tmp = CMU_HFXOCTRL_MODE_XTAL;
 
   switch (hfxoInit->mode) {
@@ -4594,6 +4637,7 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
       break;
     default:
       EFM_ASSERT(false); /* Unsupported configuration */
+      break;
   }
   CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_MODE_MASK) | tmp;
 
@@ -4608,18 +4652,26 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
 #endif
 
   /* Set tuning for startup and steady state */
-  CMU->HFXOSTARTUPCTRL = (hfxoInit->ctuneStartup << _CMU_HFXOSTARTUPCTRL_CTUNE_SHIFT)
-                         | (hfxoInit->xoCoreBiasTrimStartup << _CMU_HFXOSTARTUPCTRL_IBTRIMXOCORE_SHIFT);
+  CMU->HFXOSTARTUPCTRL = (hfxoInit->ctuneStartup
+                          << _CMU_HFXOSTARTUPCTRL_CTUNE_SHIFT)
+                         | (hfxoInit->xoCoreBiasTrimStartup
+                            << _CMU_HFXOSTARTUPCTRL_IBTRIMXOCORE_SHIFT);
 
-  CMU->HFXOSTEADYSTATECTRL = (CMU->HFXOSTEADYSTATECTRL & ~(_CMU_HFXOSTEADYSTATECTRL_CTUNE_MASK
-                                                           | _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_MASK))
-                             | (hfxoInit->ctuneSteadyState << _CMU_HFXOSTEADYSTATECTRL_CTUNE_SHIFT)
-                             | (hfxoInit->xoCoreBiasTrimSteadyState << _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_SHIFT);
+  CMU->HFXOSTEADYSTATECTRL = (CMU->HFXOSTEADYSTATECTRL
+                              & ~(_CMU_HFXOSTEADYSTATECTRL_CTUNE_MASK
+                                  | _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_MASK))
+                             | (hfxoInit->ctuneSteadyState
+                                << _CMU_HFXOSTEADYSTATECTRL_CTUNE_SHIFT)
+                             | (hfxoInit->xoCoreBiasTrimSteadyState
+                                << _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_SHIFT);
 
   /* Set timeouts */
-  CMU->HFXOTIMEOUTCTRL = (hfxoInit->timeoutPeakDetect << _CMU_HFXOTIMEOUTCTRL_PEAKDETTIMEOUT_SHIFT)
-                         | (hfxoInit->timeoutSteady << _CMU_HFXOTIMEOUTCTRL_STEADYTIMEOUT_SHIFT)
-                         | (hfxoInit->timeoutStartup << _CMU_HFXOTIMEOUTCTRL_STARTUPTIMEOUT_SHIFT);
+  CMU->HFXOTIMEOUTCTRL = (hfxoInit->timeoutPeakDetect
+                          << _CMU_HFXOTIMEOUTCTRL_PEAKDETTIMEOUT_SHIFT)
+                         | (hfxoInit->timeoutSteady
+                            << _CMU_HFXOTIMEOUTCTRL_STEADYTIMEOUT_SHIFT)
+                         | (hfxoInit->timeoutStartup
+                            << _CMU_HFXOTIMEOUTCTRL_STARTUPTIMEOUT_SHIFT);
 
 #elif defined(_CMU_HFXOCTRL_MASK)
   /* Verify that the deprecated autostart fields are not used,
@@ -4639,33 +4691,46 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
   /* Apply control settings */
   CMU->HFXOCTRL = (CMU->HFXOCTRL & ~_CMU_HFXOCTRL_MODE_MASK)
                   | tmp;
-  BUS_RegBitWrite(&CMU->HFXOCTRL, _CMU_HFXOCTRL_LOWPOWER_SHIFT, hfxoInit->lowPowerMode);
+  BUS_RegBitWrite(&CMU->HFXOCTRL,
+                  _CMU_HFXOCTRL_LOWPOWER_SHIFT,
+                  (unsigned)hfxoInit->lowPowerMode);
 
   /* Set XTAL tuning parameters */
 
 #if defined(_CMU_HFXOCTRL1_PEAKDETTHR_MASK)
   /* Set peak detection threshold */
   CMU->HFXOCTRL1 = (CMU->HFXOCTRL1 & ~_CMU_HFXOCTRL1_PEAKDETTHR_MASK)
-                   | (hfxoInit->thresholdPeakDetect << _CMU_HFXOCTRL1_PEAKDETTHR_SHIFT);
+                   | (hfxoInit->thresholdPeakDetect
+                      << _CMU_HFXOCTRL1_PEAKDETTHR_SHIFT);
 #endif
   /* Set tuning for startup and steady state */
-  CMU->HFXOSTARTUPCTRL = (hfxoInit->ctuneStartup << _CMU_HFXOSTARTUPCTRL_CTUNE_SHIFT)
-                         | (hfxoInit->xoCoreBiasTrimStartup << _CMU_HFXOSTARTUPCTRL_IBTRIMXOCORE_SHIFT);
+  CMU->HFXOSTARTUPCTRL = ((uint32_t)hfxoInit->ctuneStartup
+                          << _CMU_HFXOSTARTUPCTRL_CTUNE_SHIFT)
+                         | ((uint32_t)hfxoInit->xoCoreBiasTrimStartup
+                            << _CMU_HFXOSTARTUPCTRL_IBTRIMXOCORE_SHIFT);
 
-  CMU->HFXOSTEADYSTATECTRL = (CMU->HFXOSTEADYSTATECTRL & ~(_CMU_HFXOSTEADYSTATECTRL_CTUNE_MASK
-                                                           | _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_MASK
-                                                           | _CMU_HFXOSTEADYSTATECTRL_REGISH_MASK
-                                                           | _CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_MASK))
-                             | (hfxoInit->ctuneSteadyState << _CMU_HFXOSTEADYSTATECTRL_CTUNE_SHIFT)
-                             | (hfxoInit->xoCoreBiasTrimSteadyState << _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_SHIFT)
-                             | (hfxoInit->regIshSteadyState << _CMU_HFXOSTEADYSTATECTRL_REGISH_SHIFT)
+  CMU->HFXOSTEADYSTATECTRL = (CMU->HFXOSTEADYSTATECTRL
+                              & ~(_CMU_HFXOSTEADYSTATECTRL_CTUNE_MASK
+                                  | _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_MASK
+                                  | _CMU_HFXOSTEADYSTATECTRL_REGISH_MASK
+                                  | _CMU_HFXOSTEADYSTATECTRL_REGISHUPPER_MASK))
+                             | ((uint32_t)hfxoInit->ctuneSteadyState
+                                << _CMU_HFXOSTEADYSTATECTRL_CTUNE_SHIFT)
+                             | ((uint32_t)hfxoInit->xoCoreBiasTrimSteadyState
+                                << _CMU_HFXOSTEADYSTATECTRL_IBTRIMXOCORE_SHIFT)
+                             | ((uint32_t)hfxoInit->regIshSteadyState
+                                << _CMU_HFXOSTEADYSTATECTRL_REGISH_SHIFT)
                              | getRegIshUpperVal(hfxoInit->regIshSteadyState);
 
   /* Set timeouts */
-  CMU->HFXOTIMEOUTCTRL = (hfxoInit->timeoutPeakDetect << _CMU_HFXOTIMEOUTCTRL_PEAKDETTIMEOUT_SHIFT)
-                         | (hfxoInit->timeoutSteady << _CMU_HFXOTIMEOUTCTRL_STEADYTIMEOUT_SHIFT)
-                         | (hfxoInit->timeoutStartup << _CMU_HFXOTIMEOUTCTRL_STARTUPTIMEOUT_SHIFT)
-                         | (hfxoInit->timeoutShuntOptimization << _CMU_HFXOTIMEOUTCTRL_SHUNTOPTTIMEOUT_SHIFT);
+  CMU->HFXOTIMEOUTCTRL = ((uint32_t)hfxoInit->timeoutPeakDetect
+                          << _CMU_HFXOTIMEOUTCTRL_PEAKDETTIMEOUT_SHIFT)
+                         | ((uint32_t)hfxoInit->timeoutSteady
+                            << _CMU_HFXOTIMEOUTCTRL_STEADYTIMEOUT_SHIFT)
+                         | ((uint32_t)hfxoInit->timeoutStartup
+                            << _CMU_HFXOTIMEOUTCTRL_STARTUPTIMEOUT_SHIFT)
+                         | ((uint32_t)hfxoInit->timeoutShuntOptimization
+                            << _CMU_HFXOTIMEOUTCTRL_SHUNTOPTTIMEOUT_SHIFT);
 
 #else
   CMU->CTRL = (CMU->CTRL & ~(_CMU_CTRL_HFXOTIMEOUT_MASK
@@ -4752,19 +4817,21 @@ void CMU_LFXOInit(const CMU_LFXOInit_TypeDef *lfxoInit)
                      | _CMU_LFXOCTRL_GAIN_MASK
                      | _CMU_LFXOCTRL_TIMEOUT_MASK
                      | _CMU_LFXOCTRL_MODE_MASK,
-                     (lfxoInit->ctune << _CMU_LFXOCTRL_TUNING_SHIFT)
-                     | (lfxoInit->gain << _CMU_LFXOCTRL_GAIN_SHIFT)
-                     | (lfxoInit->timeout << _CMU_LFXOCTRL_TIMEOUT_SHIFT)
-                     | (lfxoInit->mode << _CMU_LFXOCTRL_MODE_SHIFT));
+                     ((uint32_t)lfxoInit->ctune << _CMU_LFXOCTRL_TUNING_SHIFT)
+                     | ((uint32_t)lfxoInit->gain << _CMU_LFXOCTRL_GAIN_SHIFT)
+                     | ((uint32_t)lfxoInit->timeout
+                        << _CMU_LFXOCTRL_TIMEOUT_SHIFT)
+                     | ((uint32_t)lfxoInit->mode << _CMU_LFXOCTRL_MODE_SHIFT));
 #else
   bool cmuBoost  = (lfxoInit->boost & 0x2);
   BUS_RegMaskedWrite(&CMU->CTRL,
                      _CMU_CTRL_LFXOTIMEOUT_MASK
                      | _CMU_CTRL_LFXOBOOST_MASK
                      | _CMU_CTRL_LFXOMODE_MASK,
-                     (lfxoInit->timeout << _CMU_CTRL_LFXOTIMEOUT_SHIFT)
+                     ((uint32_t)lfxoInit->timeout
+                      << _CMU_CTRL_LFXOTIMEOUT_SHIFT)
                      | ((cmuBoost ? 1 : 0) << _CMU_CTRL_LFXOBOOST_SHIFT)
-                     | (lfxoInit->mode << _CMU_CTRL_LFXOMODE_SHIFT));
+                     | ((uint32_t)lfxoInit->mode << _CMU_CTRL_LFXOMODE_SHIFT));
 #endif
 
 #if defined(_EMU_AUXCTRL_REDLFXOBOOST_MASK)
@@ -4867,7 +4934,7 @@ void CMU_OscillatorEnable(CMU_Osc_TypeDef osc, bool enable, bool wait)
       break;
 #endif
 
-#if defined(_CMU_STATUS_PLFRCOENS_MASK)
+#if defined(CMU_PLFRCO_PRESENT)
     case cmuOsc_PLFRCO:
       enBit  = CMU_OSCENCMD_PLFRCOEN;
       disBit = CMU_OSCENCMD_PLFRCODIS;
@@ -4880,7 +4947,7 @@ void CMU_OscillatorEnable(CMU_Osc_TypeDef osc, bool enable, bool wait)
       /* Undefined clock source or cmuOsc_ULFRCO. ULFRCO is always enabled,
          and cannot be disabled. Ie. the definition of cmuOsc_ULFRCO is primarely
          intended for information: the ULFRCO is always on.  */
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return;
   }
 
@@ -4891,17 +4958,19 @@ void CMU_OscillatorEnable(CMU_Osc_TypeDef osc, bool enable, bool wait)
     /* Enabling the HFXO for the first time requires special handling. We use the
      * PEAKDETSHUTOPTMODE field of the HFXOCTRL register to see if this is the
      * first time the HFXO is enabled. */
-    if ((osc == cmuOsc_HFXO) && (getHfxoTuningMode() == HFXO_TUNING_MODE_AUTO)) {
-      /* REGPWRSEL must be set to DVDD before the HFXO can be enabled. */
+    if (osc == cmuOsc_HFXO) {
+      if (getHfxoTuningMode() == HFXO_TUNING_MODE_AUTO) {
+        /* REGPWRSEL must be set to DVDD before the HFXO can be enabled. */
 #if defined(_EMU_PWRCTRL_REGPWRSEL_MASK)
-      EFM_ASSERT(EMU->PWRCTRL & EMU_PWRCTRL_REGPWRSEL_DVDD);
+        EFM_ASSERT((EMU->PWRCTRL & EMU_PWRCTRL_REGPWRSEL_DVDD) != 0UL);
 #endif
 
-      firstHfxoEnable = true;
-      /* First time we enable an external clock we should switch to CMD mode to make sure that
-       * we only do SCO and not PDA tuning. */
-      if ((CMU->HFXOCTRL & (_CMU_HFXOCTRL_MODE_MASK)) == CMU_HFXOCTRL_MODE_DIGEXTCLK) {
-        setHfxoTuningMode(HFXO_TUNING_MODE_CMD);
+        firstHfxoEnable = true;
+        /* First time we enable an external clock we should switch to CMD mode to make sure that
+         * we only do SCO and not PDA tuning. */
+        if ((CMU->HFXOCTRL & (_CMU_HFXOCTRL_MODE_MASK)) == CMU_HFXOCTRL_MODE_DIGEXTCLK) {
+          setHfxoTuningMode(HFXO_TUNING_MODE_CMD);
+        }
       }
     }
 #endif
@@ -4909,34 +4978,40 @@ void CMU_OscillatorEnable(CMU_Osc_TypeDef osc, bool enable, bool wait)
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
     /* Always wait for ENS to go high */
-    while (!BUS_RegBitRead(&CMU->STATUS, ensBitPos)) {
+    while (BUS_RegBitRead(&CMU->STATUS, ensBitPos) == 0UL) {
     }
 #endif
 
     /* Wait for clock to become ready after enable */
     if (wait) {
-      while (!BUS_RegBitRead(&CMU->STATUS, rdyBitPos)) ;
+      while (BUS_RegBitRead(&CMU->STATUS, rdyBitPos) == 0UL) {
+      }
 #if defined(_SILICON_LABS_32B_SERIES_1)
       if ((osc == cmuOsc_HFXO) && firstHfxoEnable) {
-        if ((CMU->HFXOCTRL & _CMU_HFXOCTRL_MODE_MASK) == CMU_HFXOCTRL_MODE_DIGEXTCLK) {
+        if ((CMU->HFXOCTRL & _CMU_HFXOCTRL_MODE_MASK)
+            == CMU_HFXOCTRL_MODE_DIGEXTCLK) {
 #if defined(CMU_CMD_HFXOSHUNTOPTSTART)
           /* External clock mode should only do shunt current optimization. */
-          CMU_OscillatorTuningOptimize(cmuOsc_HFXO, cmuHFXOTuningMode_ShuntCommand, true);
+          (void)CMU_OscillatorTuningOptimize(cmuOsc_HFXO,
+                                             cmuHFXOTuningMode_ShuntCommand,
+                                             true);
 #endif
         } else {
-          /* Wait for peak detection and shunt current optimization to complete. */
-          CMU_OscillatorTuningWait(cmuOsc_HFXO, cmuHFXOTuningMode_Auto);
+          /* Wait for peak detection and shunt current optimization
+             to complete. */
+          (void)CMU_OscillatorTuningWait(cmuOsc_HFXO, cmuHFXOTuningMode_Auto);
         }
 
-        /* Disable the HFXO again to apply the trims. Apply trim from HFXOTRIMSTATUS
-           when disabled. */
+        /* Disable the HFXO again to apply the trims. Apply trim from
+           HFXOTRIMSTATUS when disabled. */
         hfxoTrimStatus = CMU_OscillatorTuningGet(cmuOsc_HFXO);
         CMU_OscillatorEnable(cmuOsc_HFXO, false, true);
         CMU_OscillatorTuningSet(cmuOsc_HFXO, hfxoTrimStatus);
 
         /* Restart in CMD mode. */
         CMU->OSCENCMD = enBit;
-        while (!BUS_RegBitRead(&CMU->STATUS, rdyBitPos)) ;
+        while (BUS_RegBitRead(&CMU->STATUS, rdyBitPos) == 0UL) {
+        }
       }
 #endif
     }
@@ -4945,7 +5020,7 @@ void CMU_OscillatorEnable(CMU_Osc_TypeDef osc, bool enable, bool wait)
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
     /* Always wait for ENS to go low */
-    while (BUS_RegBitRead(&CMU->STATUS, ensBitPos)) {
+    while (BUS_RegBitRead(&CMU->STATUS, ensBitPos) != 0UL) {
     }
 #endif
   }
@@ -5005,8 +5080,8 @@ uint32_t CMU_OscillatorTuningGet(CMU_Osc_TypeDef osc)
 #endif
 
     default:
-      EFM_ASSERT(0);
       ret = 0;
+      EFM_ASSERT(false);
       break;
   }
 
@@ -5047,7 +5122,9 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
                          >> _CMU_LFRCOCTRL_TUNING_SHIFT));
       val &= (_CMU_LFRCOCTRL_TUNING_MASK >> _CMU_LFRCOCTRL_TUNING_SHIFT);
 #if defined(_SILICON_LABS_32B_SERIES_1)
-      while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_LFRCOBSY_SHIFT)) ;
+      while (BUS_RegBitRead(&CMU->SYNCBUSY,
+                            _CMU_SYNCBUSY_LFRCOBSY_SHIFT) != 0UL) {
+      }
 #endif
       CMU->LFRCOCTRL = (CMU->LFRCOCTRL & ~(_CMU_LFRCOCTRL_TUNING_MASK))
                        | (val << _CMU_LFRCOCTRL_TUNING_SHIFT);
@@ -5058,7 +5135,8 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
                          >> _CMU_HFRCOCTRL_TUNING_SHIFT));
       val &= (_CMU_HFRCOCTRL_TUNING_MASK >> _CMU_HFRCOCTRL_TUNING_SHIFT);
 #if defined(_SILICON_LABS_32B_SERIES_1)
-      while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_HFRCOBSY_SHIFT)) {
+      while (BUS_RegBitRead(&CMU->SYNCBUSY,
+                            _CMU_SYNCBUSY_HFRCOBSY_SHIFT) != 0UL) {
       }
 #endif
       CMU->HFRCOCTRL = (CMU->HFRCOCTRL & ~(_CMU_HFRCOCTRL_TUNING_MASK))
@@ -5084,7 +5162,8 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
                          >> _CMU_AUXHFRCOCTRL_TUNING_SHIFT));
       val &= (_CMU_AUXHFRCOCTRL_TUNING_MASK >> _CMU_AUXHFRCOCTRL_TUNING_SHIFT);
 #if defined(_SILICON_LABS_32B_SERIES_1)
-      while (BUS_RegBitRead(&CMU->SYNCBUSY, _CMU_SYNCBUSY_AUXHFRCOBSY_SHIFT)) {
+      while (BUS_RegBitRead(&CMU->SYNCBUSY,
+                            _CMU_SYNCBUSY_AUXHFRCOBSY_SHIFT) != 0UL) {
       }
 #endif
       CMU->AUXHFRCOCTRL = (CMU->AUXHFRCOCTRL & ~(_CMU_AUXHFRCOCTRL_TUNING_MASK))
@@ -5095,7 +5174,7 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
     case cmuOsc_HFXO:
 
       /* Do set PEAKDETSHUNTOPTMODE or HFXOSTEADYSTATECTRL if HFXO is enabled */
-      EFM_ASSERT(!(CMU->STATUS & CMU_STATUS_HFXOENS));
+      EFM_ASSERT((CMU->STATUS & CMU_STATUS_HFXOENS) == 0UL);
 
       /* Switch to command mode. Automatic SCO and PDA calibration is not done
          at the next enable. Set user REGISH, REGISHUPPER and IBTRIMXOCORE. */
@@ -5121,7 +5200,7 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
 #endif
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       break;
   }
 }
@@ -5173,14 +5252,16 @@ bool CMU_OscillatorTuningWait(CMU_Osc_TypeDef osc,
       default:
         waitFlags = _CMU_STATUS_MASK;
         EFM_ASSERT(false);
+        break;
     }
   }
-  while ((CMU->STATUS & waitFlags) != waitFlags) ;
+  while ((CMU->STATUS & waitFlags) != waitFlags) {
+  }
 
 #if defined(CMU_IF_HFXOPEAKDETERR)
   /* Check error flags */
-  if (waitFlags & CMU_STATUS_HFXOPEAKDETRDY) {
-    return (CMU->IF & CMU_IF_HFXOPEAKDETERR ? true : false);
+  if ((waitFlags & CMU_STATUS_HFXOPEAKDETRDY) != 0UL) {
+    return (CMU->IF & CMU_IF_HFXOPEAKDETERR) != 0UL ? true : false;
   }
 #endif
   return true;
@@ -5211,12 +5292,12 @@ bool CMU_OscillatorTuningOptimize(CMU_Osc_TypeDef osc,
 {
   switch (osc) {
     case cmuOsc_HFXO:
-      if (mode) {
+      if ((unsigned)mode != 0U) {
 #if defined(CMU_IF_HFXOPEAKDETERR)
         /* Clear error flag before command write */
         CMU->IFC = CMU_IFC_HFXOPEAKDETERR;
 #endif
-        CMU->CMD = mode;
+        CMU->CMD = (uint32_t)mode;
       }
       if (wait) {
         return CMU_OscillatorTuningWait(osc, mode);
@@ -5225,6 +5306,7 @@ bool CMU_OscillatorTuningOptimize(CMU_Osc_TypeDef osc,
 
     default:
       EFM_ASSERT(false);
+      break;
   }
   return true;
 }
@@ -5268,7 +5350,7 @@ bool CMU_PCNTClockExternalGet(unsigned int instance)
       setting = 0;
       break;
   }
-  return (setting ? true : false);
+  return setting > 0UL ? true : false;
 }
 
 /**************************************************************************//**
@@ -5286,13 +5368,13 @@ void CMU_PCNTClockExternalSet(unsigned int instance, bool external)
 #if defined(PCNT_PRESENT)
   uint32_t setting = 0;
 
-  EFM_ASSERT(instance < PCNT_COUNT);
+  EFM_ASSERT(instance < (unsigned)PCNT_COUNT);
 
   if (external) {
     setting = 1;
   }
 
-  BUS_RegBitWrite(&(CMU->PCNTCTRL), (instance * 2) + 1, setting);
+  BUS_RegBitWrite(&(CMU->PCNTCTRL), (instance * 2U) + 1U, setting);
 
 #else
   (void)instance;  /* Unused parameter */
@@ -5357,7 +5439,7 @@ void CMU_USHFRCOBandSet(CMU_USHFRCOBand_TypeDef band)
       break;
 
     default:
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
       return;
   }
 

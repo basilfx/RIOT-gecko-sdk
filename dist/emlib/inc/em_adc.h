@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_adc.h
  * @brief Analog to Digital Converter (ADC) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -186,7 +186,7 @@ typedef enum {
 /** Single and scan mode voltage references. Using unshifted enums and or
     in ADC_CTRLX_VREFSEL_REG to select the extension register CTRLX_VREFSEL. */
 #if defined(_ADC_SCANCTRLX_VREFSEL_MASK)
-#define ADC_CTRLX_VREFSEL_REG     0x80
+#define ADC_CTRLX_VREFSEL_REG     0x80UL
 #endif
 typedef enum {
   /** Internal 1.25V reference. */
@@ -1145,7 +1145,7 @@ uint32_t ADC_ScanSingleEndedInputAdd(ADC_InitScan_TypeDef *scanInit,
 uint32_t ADC_ScanDifferentialInputAdd(ADC_InitScan_TypeDef *scanInit,
                                       ADC_ScanInputGroup_TypeDef inputGroup,
                                       ADC_PosSel_TypeDef posSel,
-                                      ADC_ScanNegInput_TypeDef adcScanNegInput);
+                                      ADC_ScanNegInput_TypeDef negInput);
 #endif
 
 void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init);

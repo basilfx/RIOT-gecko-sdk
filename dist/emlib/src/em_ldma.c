@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_ldma.c
  * @brief Direct memory access (LDMA) module peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -154,7 +154,7 @@ void LDMA_Init(const LDMA_Init_t *init)
 
   /* Enable LDMA error interrupt. */
   LDMA->IEN = LDMA_IEN_ERROR;
-  LDMA->IFC = 0xFFFFFFFF;
+  LDMA->IFC = 0xFFFFFFFFU;
 
   NVIC_ClearPendingIRQ(LDMA_IRQn);
 
@@ -183,7 +183,7 @@ void LDMA_StartTransfer(int ch,
 {
   uint32_t tmp;
   CORE_DECLARE_IRQ_STATE;
-  uint32_t chMask = 1 << ch;
+  uint32_t chMask = 1UL << (uint8_t)ch;
 
   EFM_ASSERT(ch < DMA_CHAN_COUNT);
   EFM_ASSERT(transfer != NULL);
@@ -274,7 +274,7 @@ void LDMA_StartTransfer(int ch,
  ******************************************************************************/
 void LDMA_StopTransfer(int ch)
 {
-  uint32_t chMask = 1 << ch;
+  uint32_t chMask = 1UL << (uint8_t)ch;
 
   EFM_ASSERT(ch < DMA_CHAN_COUNT);
 
@@ -297,7 +297,7 @@ void LDMA_StopTransfer(int ch)
 bool LDMA_TransferDone(int ch)
 {
   bool     retVal = false;
-  uint32_t chMask = 1 << ch;
+  uint32_t chMask = 1UL << (uint8_t)ch;
 
   EFM_ASSERT(ch < DMA_CHAN_COUNT);
 
@@ -328,7 +328,7 @@ bool LDMA_TransferDone(int ch)
 uint32_t LDMA_TransferRemainingCount(int ch)
 {
   uint32_t remaining, done, iflag;
-  uint32_t chMask = 1 << ch;
+  uint32_t chMask = 1UL << (uint8_t)ch;
 
   EFM_ASSERT(ch < DMA_CHAN_COUNT);
 

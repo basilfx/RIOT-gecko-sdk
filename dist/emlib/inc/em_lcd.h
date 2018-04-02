@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_lcd.h
  * @brief Liquid Crystal Display (LCD) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2017 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -225,6 +225,16 @@ typedef enum {
   lcdAnimLogicOr  = LCD_BACTRL_ALOGSEL_OR
 } LCD_AnimLogic_TypeDef;
 
+#if defined(_LCD_DISPCTRL_CHGRDST_MASK)
+/** Charge redistribution control */
+typedef enum {
+  /** Disable charge redistribution  */
+  lcdChargeRedistributionDisable = LCD_DISPCTRL_CHGRDST_DISABLE,
+  /** Enable charge redistribution  */
+  lcdChargeRedistributionEnable = LCD_DISPCTRL_CHGRDST_ONE
+} LCD_ChargeRedistribution_TypeDef;
+#endif
+
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
  ******************************************************************************/
@@ -277,10 +287,10 @@ typedef struct {
 #endif
 #if defined(_SILICON_LABS_32B_SERIES_1)
   /** Mode */
-  LCD_Mode_Typedef    mode;
-  uint8_t             chgrDst;
-  uint8_t             frameRateDivider;
-  int                 contrastLevel;
+  LCD_Mode_Typedef                      mode;
+  LCD_ChargeRedistribution_TypeDef      chargeRedistribution;
+  uint8_t                               frameRateDivider;
+  int                                   contrastLevel;
 #endif
 } LCD_Init_TypeDef;
 
@@ -298,16 +308,16 @@ typedef struct {
 #endif
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
-#define LCD_INIT_DEFAULT        \
-  {                             \
-    true,                       \
-    lcdMuxQuadruplex,           \
-    lcdBiasOneThird,            \
-    lcdWaveLowPower,            \
-    lcdModeNoExtCap,            \
-    0,                          \
-    LCD_DEFAULT_FRAME_RATE_DIV, \
-    LCD_DEFAULT_CONTRAST        \
+#define LCD_INIT_DEFAULT           \
+  {                                \
+    true,                          \
+    lcdMuxOctaplex,                \
+    lcdBiasOneFourth,              \
+    lcdWaveLowPower,               \
+    lcdModeNoExtCap,               \
+    lcdChargeRedistributionEnable, \
+    LCD_DEFAULT_FRAME_RATE_DIV,    \
+    LCD_DEFAULT_CONTRAST           \
   }
 #endif
 

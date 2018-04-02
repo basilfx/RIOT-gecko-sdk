@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_crypto.h
  * @brief Cryptography accelerator peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -101,14 +101,14 @@ extern "C" {
  *   theory for details.
  *
  *   References:
- *   @li Wikipedia - Cipher modes, http://en.wikipedia.org/wiki/Cipher_modes
+ *   @li Wikipedia - Cipher modes, en.wikipedia.org/wiki/Cipher_modes
  *
  *   @li Recommendation for Block Cipher Modes of Operation,
  *      NIST Special Publication 800-38A, 2001 Edition,
- *      http://csrc.nist.gov/publications/nistpubs/800-38a/sp800-38a.pdf
+ *      csrc.nist.gov/publications/nistpubs/800-38a/sp800-38a.pdf
  *
  *   @li Recommendation for Block Cipher Modes of Operation,
- *      http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
+ *      csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
  *
  *   @n @section crypto_sha SHA
  *   The SHA APIs include support for
@@ -116,12 +116,12 @@ extern "C" {
  *   @li SHA-256 @ref CRYPTO_SHA_256
  *
  *   The SHA-1 implementation is FIPS-180-1 compliant, ref:
- *   @li Wikipedia -  SHA-1, https://en.wikipedia.org/wiki/SHA-1
- *   @li SHA-1 spec - http://www.itl.nist.gov/fipspubs/fip180-1.htm
+ *   @li Wikipedia -  SHA-1, en.wikipedia.org/wiki/SHA-1
+ *   @li SHA-1 spec - www.itl.nist.gov/fipspubs/fip180-1.htm
  *
  *   The SHA-256 implementation is FIPS-180-2 compliant, ref:
- *   @li Wikipedia -  SHA-2, https://en.wikipedia.org/wiki/SHA-2
- *   @li SHA-2 spec - http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
+ *   @li Wikipedia -  SHA-2, en.wikipedia.org/wiki/SHA-2
+ *   @li SHA-2 spec - csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  *
  *   @n @section crypto_mul CRYPTO_Mul
  *   @ref CRYPTO_Mul is a function for multiplying big integers that are
@@ -334,35 +334,35 @@ extern "C" {
  * Use these macros in order for faster execution than the function API.
  */
 #define CRYPTO_EXECUTE_1(crypto, a1) { \
-    crypto->SEQ0 = a1 | (CRYPTO_CMD_INSTR_EXEC << 8);                    }
+    crypto->SEQ0 = a1 | (CRYPTO_CMD_INSTR_EXEC << 8); }
 #define CRYPTO_EXECUTE_2(crypto, a1, a2) { \
-    crypto->SEQ0 = a1 | (a2 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16);         }
+    crypto->SEQ0 = a1 | (a2 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16); }
 #define CRYPTO_EXECUTE_3(crypto, a1, a2, a3) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (CRYPTO_CMD_INSTR_EXEC << 24); }
 #define CRYPTO_EXECUTE_4(crypto, a1, a2, a3, a4) {           \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24); \
-    crypto->SEQ1 = CRYPTO_CMD_INSTR_EXEC;                              }
+    crypto->SEQ1 = CRYPTO_CMD_INSTR_EXEC; }
 #define CRYPTO_EXECUTE_5(crypto, a1, a2, a3, a4, a5) {       \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24); \
-    crypto->SEQ1 = a5 | (CRYPTO_CMD_INSTR_EXEC << 8);                    }
+    crypto->SEQ1 = a5 | (CRYPTO_CMD_INSTR_EXEC << 8); }
 #define CRYPTO_EXECUTE_6(crypto, a1, a2, a3, a4, a5, a6) {   \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24); \
-    crypto->SEQ1 = a5 | (a6 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16);         }
+    crypto->SEQ1 = a5 | (a6 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16); }
 #define CRYPTO_EXECUTE_7(crypto, a1, a2, a3, a4, a5, a6, a7) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);   \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (CRYPTO_CMD_INSTR_EXEC << 24); }
 #define CRYPTO_EXECUTE_8(crypto, a1, a2, a3, a4, a5, a6, a7, a8) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);       \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (a8 << 24);       \
-    crypto->SEQ2 = CRYPTO_CMD_INSTR_EXEC;                              }
+    crypto->SEQ2 = CRYPTO_CMD_INSTR_EXEC; }
 #define CRYPTO_EXECUTE_9(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);           \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (a8 << 24);           \
-    crypto->SEQ2 = a9 | (CRYPTO_CMD_INSTR_EXEC << 8);                    }
+    crypto->SEQ2 = a9 | (CRYPTO_CMD_INSTR_EXEC << 8); }
 #define CRYPTO_EXECUTE_10(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);                 \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (a8 << 24);                 \
-    crypto->SEQ2 = a9 | (a10 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16);        }
+    crypto->SEQ2 = a9 | (a10 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16); }
 #define CRYPTO_EXECUTE_11(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);                      \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (a8 << 24);                      \
@@ -371,17 +371,17 @@ extern "C" {
     crypto->SEQ0 = a1 |  (a2 << 8) |  (a3 << 16) | (a4 << 24);                         \
     crypto->SEQ1 = a5 |  (a6 << 8) |  (a7 << 16) | (a8 << 24);                         \
     crypto->SEQ2 = a9 | (a10 << 8) | (a11 << 16) | (a12 << 24);                        \
-    crypto->SEQ3 = CRYPTO_CMD_INSTR_EXEC;                              }
+    crypto->SEQ3 = CRYPTO_CMD_INSTR_EXEC; }
 #define CRYPTO_EXECUTE_13(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) { \
     crypto->SEQ0 = a1  | (a2 << 8)  | (a3 << 16)  | (a4 << 24);                             \
     crypto->SEQ1 = a5  | (a6 << 8)  | (a7 << 16)  | (a8 << 24);                             \
     crypto->SEQ2 = a9  | (a10 << 8) | (a11 << 16) | (a12 << 24);                            \
-    crypto->SEQ3 = a13 | (CRYPTO_CMD_INSTR_EXEC << 8);                   }
+    crypto->SEQ3 = a13 | (CRYPTO_CMD_INSTR_EXEC << 8); }
 #define CRYPTO_EXECUTE_14(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) { \
     crypto->SEQ0 = a1 | (a2 << 8) | (a3 << 16) | (a4 << 24);                                     \
     crypto->SEQ1 = a5 | (a6 << 8) | (a7 << 16) | (a8 << 24);                                     \
     crypto->SEQ2 = a9 | (a10 << 8) | (a11 << 16) | (a12 << 24);                                  \
-    crypto->SEQ3 = a13 | (a14 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16);       }
+    crypto->SEQ3 = a13 | (a14 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16); }
 #define CRYPTO_EXECUTE_15(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) { \
     crypto->SEQ0 =  a1 |  (a2 << 8) |  (a3 << 16) |  (a4 << 24);                                      \
     crypto->SEQ1 =  a5 |  (a6 << 8) |  (a7 << 16) |  (a8 << 24);                                      \
@@ -392,19 +392,19 @@ extern "C" {
     crypto->SEQ1 =  a5 |  (a6 << 8) |  (a7 << 16) |  (a8 << 24);                                           \
     crypto->SEQ2 =  a9 | (a10 << 8) | (a11 << 16) | (a12 << 24);                                           \
     crypto->SEQ3 = a13 | (a14 << 8) | (a15 << 16) | (a16 << 24);                                           \
-    crypto->SEQ4 = CRYPTO_CMD_INSTR_EXEC;                              }
+    crypto->SEQ4 = CRYPTO_CMD_INSTR_EXEC; }
 #define CRYPTO_EXECUTE_17(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) { \
     crypto->SEQ0 =  a1 |  (a2 << 8) |  (a3 << 16) | (a4 << 24);                                                 \
     crypto->SEQ1 =  a5 |  (a6 << 8) |  (a7 << 16) | (a8 << 24);                                                 \
     crypto->SEQ2 =  a9 | (a10 << 8) | (a11 << 16) | (a12 << 24);                                                \
     crypto->SEQ3 = a13 | (a14 << 8) | (a15 << 16) | (a16 << 24);                                                \
-    crypto->SEQ4 = a17 | (CRYPTO_CMD_INSTR_EXEC << 8);                   }
+    crypto->SEQ4 = a17 | (CRYPTO_CMD_INSTR_EXEC << 8); }
 #define CRYPTO_EXECUTE_18(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) { \
     crypto->SEQ0 =  a1 |  (a2 << 8) |  (a3 << 16) |  (a4 << 24);                                                     \
     crypto->SEQ1 =  a5 |  (a6 << 8) |  (a7 << 16) |  (a8 << 24);                                                     \
     crypto->SEQ2 =  a9 | (a10 << 8) | (a11 << 16) | (a12 << 24);                                                     \
     crypto->SEQ3 = a13 | (a14 << 8) | (a15 << 16) | (a16 << 24);                                                     \
-    crypto->SEQ4 = a17 | (a18 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16);       }
+    crypto->SEQ4 = a17 | (a18 << 8) | (CRYPTO_CMD_INSTR_EXEC << 16); }
 #define CRYPTO_EXECUTE_19(crypto, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) { \
     crypto->SEQ0 =  a1 |  (a2 << 8) |  (a3 << 16) |  (a4 << 24);                                                          \
     crypto->SEQ1 =  a5 |  (a6 << 8) |  (a7 << 16) |  (a8 << 24);                                                          \
@@ -621,7 +621,7 @@ void CRYPTO_MulOperandWidthSet(CRYPTO_TypeDef *crypto,
                                CRYPTO_MulOperandWidth_TypeDef mulOperandWidth)
 {
   uint32_t temp = crypto->WAC & (~_CRYPTO_WAC_MULWIDTH_MASK);
-  crypto->WAC = temp | mulOperandWidth;
+  crypto->WAC = temp | (uint32_t)mulOperandWidth;
 }
 
 /***************************************************************************//**
@@ -642,7 +642,7 @@ void CRYPTO_ResultWidthSet(CRYPTO_TypeDef *crypto,
                            CRYPTO_ResultWidth_TypeDef resultWidth)
 {
   uint32_t temp = crypto->WAC & (~_CRYPTO_WAC_RESULTWIDTH_MASK);
-  crypto->WAC = temp | resultWidth;
+  crypto->WAC = temp | (uint32_t)resultWidth;
 }
 
 /***************************************************************************//**
@@ -663,7 +663,7 @@ __STATIC_INLINE void CRYPTO_IncWidthSet(CRYPTO_TypeDef *crypto,
                                         CRYPTO_IncWidth_TypeDef incWidth)
 {
   uint32_t temp = crypto->CTRL & (~_CRYPTO_CTRL_INCWIDTH_MASK);
-  crypto->CTRL = temp | incWidth;
+  crypto->CTRL = temp | (uint32_t)incWidth;
 }
 
 /***************************************************************************//**
@@ -744,7 +744,7 @@ __STATIC_INLINE void CRYPTO_BurstFromCrypto(volatile uint32_t * reg, uint32_t * 
 __STATIC_INLINE void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
                                       const CRYPTO_Data_TypeDef val)
 {
-  CRYPTO_BurstToCrypto((volatile uint32_t *)dataReg, val);
+  CRYPTO_BurstToCrypto(dataReg, val);
 }
 
 /***************************************************************************//**
@@ -762,7 +762,7 @@ __STATIC_INLINE void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
 __STATIC_INLINE void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
                                      CRYPTO_Data_TypeDef     val)
 {
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)dataReg, val);
+  CRYPTO_BurstFromCrypto(dataReg, val);
 }
 
 /***************************************************************************//**
@@ -780,8 +780,8 @@ __STATIC_INLINE void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
 __STATIC_INLINE void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
                                        const CRYPTO_DData_TypeDef val)
 {
-  CRYPTO_BurstToCrypto((volatile uint32_t *)ddataReg, &val[0]);
-  CRYPTO_BurstToCrypto((volatile uint32_t *)ddataReg, &val[4]);
+  CRYPTO_BurstToCrypto(ddataReg, &val[0]);
+  CRYPTO_BurstToCrypto(ddataReg, &val[4]);
 }
 
 /***************************************************************************//**
@@ -799,8 +799,8 @@ __STATIC_INLINE void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
 __STATIC_INLINE void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
                                       CRYPTO_DData_TypeDef     val)
 {
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)ddataReg, &val[0]);
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)ddataReg, &val[4]);
+  CRYPTO_BurstFromCrypto(ddataReg, &val[0]);
+  CRYPTO_BurstFromCrypto(ddataReg, &val[4]);
 }
 
 /***************************************************************************//**
@@ -815,13 +815,13 @@ __STATIC_INLINE void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
  * @param[in]  qdataReg   The 512 bits QDATA register.
  * @param[in]  val        Value of the data to write to the QDATA register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef  qdataReg,
-                                       CRYPTO_QData_TypeDef     val)
+__STATIC_INLINE void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef qdataReg,
+                                       const CRYPTO_QData_TypeDef val)
 {
-  CRYPTO_BurstToCrypto((volatile uint32_t *)qdataReg, &val[0]);
-  CRYPTO_BurstToCrypto((volatile uint32_t *)qdataReg, &val[4]);
-  CRYPTO_BurstToCrypto((volatile uint32_t *)qdataReg, &val[8]);
-  CRYPTO_BurstToCrypto((volatile uint32_t *)qdataReg, &val[12]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[0]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[4]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[8]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[12]);
 }
 
 /***************************************************************************//**
@@ -839,10 +839,10 @@ __STATIC_INLINE void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef  qdataReg,
 __STATIC_INLINE void CRYPTO_QDataRead(CRYPTO_QDataReg_TypeDef qdataReg,
                                       CRYPTO_QData_TypeDef    val)
 {
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)qdataReg, &val[0]);
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)qdataReg, &val[4]);
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)qdataReg, &val[8]);
-  CRYPTO_BurstFromCrypto((volatile uint32_t *)qdataReg, &val[12]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[0]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[4]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[8]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[12]);
 }
 
 /***************************************************************************//**
@@ -869,7 +869,7 @@ __STATIC_INLINE void CRYPTO_KeyBufWrite(CRYPTO_TypeDef          *crypto,
     /* Set AES-256 mode */
     BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES256);
     /* Load key in KEYBUF register (= DDATA4) */
-    CRYPTO_DDataWrite(&crypto->DDATA4, (uint32_t *)val);
+    CRYPTO_DDataWrite(&crypto->DDATA4, val);
   } else {
     /* Set AES-128 mode */
     BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES128);
@@ -915,8 +915,8 @@ __STATIC_INLINE void CRYPTO_KeyBuf128Write(CRYPTO_TypeDef *crypto,
  ******************************************************************************/
 __STATIC_INLINE bool CRYPTO_CarryIsSet(CRYPTO_TypeDef *crypto)
 {
-  return (crypto->DSTATUS & _CRYPTO_DSTATUS_CARRY_MASK)
-         >> _CRYPTO_DSTATUS_CARRY_SHIFT;
+  return ((crypto->DSTATUS & _CRYPTO_DSTATUS_CARRY_MASK)
+          >> _CRYPTO_DSTATUS_CARRY_SHIFT) != 0UL;
 }
 
 /***************************************************************************//**
@@ -935,8 +935,8 @@ __STATIC_INLINE bool CRYPTO_CarryIsSet(CRYPTO_TypeDef *crypto)
  ******************************************************************************/
 __STATIC_INLINE uint8_t CRYPTO_DData0_4LSBitsRead(CRYPTO_TypeDef *crypto)
 {
-  return (crypto->DSTATUS & _CRYPTO_DSTATUS_DDATA0LSBS_MASK)
-         >> _CRYPTO_DSTATUS_DDATA0LSBS_SHIFT;
+  return (uint8_t)((crypto->DSTATUS & _CRYPTO_DSTATUS_DDATA0LSBS_MASK)
+                   >> _CRYPTO_DSTATUS_DDATA0LSBS_SHIFT);
 }
 
 /***************************************************************************//**
@@ -1004,8 +1004,8 @@ __STATIC_INLINE void CRYPTO_DData0Write260(CRYPTO_TypeDef *crypto,
  ******************************************************************************/
 __STATIC_INLINE bool CRYPTO_DData1_MSBitRead(CRYPTO_TypeDef *crypto)
 {
-  return (crypto->DSTATUS & _CRYPTO_DSTATUS_DDATA1MSB_MASK)
-         >> _CRYPTO_DSTATUS_DDATA1MSB_SHIFT;
+  return ((crypto->DSTATUS & _CRYPTO_DSTATUS_DDATA1MSB_MASK)
+          >> _CRYPTO_DSTATUS_DDATA1MSB_SHIFT) != 0UL;
 }
 
 /***************************************************************************//**
@@ -1070,8 +1070,8 @@ __STATIC_INLINE void CRYPTO_InstructionSequenceExecute(CRYPTO_TypeDef *crypto)
 __STATIC_INLINE bool CRYPTO_InstructionSequenceDone(CRYPTO_TypeDef *crypto)
 {
   /* Return true if operation has completed. */
-  return !(crypto->STATUS
-           & (CRYPTO_STATUS_INSTRRUNNING | CRYPTO_STATUS_SEQRUNNING));
+  return (crypto->STATUS
+          & (CRYPTO_STATUS_INSTRRUNNING | CRYPTO_STATUS_SEQRUNNING)) == 0UL;
 }
 
 /***************************************************************************//**
@@ -1087,8 +1087,8 @@ __STATIC_INLINE bool CRYPTO_InstructionSequenceDone(CRYPTO_TypeDef *crypto)
  ******************************************************************************/
 __STATIC_INLINE void CRYPTO_InstructionSequenceWait(CRYPTO_TypeDef *crypto)
 {
-  while (!CRYPTO_InstructionSequenceDone(crypto))
-    ;
+  while (!CRYPTO_InstructionSequenceDone(crypto)) {
+  }
 }
 
 /***************************************************************************//**
@@ -1105,8 +1105,8 @@ __STATIC_INLINE void CRYPTO_InstructionSequenceWait(CRYPTO_TypeDef *crypto)
 __STATIC_INLINE void CRYPTO_InstructionWait(CRYPTO_TypeDef *crypto)
 {
   /* Wait for completion */
-  while (!(crypto->IF & CRYPTO_IF_INSTRDONE))
-    ;
+  while ((crypto->IF & CRYPTO_IF_INSTRDONE) == 0UL) {
+  }
   crypto->IFC = CRYPTO_IF_INSTRDONE;
 }
 

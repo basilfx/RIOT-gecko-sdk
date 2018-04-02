@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_adc.c
  * @brief Analog to Digital Converter (ADC) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -67,13 +67,13 @@
 
 /** Max ADC clock */
 #if defined(_SILICON_LABS_32B_SERIES_0)
-#define ADC_MAX_CLOCK    13000000
+#define ADC_MAX_CLOCK    13000000UL
 #else
-#define ADC_MAX_CLOCK    16000000
+#define ADC_MAX_CLOCK    16000000UL
 #endif
 
 /** Min ADC clock */
-#define ADC_MIN_CLOCK    32000
+#define ADC_MIN_CLOCK    32000UL
 
 /** Helper defines for selecting ADC calibration and DEVINFO register fields. */
 #if defined(_DEVINFO_ADC0CAL0_1V25_GAIN_MASK)
@@ -388,13 +388,13 @@ void ADC_Init(ADC_TypeDef *adc, const ADC_Init_TypeDef *init)
 
   EFM_ASSERT(ADC_REF_VALID(adc));
 
-  if (presc == 0) {
+  if (presc == 0U) {
     /* Assume maximum ADC clock for prescaler 0 */
     presc = ADC_PrescaleCalc(ADC_MAX_CLOCK, 0);
   } else {
     /* Check prescaler bounds against ADC_MAX_CLOCK and ADC_MIN_CLOCK */
 #if defined(_ADC_CTRL_ADCCLKMODE_MASK)
-    if (ADC0->CTRL & ADC_CTRL_ADCCLKMODE_SYNC)
+    if ((ADC0->CTRL & _ADC_CTRL_ADCCLKMODE_MASK) == ADC_CTRL_ADCCLKMODE_SYNC)
 #endif
     {
       EFM_ASSERT(presc >= ADC_PrescaleCalc(ADC_MAX_CLOCK, 0));
@@ -424,7 +424,7 @@ void ADC_Init(ADC_TypeDef *adc, const ADC_Init_TypeDef *init)
 #if defined(_ADC_CTRL_ADCCLKMODE_MASK)
   BUS_RegMaskedWrite(&ADC0->CTRL,
                      _ADC_CTRL_ADCCLKMODE_MASK | _ADC_CTRL_ASYNCCLKEN_MASK,
-                     init->em2ClockConfig);
+                     (uint32_t)init->em2ClockConfig);
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
@@ -486,17 +486,24 @@ uint32_t ADC_ScanSingleEndedInputAdd(ADC_InitScan_TypeDef *scanInit,
   scanInit->diff = false;
 
   /* Check for unsupported APORTs */
-  EFM_ASSERT((singleEndedSel <= adcPosSelAPORT0YCH0) || (singleEndedSel >= adcPosSelAPORT0YCH15));
+  EFM_ASSERT((singleEndedSel <= adcPosSelAPORT0YCH0)
+             || (singleEndedSel >= adcPosSelAPORT0YCH15));
+
+  /* Check for illegal group */
+  EFM_ASSERT((unsigned)inputGroup < 4U);
 
   /* Decode the input group select by shifting right by 3 */
-  newSel = singleEndedSel >> 3;
+  newSel = (unsigned)singleEndedSel >> 3;
 
-  currentSel = (scanInit->scanInputConfig.scanInputSel >> (inputGroup * 8)) & 0xFF;
+  currentSel = (scanInit->scanInputConfig.scanInputSel
+                >> ((unsigned)inputGroup * 8U)) & 0xFFU;
 
   /* If none selected */
   if (currentSel == ADC_SCANINPUTSEL_GROUP_NONE) {
-    scanInit->scanInputConfig.scanInputSel &= ~(0xFF << (inputGroup * 8));
-    scanInit->scanInputConfig.scanInputSel |= (newSel << (inputGroup * 8));
+    scanInit->scanInputConfig.scanInputSel &=
+      ~(0xFFU << ((unsigned)inputGroup * 8U));
+    scanInit->scanInputConfig.scanInputSel |=
+      newSel << ((unsigned)inputGroup * 8U);
   } else if (currentSel == newSel) {
     /* Ok, but do nothing.  */
   } else {
@@ -505,9 +512,9 @@ uint32_t ADC_ScanSingleEndedInputAdd(ADC_InitScan_TypeDef *scanInit,
   }
 
   /* Update and return scan input enable mask (SCANMASK) */
-  scanId = (inputGroup * 8) + (singleEndedSel & 0x7);
-  EFM_ASSERT(scanId < 32);
-  scanInit->scanInputConfig.scanInputEn |= 0x1 << scanId;
+  scanId = ((unsigned)inputGroup * 8U) + ((unsigned)singleEndedSel & 0x7U);
+  EFM_ASSERT(scanId < 32U);
+  scanInit->scanInputConfig.scanInputEn |= 0x1UL << scanId;
   return scanId;
 }
 
@@ -549,7 +556,7 @@ uint32_t ADC_ScanDifferentialInputAdd(ADC_InitScan_TypeDef *scanInit,
   uint32_t negInputRegMask = 0;
   uint32_t negInputRegShift = 0;
   uint32_t negInputRegVal = 0;
-  uint32_t scanId = 0;
+  uint32_t scanId;
 
   /* Do a single ended init, then update for differential scan. */
   scanId = ADC_ScanSingleEndedInputAdd(scanInit, inputGroup, posSel);
@@ -559,45 +566,45 @@ uint32_t ADC_ScanDifferentialInputAdd(ADC_InitScan_TypeDef *scanInit,
 
   /* Set negative ADC input, unless the default is selected. */
   if (negInput != adcScanNegInputDefault) {
-    if (scanId == 0) {
+    if (scanId == 0U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT0NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT0NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 0);
-    } else if (scanId == 2) {
+      EFM_ASSERT((unsigned)inputGroup == 0U);
+    } else if (scanId == 2U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT2NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT2NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 0);
-    } else if (scanId == 4) {
+      EFM_ASSERT((unsigned)inputGroup == 0U);
+    } else if (scanId == 4U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT4NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT4NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 0);
-    } else if (scanId == 6) {
+      EFM_ASSERT((unsigned)inputGroup == 0U);
+    } else if (scanId == 6U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT6NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT6NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 0);
-    } else if (scanId == 9) {
+      EFM_ASSERT((unsigned)inputGroup == 0U);
+    } else if (scanId == 9U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT9NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT9NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 1);
-    } else if (scanId == 11) {
+      EFM_ASSERT((unsigned)inputGroup == 1U);
+    } else if (scanId == 11U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT11NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT11NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 1);
-    } else if (scanId == 13) {
+      EFM_ASSERT((unsigned)inputGroup == 1U);
+    } else if (scanId == 13U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT13NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT13NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 1);
-    } else if (scanId == 15) {
+      EFM_ASSERT((unsigned)inputGroup == 1U);
+    } else if (scanId == 15U) {
       negInputRegMask  = _ADC_SCANNEGSEL_INPUT15NEGSEL_MASK;
       negInputRegShift = _ADC_SCANNEGSEL_INPUT15NEGSEL_SHIFT;
-      EFM_ASSERT(inputGroup == 1);
+      EFM_ASSERT((unsigned)inputGroup == 1U);
     } else {
       /* There is not negative input option for this positive input (negInput is posInput + 1). */
       EFM_ASSERT(false);
     }
 
     /* Find ADC_SCANNEGSEL_CHxNSEL value for positive input 0, 2, 4 and 6 */
-    if (inputGroup == 0) {
+    if ((unsigned)inputGroup == 0U) {
       switch (negInput) {
         case adcScanNegInput1:
           negInputRegVal = _ADC_SCANNEGSEL_INPUT0NEGSEL_INPUT1;
@@ -620,7 +627,7 @@ uint32_t ADC_ScanDifferentialInputAdd(ADC_InitScan_TypeDef *scanInit,
           EFM_ASSERT(false);
           break;
       }
-    } else if (inputGroup == 1) {
+    } else { /* inputGroup == 1 */
       /* Find ADC_SCANNEGSEL_CHxNSEL value for positive input 9, 11, 13 and 15 */
       switch (negInput) {
         case adcScanNegInput8:
@@ -644,9 +651,6 @@ uint32_t ADC_ScanDifferentialInputAdd(ADC_InitScan_TypeDef *scanInit,
           EFM_ASSERT(false);
           break;
       }
-    } else {
-      /* No alternative negative input for input group > 1 */
-      EFM_ASSERT(false);
     }
 
     /* Update config */
@@ -694,15 +698,15 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
   /* Load calibration data for selected reference */
   ADC_LoadDevinfoCal(adc, init->reference, true);
 
-  tmp = 0
+  tmp = 0UL
 #if defined (_ADC_SCANCTRL_PRSSEL_MASK)
-        | (init->prsSel << _ADC_SCANCTRL_PRSSEL_SHIFT)
+        | ((uint32_t)init->prsSel << _ADC_SCANCTRL_PRSSEL_SHIFT)
 #endif
-        | (init->acqTime << _ADC_SCANCTRL_AT_SHIFT)
+        | ((uint32_t)init->acqTime << _ADC_SCANCTRL_AT_SHIFT)
 #if defined (_ADC_SCANCTRL_INPUTMASK_MASK)
         | init->input
 #endif
-        | (init->resolution << _ADC_SCANCTRL_RES_SHIFT);
+        | ((uint32_t)init->resolution << _ADC_SCANCTRL_RES_SHIFT);
 
   if (init->prsEnable) {
     tmp |= ADC_SCANCTRL_PRSEN;
@@ -732,11 +736,11 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
 
   /* Set scan reference. Check if reference configuraion is extended to SCANCTRLX. */
 #if defined (_ADC_SCANCTRLX_VREFSEL_MASK)
-  if (init->reference & ADC_CTRLX_VREFSEL_REG) {
+  if (((uint32_t)init->reference & ADC_CTRLX_VREFSEL_REG) != 0UL) {
     /* Select extension register */
     tmp |= ADC_SCANCTRL_REF_CONF;
   } else {
-    tmp |= init->reference << _ADC_SCANCTRL_REF_SHIFT;
+    tmp |= (uint32_t)init->reference << _ADC_SCANCTRL_REF_SHIFT;
   }
 #else
   tmp |= init->reference << _ADC_SCANCTRL_REF_SHIFT;
@@ -753,11 +757,11 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
   tmp = adc->SCANCTRLX & ~(_ADC_SCANCTRLX_VREFSEL_MASK
                            | _ADC_SCANCTRLX_PRSSEL_MASK
                            | _ADC_SCANCTRLX_FIFOOFACT_MASK);
-  if (init->reference & ADC_CTRLX_VREFSEL_REG) {
-    tmp |= (init->reference & ~ADC_CTRLX_VREFSEL_REG) << _ADC_SCANCTRLX_VREFSEL_SHIFT;
+  if (((uint32_t)init->reference & ADC_CTRLX_VREFSEL_REG) != 0UL) {
+    tmp |= ((uint32_t)init->reference & ~ADC_CTRLX_VREFSEL_REG) << _ADC_SCANCTRLX_VREFSEL_SHIFT;
   }
 
-  tmp |= init->prsSel << _ADC_SCANCTRLX_PRSSEL_SHIFT;
+  tmp |= (uint32_t)init->prsSel << _ADC_SCANCTRLX_PRSSEL_SHIFT;
 
   if (init->fifoOverwrite) {
     tmp |= ADC_SCANCTRLX_FIFOOFACT_OVERWRITE;
@@ -767,7 +771,9 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
 #endif
 
 #if defined(_ADC_CTRL_SCANDMAWU_MASK)
-  BUS_RegBitWrite(&adc->CTRL, _ADC_CTRL_SCANDMAWU_SHIFT, init->scanDmaEm2Wu);
+  BUS_RegBitWrite(&adc->CTRL,
+                  _ADC_CTRL_SCANDMAWU_SHIFT,
+                  (uint32_t)init->scanDmaEm2Wu);
 #endif
 
   /* Write scan input configuration */
@@ -829,19 +835,19 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
   /* Load calibration data for selected reference */
   ADC_LoadDevinfoCal(adc, init->reference, false);
 
-  tmp = 0
+  tmp = 0UL
 #if defined(_ADC_SINGLECTRL_PRSSEL_MASK)
-        | (init->prsSel << _ADC_SINGLECTRL_PRSSEL_SHIFT)
+        | ((uint32_t)init->prsSel << _ADC_SINGLECTRL_PRSSEL_SHIFT)
 #endif
-        | (init->acqTime << _ADC_SINGLECTRL_AT_SHIFT)
+        | ((uint32_t)init->acqTime << _ADC_SINGLECTRL_AT_SHIFT)
 #if defined(_ADC_SINGLECTRL_INPUTSEL_MASK)
         | (init->input << _ADC_SINGLECTRL_INPUTSEL_SHIFT)
 #endif
 #if defined(_ADC_SINGLECTRL_POSSEL_MASK)
-        | (init->posSel << _ADC_SINGLECTRL_POSSEL_SHIFT)
+        | ((uint32_t)init->posSel << _ADC_SINGLECTRL_POSSEL_SHIFT)
 #endif
 #if defined(_ADC_SINGLECTRL_NEGSEL_MASK)
-        | (init->negSel << _ADC_SINGLECTRL_NEGSEL_SHIFT)
+        | ((uint32_t)init->negSel << _ADC_SINGLECTRL_NEGSEL_SHIFT)
 #endif
         | ((uint32_t)(init->resolution) << _ADC_SINGLECTRL_RES_SHIFT);
 
@@ -868,20 +874,20 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
       && (init->reference == adcRef1V25)
       && (init->acqTime < adcAcqTime8)) {
     tmp = (tmp & ~_ADC_SINGLECTRL_AT_MASK)
-          | (adcAcqTime8 << _ADC_SINGLECTRL_AT_SHIFT);
+          | ((uint32_t)adcAcqTime8 << _ADC_SINGLECTRL_AT_SHIFT);
   }
 #endif
 
   /* Set single reference. Check if reference configuraion is extended to SINGLECTRLX. */
 #if defined (_ADC_SINGLECTRLX_MASK)
-  if (init->reference & ADC_CTRLX_VREFSEL_REG) {
+  if (((uint32_t)init->reference & ADC_CTRLX_VREFSEL_REG) != 0UL) {
     /* Select extension register */
     tmp |= ADC_SINGLECTRL_REF_CONF;
   } else {
-    tmp |= (init->reference << _ADC_SINGLECTRL_REF_SHIFT);
+    tmp |= (uint32_t)init->reference << _ADC_SINGLECTRL_REF_SHIFT;
   }
 #else
-  tmp |= (init->reference << _ADC_SINGLECTRL_REF_SHIFT);
+  tmp |= (uint32_t)init->reference << _ADC_SINGLECTRL_REF_SHIFT;
 #endif
   adc->SINGLECTRL = tmp;
 
@@ -890,11 +896,12 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
   tmp = adc->SINGLECTRLX & ~(_ADC_SINGLECTRLX_VREFSEL_MASK
                              | _ADC_SINGLECTRLX_PRSSEL_MASK
                              | _ADC_SINGLECTRLX_FIFOOFACT_MASK);
-  if (init->reference & ADC_CTRLX_VREFSEL_REG) {
-    tmp |= ((init->reference & ~ADC_CTRLX_VREFSEL_REG) << _ADC_SINGLECTRLX_VREFSEL_SHIFT);
+  if (((uint32_t)init->reference & ADC_CTRLX_VREFSEL_REG) != 0UL) {
+    tmp |= ((uint32_t)init->reference & ~ADC_CTRLX_VREFSEL_REG)
+           << _ADC_SINGLECTRLX_VREFSEL_SHIFT;
   }
 
-  tmp |= ((init->prsSel << _ADC_SINGLECTRLX_PRSSEL_SHIFT));
+  tmp |= (uint32_t)init->prsSel << _ADC_SINGLECTRLX_PRSSEL_SHIFT;
 
   if (init->fifoOverwrite) {
     tmp |= ADC_SINGLECTRLX_FIFOOFACT_OVERWRITE;
@@ -905,13 +912,15 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
 
   /* Set DMA availability in EM2 */
 #if defined(_ADC_CTRL_SINGLEDMAWU_MASK)
-  BUS_RegBitWrite(&adc->CTRL, _ADC_CTRL_SINGLEDMAWU_SHIFT, init->singleDmaEm2Wu);
+  BUS_RegBitWrite(&adc->CTRL,
+                  _ADC_CTRL_SINGLEDMAWU_SHIFT,
+                  (uint32_t)init->singleDmaEm2Wu);
 #endif
 
 #if defined(_ADC_BIASPROG_GPBIASACC_MASK) && defined(FIX_ADC_TEMP_BIAS_EN)
   if (init->posSel == adcPosSelTEMP) {
     /* ADC should always use low accuracy setting when reading the internal
-     * temperature sensor on platform 2 generation 1 devices. Using high
+     * temperature sensor on Series 1 devices. Using high
      * accuracy setting can introduce a glitch. */
     BUS_RegBitWrite(&adc->BIASPROG, _ADC_BIASPROG_GPBIASACC_SHIFT, 1);
   } else {
@@ -963,6 +972,9 @@ uint32_t ADC_DataIdScanGet(ADC_TypeDef *adc, uint32_t *scanId)
  * @details
  *   The ADC clock is given by: HFPERCLK / (prescale + 1).
  *
+ * @note
+ *   The return value is clamped to the max prescaler value hardware supports.
+ *
  * @param[in] adcFreq ADC frequency wanted. The frequency will automatically
  *   be adjusted to be within valid range according to reference manual.
  *
@@ -982,16 +994,22 @@ uint8_t ADC_PrescaleCalc(uint32_t adcFreq, uint32_t hfperFreq)
     adcFreq = ADC_MAX_CLOCK;
   } else if (adcFreq < ADC_MIN_CLOCK) {
     adcFreq = ADC_MIN_CLOCK;
+  } else {
+    /* Valid frequency */
   }
 
   /* Use current HFPER frequency? */
-  if (!hfperFreq) {
+  if (hfperFreq == 0UL) {
     hfperFreq = CMU_ClockFreqGet(cmuClock_HFPER);
   }
 
-  ret = (hfperFreq + adcFreq - 1) / adcFreq;
-  if (ret) {
+  ret = (hfperFreq + adcFreq - 1U) / adcFreq;
+  if (ret > 0U) {
     ret--;
+  }
+
+  if (ret > (_ADC_CTRL_PRESC_MASK >> _ADC_CTRL_PRESC_SHIFT)) {
+    ret = _ADC_CTRL_PRESC_MASK >> _ADC_CTRL_PRESC_SHIFT;
   }
 
   return (uint8_t)ret;
@@ -1061,12 +1079,12 @@ void ADC_Reset(ADC_TypeDef *adc)
  ******************************************************************************/
 uint8_t ADC_TimebaseCalc(uint32_t hfperFreq)
 {
-  if (!hfperFreq) {
+  if (hfperFreq == 0UL) {
     hfperFreq = CMU_ClockFreqGet(cmuClock_HFPER);
 
     /* Just in case, make sure we get non-zero freq for below calculation */
-    if (!hfperFreq) {
-      hfperFreq = 1;
+    if (hfperFreq == 0UL) {
+      hfperFreq = 1UL;
     }
   }
 #if defined(_SILICON_LABS_32B_SERIES_0) \
@@ -1076,16 +1094,16 @@ uint8_t ADC_TimebaseCalc(uint32_t hfperFreq)
   /* required 1us when operating at 48MHz. One must also increase acqTime  */
   /* to compensate for the missing clock cycles, adding up to 1us in total.*/
   /* See reference manual for details. */
-  if ( hfperFreq > 32000000 ) {
-    hfperFreq = 32000000;
+  if ( hfperFreq > 32000000UL ) {
+    hfperFreq = 32000000UL;
   }
 #endif
   /* Determine number of HFPERCLK cycle >= 1us */
-  hfperFreq += 999999;
-  hfperFreq /= 1000000;
+  hfperFreq += 999999UL;
+  hfperFreq /= 1000000UL;
 
   /* Return timebase value (N+1 format) */
-  return (uint8_t)(hfperFreq - 1);
+  return (uint8_t)(hfperFreq - 1UL);
 }
 
 /** @} (end addtogroup ADC) */

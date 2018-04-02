@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_system.c
  * @brief System Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -62,18 +62,23 @@ void SYSTEM_ChipRevisionGet(SYSTEM_ChipRevision_TypeDef *rev)
   EFM_ASSERT(rev);
 
   /* CHIP FAMILY bit [5:2] */
-  tmp  = (((ROMTABLE->PID1 & _ROMTABLE_PID1_FAMILYMSB_MASK) >> _ROMTABLE_PID1_FAMILYMSB_SHIFT) << 2);
+  tmp  = (uint8_t)(((ROMTABLE->PID1 & _ROMTABLE_PID1_FAMILYMSB_MASK)
+                    >> _ROMTABLE_PID1_FAMILYMSB_SHIFT) << 2);
   /* CHIP FAMILY bit [1:0] */
-  tmp |=  ((ROMTABLE->PID0 & _ROMTABLE_PID0_FAMILYLSB_MASK) >> _ROMTABLE_PID0_FAMILYLSB_SHIFT);
+  tmp |=  (uint8_t)((ROMTABLE->PID0 & _ROMTABLE_PID0_FAMILYLSB_MASK)
+                    >> _ROMTABLE_PID0_FAMILYLSB_SHIFT);
   rev->family = tmp;
 
   /* CHIP MAJOR bit [3:0] */
-  rev->major = (ROMTABLE->PID0 & _ROMTABLE_PID0_REVMAJOR_MASK) >> _ROMTABLE_PID0_REVMAJOR_SHIFT;
+  rev->major = (uint8_t)((ROMTABLE->PID0 & _ROMTABLE_PID0_REVMAJOR_MASK)
+                         >> _ROMTABLE_PID0_REVMAJOR_SHIFT);
 
   /* CHIP MINOR bit [7:4] */
-  tmp  = (((ROMTABLE->PID2 & _ROMTABLE_PID2_REVMINORMSB_MASK) >> _ROMTABLE_PID2_REVMINORMSB_SHIFT) << 4);
+  tmp  = (uint8_t)(((ROMTABLE->PID2 & _ROMTABLE_PID2_REVMINORMSB_MASK)
+                    >> _ROMTABLE_PID2_REVMINORMSB_SHIFT) << 4);
   /* CHIP MINOR bit [3:0] */
-  tmp |=  ((ROMTABLE->PID3 & _ROMTABLE_PID3_REVMINORLSB_MASK) >> _ROMTABLE_PID3_REVMINORLSB_SHIFT);
+  tmp |= (uint8_t)((ROMTABLE->PID3 & _ROMTABLE_PID3_REVMINORLSB_MASK)
+                   >> _ROMTABLE_PID3_REVMINORLSB_SHIFT);
   rev->minor = tmp;
 }
 
@@ -93,7 +98,7 @@ bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
 {
   SYSTEM_CalAddrVal_TypeDef * p, * end;
 
-  p   = (SYSTEM_CalAddrVal_TypeDef *)(DEVINFO_BASE & 0xFFFFF000);
+  p   = (SYSTEM_CalAddrVal_TypeDef *)(DEVINFO_BASE & 0xFFFFF000U);
   end = (SYSTEM_CalAddrVal_TypeDef *)DEVINFO_BASE;
 
   for (; p < end; p++) {

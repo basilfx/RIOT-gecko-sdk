@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_crypto.c
  * @brief Cryptography accelerator peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -35,7 +35,7 @@
 
 #include "em_crypto.h"
 #include "em_assert.h"
-
+#include <stddef.h>
 /***************************************************************************//**
  * @addtogroup emlib
  * @{
@@ -52,41 +52,41 @@
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
-#define CRYPTO_INSTRUCTIONS_PER_REG              (4)
-#define CRYPTO_INSTRUCTIONS_MAX                  (12)
+#define CRYPTO_INSTRUCTIONS_PER_REG              (4UL)
+#define CRYPTO_INSTRUCTIONS_MAX                  (12UL)
 #define CRYPTO_INSTRUCTION_REGS                  (CRYPTO_INSTRUCTIONS_MAX / CRYPTO_INSTRUCTIONS_PER_REG)
 
-#define CRYPTO_SHA1_BLOCK_SIZE_IN_BITS           (512)
-#define CRYPTO_SHA1_BLOCK_SIZE_IN_BYTES          (CRYPTO_SHA1_BLOCK_SIZE_IN_BITS / 8)
+#define CRYPTO_SHA1_BLOCK_SIZE_IN_BITS           (512UL)
+#define CRYPTO_SHA1_BLOCK_SIZE_IN_BYTES          (CRYPTO_SHA1_BLOCK_SIZE_IN_BITS / 8UL)
 #define CRYPTO_SHA1_BLOCK_SIZE_IN_32BIT_WORDS    (CRYPTO_SHA1_BLOCK_SIZE_IN_BYTES / sizeof(uint32_t))
 #define CRYPTO_SHA1_DIGEST_SIZE_IN_32BIT_WORDS   (CRYPTO_SHA1_DIGEST_SIZE_IN_BYTES / sizeof(uint32_t))
 
-#define CRYPTO_SHA256_BLOCK_SIZE_IN_BITS         (512)
-#define CRYPTO_SHA256_BLOCK_SIZE_IN_BYTES        (CRYPTO_SHA256_BLOCK_SIZE_IN_BITS / 8)
+#define CRYPTO_SHA256_BLOCK_SIZE_IN_BITS         (512UL)
+#define CRYPTO_SHA256_BLOCK_SIZE_IN_BYTES        (CRYPTO_SHA256_BLOCK_SIZE_IN_BITS / 8UL)
 #define CRYPTO_SHA256_BLOCK_SIZE_IN_32BIT_WORDS  (CRYPTO_SHA256_BLOCK_SIZE_IN_BYTES / sizeof(uint32_t))
 
 #define CRYPTO_SHA256_DIGEST_SIZE_IN_32BIT_WORDS (CRYPTO_SHA256_DIGEST_SIZE_IN_BYTES / sizeof(uint32_t))
 
-#define PARTIAL_OPERAND_WIDTH_LOG2               (7)  /* 2^7 = 128 */
-#define PARTIAL_OPERAND_WIDTH                    (1 << PARTIAL_OPERAND_WIDTH_LOG2)
-#define PARTIAL_OPERAND_WIDTH_MASK               (PARTIAL_OPERAND_WIDTH - 1)
-#define PARTIAL_OPERAND_WIDTH_IN_BYTES           (PARTIAL_OPERAND_WIDTH / 8)
+#define PARTIAL_OPERAND_WIDTH_LOG2               (7UL)  /* 2^7 = 128 */
+#define PARTIAL_OPERAND_WIDTH                    (1UL << PARTIAL_OPERAND_WIDTH_LOG2)
+#define PARTIAL_OPERAND_WIDTH_MASK               (PARTIAL_OPERAND_WIDTH - 1UL)
+#define PARTIAL_OPERAND_WIDTH_IN_BYTES           (PARTIAL_OPERAND_WIDTH / 8UL)
 #define PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS     (PARTIAL_OPERAND_WIDTH_IN_BYTES / sizeof(uint32_t))
 
 #define SWAP32(x)                                (__REV(x))
 
-#define CRYPTO_AES_BLOCKSIZE                     (16)
+#define CRYPTO_AES_BLOCKSIZE                     (16UL)
 
 /*******************************************************************************
  ***********************   STATIC FUNCTIONS   **********************************
  ******************************************************************************/
 
-static inline void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *crypto,
-                                          uint32_t len,
-                                          CRYPTO_DataReg_TypeDef inReg,
-                                          uint32_t * in,
-                                          CRYPTO_DataReg_TypeDef outReg,
-                                          uint32_t * out);
+__STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *crypto,
+                                            uint32_t len,
+                                            CRYPTO_DataReg_TypeDef inReg,
+                                            uint32_t * in,
+                                            CRYPTO_DataReg_TypeDef outReg,
+                                            uint32_t * out);
 
 static void CRYPTO_AES_CBCx(CRYPTO_TypeDef *crypto,
                             uint8_t * out,
@@ -203,7 +203,7 @@ void CRYPTO_ModulusSet(CRYPTO_TypeDef *          crypto,
     case cryptoModulusEccB163Order:
     case cryptoModulusEccB163KOrder:
 #endif
-      crypto->WAC = temp | modulusId | CRYPTO_WAC_MODOP_BINARY;
+      crypto->WAC = temp | (uint32_t)modulusId | CRYPTO_WAC_MODOP_BINARY;
       break;
 
     case cryptoModulusEccP256:
@@ -214,12 +214,13 @@ void CRYPTO_ModulusSet(CRYPTO_TypeDef *          crypto,
     case cryptoModulusEccP224Order:
     case cryptoModulusEccP192Order:
 #endif
-      crypto->WAC = temp | modulusId | CRYPTO_WAC_MODOP_REGULAR;
+      crypto->WAC = temp | (uint32_t)modulusId | CRYPTO_WAC_MODOP_REGULAR;
       break;
 
     default:
       /* Unknown modulus identifier. */
-      EFM_ASSERT(0);
+      EFM_ASSERT(false);
+      break;
   }
 }
 
@@ -243,7 +244,7 @@ void CRYPTO_KeyRead(CRYPTO_TypeDef *         crypto,
                     CRYPTO_KeyBuf_TypeDef    val,
                     CRYPTO_KeyWidth_TypeDef  keyWidth)
 {
-  EFM_ASSERT(val);
+  EFM_ASSERT(&val[0] != NULL);
 
   CRYPTO_BurstFromCrypto(&crypto->KEY, &val[0]);
   if (keyWidth == cryptoKey256Bits) {
@@ -279,11 +280,7 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   uint32_t  temp;
   uint32_t  len;
   int       blockLen;
-  uint32_t  shaBlock[CRYPTO_SHA1_BLOCK_SIZE_IN_32BIT_WORDS] =
-  {
-    /* Initial value */
-    0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
-  };
+  uint32_t  shaBlock[CRYPTO_SHA1_BLOCK_SIZE_IN_32BIT_WORDS];
   uint8_t * p8ShaBlock = (uint8_t *) shaBlock;
 
   /* Initialize crypto module to do SHA-1. */
@@ -295,14 +292,21 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   CRYPTO_ResultWidthSet(crypto, cryptoResult256Bits);
 
   /* Write init value to DDATA1.  */
-  CRYPTO_DDataWrite(&crypto->DDATA1, shaBlock);
+  crypto->DDATA1 = 0x67452301UL;
+  crypto->DDATA1 = 0xefcdab89UL;
+  crypto->DDATA1 = 0x98badcfeUL;
+  crypto->DDATA1 = 0x10325476UL;
+  crypto->DDATA1 = 0xc3d2e1f0UL;
+  crypto->DDATA1 = 0x00000000UL;
+  crypto->DDATA1 = 0x00000000UL;
+  crypto->DDATA1 = 0x00000000UL;
 
   /* Copy data to DDATA0 and select DDATA0 and DDATA1 for SHA operation. */
   CRYPTO_EXECUTE_2(crypto,
                    CRYPTO_CMD_INSTR_DDATA1TODDATA0,
                    CRYPTO_CMD_INSTR_SELDDATA0DDATA1);
 
-  len = msgLen;
+  len = (uint32_t)msgLen;
 
   while (len >= CRYPTO_SHA1_BLOCK_SIZE_IN_BYTES) {
     /* Write block to QDATA1.  */
@@ -321,7 +325,7 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   blockLen = 0;
 
   /* Build the last (or second to last) block */
-  for (; len; len--) {
+  for (; len > 0U; len--) {
     p8ShaBlock[blockLen++] = *msg++;
   }
 
@@ -333,8 +337,9 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
    * encoding like normal.
    */
   if (blockLen > 56) {
-    while (blockLen < 64)
+    while (blockLen < 64) {
       p8ShaBlock[blockLen++] = 0;
+    }
 
     /* Write block to QDATA1BIG. */
     CRYPTO_QDataWrite(&crypto->QDATA1BIG, shaBlock);
@@ -348,15 +353,16 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   }
 
   /* pad upto 56 bytes of zeroes */
-  while (blockLen < 56)
+  while (blockLen < 56) {
     p8ShaBlock[blockLen++] = 0;
+  }
 
   /* And finally, encode the message length. */
   {
-    uint64_t msgLenInBits = msgLen << 3;
-    temp = msgLenInBits >> 32;
+    uint64_t msgLenInBits = msgLen << 3U;
+    temp = (uint32_t)(msgLenInBits >> 32U);
     *(uint32_t*)&p8ShaBlock[56] = SWAP32(temp);
-    temp = msgLenInBits & 0xFFFFFFFF;
+    temp = (uint32_t)msgLenInBits & 0xFFFFFFFFUL;
     *(uint32_t*)&p8ShaBlock[60] = SWAP32(temp);
   }
 
@@ -375,9 +381,9 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   ((uint32_t*)msgDigest)[2] = crypto->DDATA0BIG;
   ((uint32_t*)msgDigest)[3] = crypto->DDATA0BIG;
   ((uint32_t*)msgDigest)[4] = crypto->DDATA0BIG;
-  temp = crypto->DDATA0BIG;
-  temp = crypto->DDATA0BIG;
-  temp = crypto->DDATA0BIG;
+  crypto->DDATA0BIG;
+  crypto->DDATA0BIG;
+  crypto->DDATA0BIG;
 }
 
 /***************************************************************************//**
@@ -408,13 +414,18 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
   uint32_t  temp;
   uint32_t  len;
   int       blockLen;
-  uint32_t  shaBlock[CRYPTO_SHA256_BLOCK_SIZE_IN_32BIT_WORDS] =
-  {
-    /* Initial value */
-    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
-  };
+  uint32_t  shaBlock[CRYPTO_SHA256_BLOCK_SIZE_IN_32BIT_WORDS];
   uint8_t * p8ShaBlock = (uint8_t *) shaBlock;
+
+  /* Initial values */
+  shaBlock[0] = 0x6a09e667UL;
+  shaBlock[1] = 0xbb67ae85UL;
+  shaBlock[2] = 0x3c6ef372UL;
+  shaBlock[3] = 0xa54ff53aUL;
+  shaBlock[4] = 0x510e527fUL;
+  shaBlock[5] = 0x9b05688cUL;
+  shaBlock[6] = 0x1f83d9abUL;
+  shaBlock[7] = 0x5be0cd19UL;
 
   /* Initialize crypyo module to do SHA-256 (SHA-2). */
   crypto->CTRL     = CRYPTO_CTRL_SHA_SHA2;
@@ -431,7 +442,7 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
   CRYPTO_EXECUTE_2(crypto,
                    CRYPTO_CMD_INSTR_DDATA1TODDATA0,
                    CRYPTO_CMD_INSTR_SELDDATA0DDATA1);
-  len = msgLen;
+  len = (uint32_t)msgLen;
 
   while (len >= CRYPTO_SHA256_BLOCK_SIZE_IN_BYTES) {
     /* Write block to QDATA1BIG.  */
@@ -450,7 +461,7 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
   blockLen = 0;
 
   /* Build the last (or second to last) block */
-  for (; len; len--) {
+  for (; len > 0U; len--) {
     p8ShaBlock[blockLen++] = *msg++;
   }
 
@@ -462,8 +473,9 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
    * encoding like normal.
    */
   if (blockLen > 56) {
-    while (blockLen < 64)
+    while (blockLen < 64) {
       p8ShaBlock[blockLen++] = 0;
+    }
 
     /* Write block to QDATA1BIG. */
     CRYPTO_QDataWrite(&crypto->QDATA1BIG, shaBlock);
@@ -477,15 +489,16 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
   }
 
   /* Pad upto 56 bytes of zeroes */
-  while (blockLen < 56)
+  while (blockLen < 56) {
     p8ShaBlock[blockLen++] = 0;
+  }
 
   /* And finally, encode the message length. */
   {
     uint64_t msgLenInBits = msgLen << 3;
-    temp = msgLenInBits >> 32;
+    temp = (uint32_t)(msgLenInBits >> 32);
     *(uint32_t *)&p8ShaBlock[56] = SWAP32(temp);
-    temp = msgLenInBits & 0xFFFFFFFF;
+    temp = (uint32_t)msgLenInBits & 0xFFFFFFFFUL;
     *(uint32_t *)&p8ShaBlock[60] = SWAP32(temp);
   }
 
@@ -510,10 +523,12 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
  * @param[in]  num32bitWords  Number of 32bit words in array
  ******************************************************************************/
 __STATIC_INLINE void cryptoBigintZeroize(uint32_t * words32bits,
-                                         int        num32bitWords)
+                                         unsigned   num32bitWords)
 {
-  while (num32bitWords--)
+  while (num32bitWords > 0UL) {
+    num32bitWords--;
     *words32bits++ = 0;
+  }
 }
 
 /***************************************************************************//**
@@ -524,11 +539,11 @@ __STATIC_INLINE void cryptoBigintZeroize(uint32_t * words32bits,
  * @param[in] num32bitWords  Number of 32bit words in array
  ******************************************************************************/
 __STATIC_INLINE void cryptoBigintIncrement(uint32_t * words32bits,
-                                           int        num32bitWords)
+                                           unsigned   num32bitWords)
 {
-  int i;
+  unsigned i;
   for (i = 0; i < num32bitWords; i++) {
-    if (++words32bits[i] != 0) {
+    if (++words32bits[i] != 0UL) {
       break;
     }
   }
@@ -557,34 +572,34 @@ void CRYPTO_Mul(CRYPTO_TypeDef * crypto,
                 uint32_t * B, int bSize,
                 uint32_t * R, int rSize)
 {
-  int i, j;
+  unsigned i, j;
 
   /****************   Initializations   ******************/
 
 #ifdef USE_VARIABLE_SIZED_DATA_LOADS
-  int numWordsLastOperandA = (aSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
-  int numPartialOperandsA = numWordsLastOperandA
-                            ? (aSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
-                            : aSize >> PARTIAL_OPERAND_WIDTH_LOG2;
-  int numWordsLastOperandB = (bSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
-  int numPartialOperandsB = numWordsLastOperandB
-                            ? (bSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
-                            : bSize >> PARTIAL_OPERAND_WIDTH_LOG2;
-  int numWordsLastOperandR = (rSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
-  int numPartialOperandsR = numWordsLastOperandR
-                            ? (rSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
-                            : rSize >> PARTIAL_OPERAND_WIDTH_LOG2;
+  unsigned numWordsLastOperandA = ((unsigned)aSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
+  unsigned numPartialOperandsA = numWordsLastOperandA
+                                 ? ((unsigned)aSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
+                                 : (unsigned)aSize >> PARTIAL_OPERAND_WIDTH_LOG2;
+  unsigned numWordsLastOperandB = ((unsigned)bSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
+  unsigned numPartialOperandsB = numWordsLastOperandB
+                                 ? ((unsigned)bSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
+                                 : (unsigned)bSize >> PARTIAL_OPERAND_WIDTH_LOG2;
+  unsigned numWordsLastOperandR = ((unsigned)rSize & PARTIAL_OPERAND_WIDTH_MASK) >> 5;
+  unsigned numPartialOperandsR = numWordsLastOperandR
+                                 ? ((unsigned)rSize >> PARTIAL_OPERAND_WIDTH_LOG2) + 1
+                                 : (unsigned)rSize >> PARTIAL_OPERAND_WIDTH_LOG2;
   EFM_ASSERT(numPartialOperandsA + numPartialOperandsB <= numPartialOperandsR);
 #else
-  int      numPartialOperandsA = aSize >> PARTIAL_OPERAND_WIDTH_LOG2;
-  int      numPartialOperandsB = bSize >> PARTIAL_OPERAND_WIDTH_LOG2;
-  EFM_ASSERT((aSize & PARTIAL_OPERAND_WIDTH_MASK) == 0);
-  EFM_ASSERT((bSize & PARTIAL_OPERAND_WIDTH_MASK) == 0);
+  unsigned numPartialOperandsA = (unsigned)aSize >> PARTIAL_OPERAND_WIDTH_LOG2;
+  unsigned numPartialOperandsB = (unsigned)bSize >> PARTIAL_OPERAND_WIDTH_LOG2;
+  EFM_ASSERT(((unsigned)aSize & PARTIAL_OPERAND_WIDTH_MASK) == 0UL);
+  EFM_ASSERT(((unsigned)bSize & PARTIAL_OPERAND_WIDTH_MASK) == 0UL);
 #endif
   EFM_ASSERT(aSize + bSize <= rSize);
 
   /* Set R to zero. */
-  cryptoBigintZeroize(R, rSize >> 5);
+  cryptoBigintZeroize(R, (unsigned)rSize >> 5);
 
   /* Set multiplication width. */
   crypto->WAC = CRYPTO_WAC_MULWIDTH_MUL128 | CRYPTO_WAC_RESULTWIDTH_256BIT;
@@ -699,17 +714,17 @@ void CRYPTO_Mul(CRYPTO_TypeDef * crypto,
       /* Load most significant partial result
          R>>((i+j+1)*`PARTIAL_OPERAND_WIDTH) into DATA1. */
 #ifdef USE_VARIABLE_SIZED_DATA_LOADS
-      if ( (numWordsLastOperandR != 0) && ( (i + j + 1) == numPartialOperandsR - 1) ) {
+      if ( (numWordsLastOperandR != 0) && ( (i + j + 1U) == numPartialOperandsR - 1U) ) {
         CRYPTO_DataWriteVariableSize(&crypto->DATA1,
-                                     &R[(i + j + 1) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS],
+                                     &R[(i + j + 1U) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS],
                                      numWordsLastOperandR);
       } else {
         CRYPTO_DataWrite(&crypto->DATA1,
-                         &R[(i + j + 1) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS]);
+                         &R[(i + j + 1U) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS]);
       }
 #else
       CRYPTO_DataWrite(&crypto->DATA1,
-                       &R[(i + j + 1) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS]);
+                       &R[(i + j + 1U) * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS]);
 #endif
       /* Store least significant partial result */
       CRYPTO_DataRead(&crypto->DATA0,
@@ -718,9 +733,9 @@ void CRYPTO_Mul(CRYPTO_TypeDef * crypto,
 
     /* Handle carry at the end of the inner loop. */
     if (CRYPTO_CarryIsSet(crypto)) {
-      cryptoBigintIncrement(&R[(i + numPartialOperandsB + 1)
+      cryptoBigintIncrement(&R[(i + numPartialOperandsB + 1U)
                                * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS],
-                            (numPartialOperandsA - i - 1)
+                            (numPartialOperandsA - i - 1U)
                             * PARTIAL_OPERAND_WIDTH_IN_32BIT_WORDS);
     }
 
@@ -1109,7 +1124,7 @@ void CRYPTO_AES_CTRUpdate32Bit(uint8_t * ctr)
 {
   uint32_t * _ctr = (uint32_t *) ctr;
 
-  _ctr[3] = __REV(__REV(_ctr[3]) + 1);
+  _ctr[3] = __REV(__REV(_ctr[3]) + 1U);
 }
 
 /***************************************************************************//**
@@ -1457,7 +1472,7 @@ static void CRYPTO_AES_CBCx(CRYPTO_TypeDef *  crypto,
                             bool              encrypt,
                             CRYPTO_KeyWidth_TypeDef keyWidth)
 {
-  EFM_ASSERT(!(len % CRYPTO_AES_BLOCKSIZE));
+  EFM_ASSERT((len % CRYPTO_AES_BLOCKSIZE) == 0U);
 
   /* Initialize control registers. */
   crypto->WAC = 0;
@@ -1536,7 +1551,7 @@ static void CRYPTO_AES_CFBx(CRYPTO_TypeDef *  crypto,
                             bool              encrypt,
                             CRYPTO_KeyWidth_TypeDef keyWidth)
 {
-  EFM_ASSERT(!(len % CRYPTO_AES_BLOCKSIZE));
+  EFM_ASSERT((len % CRYPTO_AES_BLOCKSIZE) == 0U);
 
   /* Initialize control registers. */
   crypto->WAC = 0;
@@ -1621,7 +1636,7 @@ static void CRYPTO_AES_CTRx(CRYPTO_TypeDef *  crypto,
 {
   (void) ctrFunc;
 
-  EFM_ASSERT(!(len % CRYPTO_AES_BLOCKSIZE));
+  EFM_ASSERT((len % CRYPTO_AES_BLOCKSIZE) == 0U);
 
   /* Initialize control registers. */
   crypto->CTRL |= CRYPTO_CTRL_INCWIDTH_INCWIDTH4;
@@ -1686,7 +1701,7 @@ static void CRYPTO_AES_ECBx(CRYPTO_TypeDef *  crypto,
                             bool              encrypt,
                             CRYPTO_KeyWidth_TypeDef keyWidth)
 {
-  EFM_ASSERT(!(len % CRYPTO_AES_BLOCKSIZE));
+  EFM_ASSERT((len % CRYPTO_AES_BLOCKSIZE) == 0U);
 
   crypto->WAC = 0;
 
@@ -1744,7 +1759,7 @@ static void CRYPTO_AES_OFBx(CRYPTO_TypeDef *  crypto,
                             const uint8_t *   iv,
                             CRYPTO_KeyWidth_TypeDef keyWidth)
 {
-  EFM_ASSERT(!(len % CRYPTO_AES_BLOCKSIZE));
+  EFM_ASSERT((len % CRYPTO_AES_BLOCKSIZE) == 0U);
 
   crypto->WAC = 0;
 
@@ -1792,17 +1807,18 @@ static void CRYPTO_AES_OFBx(CRYPTO_TypeDef *  crypto,
  *   Buffer to place encrypted/decrypted data. Must be at least @p len long. It
  *   may be set equal to @p in, in which case the input buffer is overwritten.
  ******************************************************************************/
-static inline void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *        crypto,
-                                          uint32_t                len,
-                                          CRYPTO_DataReg_TypeDef  inReg,
-                                          uint32_t *              in,
-                                          CRYPTO_DataReg_TypeDef  outReg,
-                                          uint32_t *              out)
+__STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *        crypto,
+                                            uint32_t                len,
+                                            CRYPTO_DataReg_TypeDef  inReg,
+                                            uint32_t *              in,
+                                            CRYPTO_DataReg_TypeDef  outReg,
+                                            uint32_t *              out)
 {
   len /= CRYPTO_AES_BLOCKSIZE;
-  crypto->SEQCTRL = 16 << _CRYPTO_SEQCTRL_LENGTHA_SHIFT;
+  crypto->SEQCTRL = 16UL << _CRYPTO_SEQCTRL_LENGTHA_SHIFT;
 
-  while (len--) {
+  while (len > 0UL) {
+    len--;
     /* Load data and trigger encryption */
     CRYPTO_DataWrite(inReg, (uint32_t *)in);
 

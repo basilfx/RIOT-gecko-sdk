@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_chip.h
  * @brief Chip Initialization API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2017 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -250,13 +250,13 @@ __STATIC_INLINE void CHIP_Init(void)
   uint8_t prodRev = SYSTEM_GetProdRev();
 
   /* EM2 current fixes for early samples */
-  if (prodRev == 0) {
-    *(volatile uint32_t *)(EMU_BASE + 0x190)  = 0x0000ADE8UL;
-    *(volatile uint32_t *)(EMU_BASE + 0x198) |= (0x1 << 2);
-    *(volatile uint32_t *)(EMU_BASE + 0x190)  = 0x0;
+  if (prodRev == 0U) {
+    *(volatile uint32_t *)(EMU_BASE + 0x190UL)  = 0x0000ADE8UL;
+    *(volatile uint32_t *)(EMU_BASE + 0x198UL) |= (0x1UL << 2);
+    *(volatile uint32_t *)(EMU_BASE + 0x190UL)  = 0x0;
   }
-  if (prodRev < 2) {
-    *(volatile uint32_t *)(EMU_BASE + 0x164) |= (0x1 << 13);
+  if (prodRev < 2U) {
+    *(volatile uint32_t *)(EMU_BASE + 0x164UL) |= (0x1UL << 13);
   }
 
   /* Set optimal LFRCOCTRL VREFUPDATE and enable duty cycling of vref */
@@ -266,7 +266,7 @@ __STATIC_INLINE void CHIP_Init(void)
 #endif
 
 #if defined(_EFR_DEVICE) && (_SILICON_LABS_GECKO_INTERNAL_SDID >= 84)
-  MSC->CTRL |= 0x1 << 8;
+  MSC->CTRL |= 0x1UL << 8;
 #endif
 
   /* Set validated PLFRCO trims for production revision < 5. Overwriting registers
@@ -276,6 +276,15 @@ __STATIC_INLINE void CHIP_Init(void)
   *(volatile uint32_t *)(CMU_BASE + 0x290)  = 0x55D4A;
   *(volatile uint32_t *)(CMU_BASE + 0x2FC)  = 0x16E228;
   *(volatile uint32_t *)(CMU_BASE + 0x294)  = 0x1E0;
+#endif
+
+/* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0) */
+#if defined(_LCD_DISPCTRL_CHGRDST_MASK)
+  CMU->HFBUSCLKEN0 |= CMU_HFBUSCLKEN0_LE;
+  CMU->LFACLKEN0   |= CMU_LFACLKEN0_LCD;
+  *(volatile uint32_t *)(LCD_BASE + 0x034) |= (0x1UL << 12);
+  CMU->LFACLKEN0   &= ~CMU_LFACLKEN0_LCD;
+  CMU->HFBUSCLKEN0 &= ~CMU_HFBUSCLKEN0_LE;
 #endif
 }
 

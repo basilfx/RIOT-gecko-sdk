@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_gpio.h
  * @brief General Purpose IO (GPIO) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -385,9 +385,9 @@ extern "C" {
 
 #if defined(_GPIO_EXTIPINSELL_MASK)
 /** Validation of interrupt number and pin */
-#define GPIO_INTNO_PIN_VALID(intNo, pin)         \
-  ((intNo & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK) \
-   == (pin & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK))
+#define GPIO_INTNO_PIN_VALID(intNo, pin)           \
+  (((intNo) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK) \
+   == ((pin) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK))
 #endif
 
 /** Highest GPIO pin number */

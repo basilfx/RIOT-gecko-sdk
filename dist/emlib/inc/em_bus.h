@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_bus.h
  * @brief RAM and peripheral bit-field set and clear API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -78,7 +78,7 @@ __STATIC_INLINE void BUS_RamBitWrite(volatile uint32_t *addr,
 {
 #if defined(BITBAND_RAM_BASE)
   uint32_t aliasAddr =
-    BITBAND_RAM_BASE + (((uint32_t)addr - SRAM_BASE) * 32) + (bit * 4);
+    BITBAND_RAM_BASE + (((uint32_t)addr - SRAM_BASE) * (uint32_t) 32) + (bit * (uint32_t) 4);
 
   *(volatile uint32_t *)aliasAddr = (uint32_t)val;
 #else
@@ -115,7 +115,7 @@ __STATIC_INLINE unsigned int BUS_RamBitRead(volatile const uint32_t *addr,
 {
 #if defined(BITBAND_RAM_BASE)
   uint32_t aliasAddr =
-    BITBAND_RAM_BASE + (((uint32_t)addr - SRAM_BASE) * 32) + (bit * 4);
+    BITBAND_RAM_BASE + (((uint32_t)addr - SRAM_BASE) * (uint32_t) 32) + (bit * (uint32_t) 4);
 
   return *(volatile uint32_t *)aliasAddr;
 #else
@@ -149,7 +149,7 @@ __STATIC_INLINE void BUS_RegBitWrite(volatile uint32_t *addr,
 {
 #if defined(BITBAND_PER_BASE)
   uint32_t aliasAddr =
-    BITBAND_PER_BASE + (((uint32_t)addr - PER_MEM_BASE) * 32) + (bit * 4);
+    BITBAND_PER_BASE + (((uint32_t)addr - PER_MEM_BASE) * (uint32_t) 32) + (bit * (uint32_t) 4);
 
   *(volatile uint32_t *)aliasAddr = (uint32_t)val;
 #else
@@ -186,7 +186,7 @@ __STATIC_INLINE unsigned int BUS_RegBitRead(volatile const uint32_t *addr,
 {
 #if defined(BITBAND_PER_BASE)
   uint32_t aliasAddr =
-    BITBAND_PER_BASE + (((uint32_t)addr - PER_MEM_BASE) * 32) + (bit * 4);
+    BITBAND_PER_BASE + (((uint32_t)addr - PER_MEM_BASE) * (uint32_t)32) + (bit * (uint32_t) 4);
 
   return *(volatile uint32_t *)aliasAddr;
 #else

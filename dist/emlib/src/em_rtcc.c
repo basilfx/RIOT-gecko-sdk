@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file
  * @brief Real Time Counter with Calendar (RTCC) Peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -80,19 +80,19 @@
  ******************************************************************************/
 void RTCC_ChannelInit(int ch, RTCC_CCChConf_TypeDef const *confPtr)
 {
-  EFM_ASSERT(RTCC_CH_VALID(ch) );
-  EFM_ASSERT( (uint32_t)confPtr->compMask
-              < (_RTCC_CC_CTRL_COMPMASK_MASK >> _RTCC_CC_CTRL_COMPMASK_SHIFT)
-              + 1);
+  EFM_ASSERT(RTCC_CH_VALID(ch));
+  EFM_ASSERT((uint32_t)confPtr->compMask
+             < (_RTCC_CC_CTRL_COMPMASK_MASK >> _RTCC_CC_CTRL_COMPMASK_SHIFT)
+             + 1U);
 
   /** Configure the selected capture/compare channel. */
-  RTCC->CC[ch].CTRL = ( (uint32_t)confPtr->chMode << _RTCC_CC_CTRL_MODE_SHIFT)
-                      | ( (uint32_t)confPtr->compMatchOutAction << _RTCC_CC_CTRL_CMOA_SHIFT)
-                      | ( (uint32_t)confPtr->prsSel << _RTCC_CC_CTRL_PRSSEL_SHIFT)
-                      | ( (uint32_t)confPtr->inputEdgeSel << _RTCC_CC_CTRL_ICEDGE_SHIFT)
-                      | ( (uint32_t)confPtr->compBase << _RTCC_CC_CTRL_COMPBASE_SHIFT)
-                      | ( (uint32_t)confPtr->compMask << _RTCC_CC_CTRL_COMPMASK_SHIFT)
-                      | ( (uint32_t)confPtr->dayCompMode << _RTCC_CC_CTRL_DAYCC_SHIFT);
+  RTCC->CC[ch].CTRL = ((uint32_t)confPtr->chMode << _RTCC_CC_CTRL_MODE_SHIFT)
+                      | ((uint32_t)confPtr->compMatchOutAction << _RTCC_CC_CTRL_CMOA_SHIFT)
+                      | ((uint32_t)confPtr->prsSel << _RTCC_CC_CTRL_PRSSEL_SHIFT)
+                      | ((uint32_t)confPtr->inputEdgeSel << _RTCC_CC_CTRL_ICEDGE_SHIFT)
+                      | ((uint32_t)confPtr->compBase << _RTCC_CC_CTRL_COMPBASE_SHIFT)
+                      | ((uint32_t)confPtr->compMask << _RTCC_CC_CTRL_COMPMASK_SHIFT)
+                      | ((uint32_t)confPtr->dayCompMode << _RTCC_CC_CTRL_DAYCC_SHIFT);
 }
 
 /***************************************************************************//**
@@ -105,7 +105,7 @@ void RTCC_ChannelInit(int ch, RTCC_CCChConf_TypeDef const *confPtr)
 void RTCC_Enable(bool enable)
 {
   /* Bitbanding the enable bit in the CTRL register (atomic). */
-  BUS_RegBitWrite((&RTCC->CTRL), _RTCC_CTRL_ENABLE_SHIFT, enable);
+  BUS_RegBitWrite((&RTCC->CTRL), _RTCC_CTRL_ENABLE_SHIFT, (uint32_t)enable);
 }
 
 /***************************************************************************//**
@@ -122,18 +122,18 @@ void RTCC_Enable(bool enable)
  ******************************************************************************/
 void RTCC_Init(const RTCC_Init_TypeDef *init)
 {
-  RTCC->CTRL = ( (uint32_t)init->enable << _RTCC_CTRL_ENABLE_SHIFT)
-               | ( (uint32_t)init->debugRun << _RTCC_CTRL_DEBUGRUN_SHIFT)
-               | ( (uint32_t)init->precntWrapOnCCV0 << _RTCC_CTRL_PRECCV0TOP_SHIFT)
-               | ( (uint32_t)init->cntWrapOnCCV1 << _RTCC_CTRL_CCV1TOP_SHIFT)
-               | ( (uint32_t)init->presc << _RTCC_CTRL_CNTPRESC_SHIFT)
-               | ( (uint32_t)init->prescMode << _RTCC_CTRL_CNTTICK_SHIFT)
+  RTCC->CTRL = ((init->enable ? 1UL : 0UL) << _RTCC_CTRL_ENABLE_SHIFT)
+               | ((init->debugRun ? 1UL : 0UL) << _RTCC_CTRL_DEBUGRUN_SHIFT)
+               | ((init->precntWrapOnCCV0 ? 1UL : 0UL) << _RTCC_CTRL_PRECCV0TOP_SHIFT)
+               | ((init->cntWrapOnCCV1 ? 1UL : 0UL) << _RTCC_CTRL_CCV1TOP_SHIFT)
+               | ((uint32_t)init->presc << _RTCC_CTRL_CNTPRESC_SHIFT)
+               | ((uint32_t)init->prescMode << _RTCC_CTRL_CNTTICK_SHIFT)
 #if defined(_RTCC_CTRL_BUMODETSEN_MASK)
-               | ( (uint32_t)init->enaBackupModeSet << _RTCC_CTRL_BUMODETSEN_SHIFT)
+               | ((uint32_t)init->enaBackupModeSet << _RTCC_CTRL_BUMODETSEN_SHIFT)
 #endif
-               | ( (uint32_t)init->enaOSCFailDetect << _RTCC_CTRL_OSCFDETEN_SHIFT)
-               | ( (uint32_t)init->cntMode << _RTCC_CTRL_CNTMODE_SHIFT)
-               | ( (uint32_t)init->disLeapYearCorr << _RTCC_CTRL_LYEARCORRDIS_SHIFT);
+               | ((init->enaOSCFailDetect ? 1UL : 0UL) << _RTCC_CTRL_OSCFDETEN_SHIFT)
+               | ((uint32_t)init->cntMode << _RTCC_CTRL_CNTMODE_SHIFT)
+               | ((init->disLeapYearCorr ? 1UL : 0UL) << _RTCC_CTRL_LYEARCORRDIS_SHIFT);
 }
 
 /***************************************************************************//**
@@ -170,7 +170,7 @@ void RTCC_Reset(void)
  ******************************************************************************/
 void RTCC_StatusClear(void)
 {
-  while ( RTCC->SYNCBUSY & RTCC_SYNCBUSY_CMD ) {
+  while ((RTCC->SYNCBUSY & RTCC_SYNCBUSY_CMD) != 0U) {
     // Wait for syncronization.
   }
   RTCC->CMD = RTCC_CMD_CLRSTATUS;

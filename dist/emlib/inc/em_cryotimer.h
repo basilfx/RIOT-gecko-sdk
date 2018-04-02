@@ -1,10 +1,10 @@
 /***************************************************************************//**
  * @file em_cryotimer.h
  * @brief Ultra Low Energy Timer/Counter (CRYOTIMER) peripheral API
- * @version 5.3.3
+ * @version 5.4.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * Permission is granted to anyone to use this software for any purpose,
@@ -362,7 +362,9 @@ __STATIC_INLINE uint32_t CRYOTIMER_CounterGet(void)
  ******************************************************************************/
 __STATIC_INLINE void CRYOTIMER_EM4WakeupEnable(bool enable)
 {
-  BUS_RegBitWrite((&CRYOTIMER->EM4WUEN), _CRYOTIMER_EM4WUEN_EM4WU_SHIFT, enable);
+  BUS_RegBitWrite((&CRYOTIMER->EM4WUEN),
+                  _CRYOTIMER_EM4WUEN_EM4WU_SHIFT,
+                  (uint32_t)enable);
 }
 
 /***************************************************************************//**
@@ -374,7 +376,9 @@ __STATIC_INLINE void CRYOTIMER_EM4WakeupEnable(bool enable)
  ******************************************************************************/
 __STATIC_INLINE void CRYOTIMER_Enable(bool enable)
 {
-  BUS_RegBitWrite((&CRYOTIMER->CTRL), _CRYOTIMER_CTRL_EN_SHIFT, enable);
+  BUS_RegBitWrite((&CRYOTIMER->CTRL),
+                  _CRYOTIMER_CTRL_EN_SHIFT,
+                  (uint32_t)enable);
 }
 
 void CRYOTIMER_Init(const CRYOTIMER_Init_TypeDef *init);

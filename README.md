@@ -12,7 +12,7 @@ Only the following is included in the `dist/` folder:
 * radio (vendor)
 
 ## Copyright
-The `dist/` folder contains a modified copy of emlib and RAIL, copyrighted by Silicon Labs.
+The `dist/` folder contains a *modified* copy of emlib and RAIL, copyrighted by Silicon Labs.
 
 The remaining files are covered by the `LICENSE.md` file (MIT license).
 

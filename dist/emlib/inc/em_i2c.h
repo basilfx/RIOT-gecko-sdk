@@ -179,11 +179,12 @@ typedef enum {
   i2cTransferDone       = 0,    /**< Transfer completed successfully. */
 
   /* Transfer error codes (<0) */
-  i2cTransferNack       = -1,   /**< NACK received during transfer. */
-  i2cTransferBusErr     = -2,   /**< Bus error during transfer (misplaced START/STOP). */
-  i2cTransferArbLost    = -3,   /**< Arbitration lost during transfer. */
-  i2cTransferUsageFault = -4,   /**< Usage fault. */
-  i2cTransferSwFault    = -5    /**< SW fault. */
+  i2cTransferAddrNack   = -1,   /**< NACK received during address transfer. */
+  i2cTransferNack       = -2,   /**< NACK received during data transfer. */
+  i2cTransferBusErr     = -3,   /**< Bus error during transfer (misplaced START/STOP). */
+  i2cTransferArbLost    = -4,   /**< Arbitration lost during transfer. */
+  i2cTransferUsageFault = -5,   /**< Usage fault. */
+  i2cTransferSwFault    = -6    /**< SW fault. */
 } I2C_TransferReturn_TypeDef;
 
 /*******************************************************************************

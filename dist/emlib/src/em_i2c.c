@@ -497,7 +497,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
       case i2cStateAddrWFAckNack:
         if (pending & I2C_IF_NACK) {
           i2c->IFC         = I2C_IFC_NACK;
-          transfer->result = i2cTransferNack;
+          transfer->result = i2cTransferAddrNack;
           transfer->state  = i2cStateWFStopSent;
           i2c->CMD         = I2C_CMD_STOP;
         } else if (pending & I2C_IF_ACK) {
@@ -528,7 +528,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
       case i2cStateAddrWF2ndAckNack:
         if (pending & I2C_IF_NACK) {
           i2c->IFC         = I2C_IFC_NACK;
-          transfer->result = i2cTransferNack;
+          transfer->result = i2cTransferAddrNack;
           transfer->state  = i2cStateWFStopSent;
           i2c->CMD         = I2C_CMD_STOP;
         } else if (pending & I2C_IF_ACK) {

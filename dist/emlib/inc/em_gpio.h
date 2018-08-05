@@ -352,31 +352,31 @@ extern "C" {
 #endif
 
 #define _GPIO_PORT_SIZE(port) (             \
-    (port) == 0  ? _GPIO_PORT_A_PIN_COUNT   \
-    : (port) == 1  ? _GPIO_PORT_B_PIN_COUNT \
-    : (port) == 2  ? _GPIO_PORT_C_PIN_COUNT \
-    : (port) == 3  ? _GPIO_PORT_D_PIN_COUNT \
-    : (port) == 4  ? _GPIO_PORT_E_PIN_COUNT \
-    : (port) == 5  ? _GPIO_PORT_F_PIN_COUNT \
-    : (port) == 6  ? _GPIO_PORT_G_PIN_COUNT \
-    : (port) == 7  ? _GPIO_PORT_H_PIN_COUNT \
-    : (port) == 8  ? _GPIO_PORT_I_PIN_COUNT \
-    : (port) == 9  ? _GPIO_PORT_J_PIN_COUNT \
-    : (port) == 10 ? _GPIO_PORT_K_PIN_COUNT \
+    ((unsigned int) (port)) == 0  ? _GPIO_PORT_A_PIN_COUNT   \
+    : ((unsigned int) (port)) == 1  ? _GPIO_PORT_B_PIN_COUNT \
+    : ((unsigned int) (port)) == 2  ? _GPIO_PORT_C_PIN_COUNT \
+    : ((unsigned int) (port)) == 3  ? _GPIO_PORT_D_PIN_COUNT \
+    : ((unsigned int) (port)) == 4  ? _GPIO_PORT_E_PIN_COUNT \
+    : ((unsigned int) (port)) == 5  ? _GPIO_PORT_F_PIN_COUNT \
+    : ((unsigned int) (port)) == 6  ? _GPIO_PORT_G_PIN_COUNT \
+    : ((unsigned int) (port)) == 7  ? _GPIO_PORT_H_PIN_COUNT \
+    : ((unsigned int) (port)) == 8  ? _GPIO_PORT_I_PIN_COUNT \
+    : ((unsigned int) (port)) == 9  ? _GPIO_PORT_J_PIN_COUNT \
+    : ((unsigned int) (port)) == 10 ? _GPIO_PORT_K_PIN_COUNT \
     : 0)
 
 #define _GPIO_PORT_MASK(port) (            \
-    (port) == 0  ? _GPIO_PORT_A_PIN_MASK   \
-    : (port) == 1  ? _GPIO_PORT_B_PIN_MASK \
-    : (port) == 2  ? _GPIO_PORT_C_PIN_MASK \
-    : (port) == 3  ? _GPIO_PORT_D_PIN_MASK \
-    : (port) == 4  ? _GPIO_PORT_E_PIN_MASK \
-    : (port) == 5  ? _GPIO_PORT_F_PIN_MASK \
-    : (port) == 6  ? _GPIO_PORT_G_PIN_MASK \
-    : (port) == 7  ? _GPIO_PORT_H_PIN_MASK \
-    : (port) == 8  ? _GPIO_PORT_I_PIN_MASK \
-    : (port) == 9  ? _GPIO_PORT_J_PIN_MASK \
-    : (port) == 10 ? _GPIO_PORT_K_PIN_MASK \
+    ((unsigned int) (port)) == 0  ? _GPIO_PORT_A_PIN_MASK   \
+    : ((unsigned int) (port)) == 1  ? _GPIO_PORT_B_PIN_MASK \
+    : ((unsigned int) (port)) == 2  ? _GPIO_PORT_C_PIN_MASK \
+    : ((unsigned int) (port)) == 3  ? _GPIO_PORT_D_PIN_MASK \
+    : ((unsigned int) (port)) == 4  ? _GPIO_PORT_E_PIN_MASK \
+    : ((unsigned int) (port)) == 5  ? _GPIO_PORT_F_PIN_MASK \
+    : ((unsigned int) (port)) == 6  ? _GPIO_PORT_G_PIN_MASK \
+    : ((unsigned int) (port)) == 7  ? _GPIO_PORT_H_PIN_MASK \
+    : ((unsigned int) (port)) == 8  ? _GPIO_PORT_I_PIN_MASK \
+    : ((unsigned int) (port)) == 9  ? _GPIO_PORT_J_PIN_MASK \
+    : ((unsigned int) (port)) == 10 ? _GPIO_PORT_K_PIN_MASK \
     : 0)
 
 /** Validation of port and pin */

@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
-GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.2.feature_root_2.2.2.201803221440-117"
-# GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.3.feature_root_2.3.0.201805241756-126"
+GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.5.feature_root_2.5.0.201812171440-163"
 GECKO_SDK_URL="https://devtools.silabs.com/studio/v4/updates/binary/"
 
 DIST_DIR=`pwd`/dist
@@ -20,18 +19,25 @@ wget -O "${TEMP_DIR}/gecko_sdk.zip" "${GECKO_SDK_URL}${GECKO_SDK_VERSION}"
 unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.2/platform/emlib" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.2/platform/radio" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.5/platform/emlib" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.5/platform/radio" "${DIST_DIR}"
 
 # These files are deprecated and cause build errors.
 rm "${DIST_DIR}/emlib/src/em_int.c"
+rm "${DIST_DIR}/emlib/src/em_mpu.c"
 rm "${DIST_DIR}/emlib/inc/em_int.h"
+rm "${DIST_DIR}/emlib/inc/em_mpu.h"
 
 # Remove unneeded files.
 rm "${DIST_DIR}/radio/rail_lib/modules.xml"
 rm -rf "${DIST_DIR}/radio/rail_lib/apps"
 rm -rf "${DIST_DIR}/radio/rail_lib/hal"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence-stub"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/module"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library-mp"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/plugin.info"
 
 # Ensure Unix line endings are used.
 find "${DIST_DIR}" -name "*.c" -type f -exec dos2unix -k -s -o {} ';'

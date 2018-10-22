@@ -1,18 +1,18 @@
 diff --git dist/emlib/inc/em_i2c.h dist/emlib/inc/em_i2c.h
-index fa6bef2..ddb6e8e 100644
+index 453a169..5f94557 100644
 --- dist/emlib/inc/em_i2c.h
 +++ dist/emlib/inc/em_i2c.h
-@@ -179,11 +179,12 @@ typedef enum {
+@@ -181,11 +181,12 @@ typedef enum {
    i2cTransferDone       = 0,    /**< Transfer completed successfully. */
  
-   /* Transfer error codes (<0) */
+   /* Transfer error codes (<0). */
 -  i2cTransferNack       = -1,   /**< NACK received during transfer. */
 -  i2cTransferBusErr     = -2,   /**< Bus error during transfer (misplaced START/STOP). */
 -  i2cTransferArbLost    = -3,   /**< Arbitration lost during transfer. */
 -  i2cTransferUsageFault = -4,   /**< Usage fault. */
 -  i2cTransferSwFault    = -5    /**< SW fault. */
 +  i2cTransferAddrNack   = -1,   /**< NACK received during address transfer. */
-+  i2cTransferNack       = -2,   /**< NACK received during data transfer. */
++  i2cTransferNack       = -2,   /**< NACK received during transfer. */
 +  i2cTransferBusErr     = -3,   /**< Bus error during transfer (misplaced START/STOP). */
 +  i2cTransferArbLost    = -4,   /**< Arbitration lost during transfer. */
 +  i2cTransferUsageFault = -5,   /**< Usage fault. */
@@ -21,22 +21,22 @@ index fa6bef2..ddb6e8e 100644
  
  /*******************************************************************************
 diff --git dist/emlib/src/em_i2c.c dist/emlib/src/em_i2c.c
-index 3a218be..b6d6106 100644
+index f659398..47fc35c 100644
 --- dist/emlib/src/em_i2c.c
 +++ dist/emlib/src/em_i2c.c
-@@ -497,7 +497,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
+@@ -575,7 +575,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
        case i2cStateAddrWFAckNack:
          if (pending & I2C_IF_NACK) {
-           i2c->IFC         = I2C_IFC_NACK;
+           I2C_IntClear(i2c, I2C_IF_NACK);
 -          transfer->result = i2cTransferNack;
 +          transfer->result = i2cTransferAddrNack;
            transfer->state  = i2cStateWFStopSent;
            i2c->CMD         = I2C_CMD_STOP;
          } else if (pending & I2C_IF_ACK) {
-@@ -528,7 +528,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
+@@ -606,7 +606,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
        case i2cStateAddrWF2ndAckNack:
          if (pending & I2C_IF_NACK) {
-           i2c->IFC         = I2C_IFC_NACK;
+           I2C_IntClear(i2c, I2C_IF_NACK);
 -          transfer->result = i2cTransferNack;
 +          transfer->result = i2cTransferAddrNack;
            transfer->state  = i2cStateWFStopSent;

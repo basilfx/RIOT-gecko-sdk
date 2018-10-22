@@ -1,8 +1,8 @@
 diff --git dist/emlib/inc/em_gpio.h dist/emlib/inc/em_gpio.h
-index 3eb1946..6f3e7ca 100644
+index 476215f..2cf5309 100644
 --- dist/emlib/inc/em_gpio.h
 +++ dist/emlib/inc/em_gpio.h
-@@ -352,31 +352,31 @@ extern "C" {
+@@ -378,31 +378,31 @@ extern "C" {
  #endif
  
  #define _GPIO_PORT_SIZE(port) (             \
@@ -55,4 +55,4 @@ index 3eb1946..6f3e7ca 100644
 +    : ((unsigned int) (port)) == 10 ? _GPIO_PORT_K_PIN_MASK \
      : 0)
  
- /** Validation of port and pin */
+ /** Validation of port and pin. */

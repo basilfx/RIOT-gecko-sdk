@@ -1,13 +1,111 @@
 ================ Revision history ============================================
+5.7.0:
+ - em_cmu: Fixed bug where HFRCODIV2 remains selected for certain configurations 
+   after the DPLL is initialized.
+ - em_cmu: CMU_OscillatorEnable() will wait for the RDY flag to go low when
+   enable is false and wait is true for Series 1.
+ - em_cmu: CMU_LFXOInit() will now check if configuration is necessary before
+   disabling the LFXO. On a soft reset, the LFXO might already be ready for use
+   with correct tuning values.
+ - em_cmu: CMU_HFXOInit() now returns early if HFXO is already selected as SYSCLK.
+ - em_dbg: Added DBG_DisableDebugAccess() for debug lock abstraction.
+ - em_cmu: Updated max frequency for WS2/1.0V scaling according to latest datasheets.
+ - em_cmu: Added CMU_USHFRCOFreqGet() function for getting current USHFRCO
+   frequency on Series 0 and 1.
+ - em_pdm: New module supporting PDM (Pulse Density Modulation) peripheral.
+ - em_ldma: Added PDM sinal and source selector, added new LDMA descriptor
+   template for word (32bit) peripheral to memory tranfers.
+ - em_rtc: Added support for all 6 compare channels on Series 1.
+ - em_wdog: Changing default oscillator for the watchdog from 1 kHz ULFRCO to
+   the 32.768 kHz LFRCO. This change is inside WDOG_INIT_DEFAULT. Make sure
+   we wait for previous operations to complete before applying any new
+   configurations to work correctly with the asynchronous peripheral.
+   Adding a timeout so operations started when SYNCBUSY stays high will
+   complete.
+ - em_cmu: Added support for HFBUSPRESC in CMU_ClockPrescSet() and
+   CMU_ClockPrescGet().
+ - em_cmu: Added missing RTCC prescaled clock freq calculation.
+ - em_cmu: Added missing support for LETIMER1.
+ - em_adc: Added support for prescaler and timebase calculation in SYNC mode
+   for HFPERCCLK driven ADC.
+ - em_msc: Unlock the MSC before write/erase operations and return to the
+   previous state before the function returns.
+ - em_adc: GPBIASACC is set to LOWACC when reading the internal temperature
+   sensor for Series 2.
+ - em_cmu: Removed CMU_HFCLKLEPRESC_REG case from switch statement
+   inside the function CMU_ClockPrescSet(). This switch case is unnecessary
+   since HFCLKLE prescaler is automatically set when the HF clock is changed.
+   sensor only for EFR32xG1.
+ - Updated multiple modules to use correct HFPER clock tree (A, B or C) when calling 
+   CMU_ClockFreqGet() function.
+ - em_se: New module, contains API for interfacing with the Secure Element (SE)
+   peripheral on Series 2. Module contains functions to get status information
+   from the SE, interact with debug locks, and write keys and user data. The
+   module is also used by mbed TLS when performing accelerated crypto
+   operations.
+
+5.6.0:
+ - em_pcnt: Fixed PCNTn_CNT_SIZE for multiple families.
+ - em_cmu: Added handling of CLKIN and HFRCODIV2 in CMU.
+ - em_prs: Added support for all 23 PRS channels for EFM32GG11.
+ - em_msc: Disable WREN in the MSC_MassErase() function before returning.
+ - em_msc: write and erase functions return an error code when the
+   MSC register interface is locked.
+ - em_acmp: Fixed initialization of HYSTERESIS0 and HYSTERESIS1 in
+   ACMP_Init() for series-1 devices.
+ - em_prs: Added function to route PRS output to GPIO pins for Series 0 and 1
+ - em_wdog: WDOGn_Init() will only wait for synchronization if the peripheral
+   is already enabled.
+ - em_crypto: Added missing argument to CRYPTO_InstructionSequenceExecute()
+   inside the CRYPTO_EXECUTE_20 macro.
+ - em_letimer: Added support for setting and getting the LETIMER top value
+   using the new LETIMER_TopGet() and LETIMER_TopSet() functions.
+ - em_letimer: Added new member to the LETIMER_Init_TypeDef struct called
+   topValue. This value can be used to initialize the top value when using the
+   LETIMER.
+ - em_cmu: Added const to CMU_DPLLLock() argument.
+ - em_cmu: Added missing call to CMU_OscillatorEnable() when HFXO AutoStart is used.
+ - em_mpu: This module is deprecated and marked for removal in a later release.
+   New applications should use the CMSIS ARM_MPU_xxx API instead.
+   See file platform/CMSIS/Include/mpu_armvX.h for more details.
+ - EMLIB now targets CMSIS version 5.3.0.
+
+5.5.0:
+ - em_cmu: Added support for HFPERCLK branch A, B and C on EFM32GG11. This
+   also fixed issues with CMU_ClockFreqGet() on peripherals connected
+   to HFPERCLK B and C.
+ - em_usart: Added autoCsEnable parameter to USART_InitSync_TypeDef and
+   USART_InitAsync_TypeDef for series 0 parts.
+ - em_leuart: Fixed issue where TX data could be lost when calling
+   LEUART_TxDmaInEM2Enable() when transmitter is enabled and sending data.
+ - em_emu: Add EMU_RamPowerUp() function for series 1 devices to power up all
+   SRAM blocks.
+ - em_crypto: Bugfix: Add support for unaligned data in CRYPTO AES functions.
+ - em_adc: In ADC asynchronous clock mode, assert on ADC clock frequency
+   less or equal to 2/3 of the HFPER clock frequency.
+ - em_adc: Bugfix: In ADC_Init() set ADC clock mode for correct ADC instance.
+ - em_gpio: Change behavior of GPIO_EM4SetPinRetention() so it does not
+   overwrite GPIO retention config when SWUNLATCH is already set.
+ - em_burtc: Check RSTEN before waiting for register synchronization.
+ - em_cmu: Removed support for PLFRCO.
+ - em_emu: Fixed bug with wait-state handling when low-voltage mode is used
+   in EM2/EM3. This was fixed by enabling automatic hardware handling of wait-states.
+ - em_emu: Adding restoring of HFRCO frequency when calling EMU_EnterEM2(true)
+   and voltage scaling is enable in EM2/EM3.
+ - Changed minimum 'N' requirement in CMU_DPLLLock() from
+   32 to greater than 300.
+ - Added support for USBLE clock in CMU_ClockFreqGet().
+ - Added support for opamp OPA3.
+
 5.4.0:
  - em_lcd: Added support for dynamic charge distribution to save power when
    using the LCD peripheral on Series 1 devices.
  - em_msc: Added support for ECC memory initialization using the function
    MSC_EccConfigSet().
  - em_core: Fixed bug in assert statement in CORE_InitNvicVectorTable().
- - em_emu: Remove switch to bypass mode when entering EM4S on devices that do 
+ - em_emu: Remove switch to bypass mode when entering EM4S on devices that do
    this automatically in hardware.
- - em_emu: Fixed hardware bug when switching to EM4S when powering analog 
+ - em_emu: Fixed hardware bug when switching to EM4S when powering analog
    peripherals from DVDD. This bugfix is active for EFM32GG11 and EFM32TG11.
  - em_leuart: Ensure that RX/TX is disabled when configuring RX/TX DMA wakeup.
  - em_cmu: Fixed bug with wait state handling when MSC is locked.

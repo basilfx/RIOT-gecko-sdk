@@ -14,6 +14,11 @@ USART_Databits_TypeDef USART_DataBits2Def(uint8_t bits);
 USART_Stopbits_TypeDef USART_StopBits2Def(uint8_t half_bits);
 USART_Parity_TypeDef USART_Parity2Def(uint8_t number);
 
+void USART_FrameSet(USART_TypeDef *usart,
+                    USART_Databits_TypeDef databits,
+                    USART_Stopbits_TypeDef stopbits,
+                    USART_Parity_TypeDef parity);
+
 #ifdef __cplusplus
 }
 #endif

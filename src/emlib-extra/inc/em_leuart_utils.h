@@ -14,6 +14,11 @@ LEUART_Databits_TypeDef LEUART_DataBits2Def(uint8_t bits);
 LEUART_Stopbits_TypeDef LEUART_StopBits2Def(uint8_t half_bits);
 LEUART_Parity_TypeDef LEUART_Parity2Def(uint8_t number);
 
+void LEUART_FrameSet(LEUART_TypeDef *leuart,
+                     LEUART_Databits_TypeDef databits,
+                     LEUART_Stopbits_TypeDef stopbits,
+                     LEUART_Parity_TypeDef parity);
+
 #ifdef __cplusplus
 }
 #endif

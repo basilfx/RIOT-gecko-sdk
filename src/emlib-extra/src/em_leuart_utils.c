@@ -54,4 +54,37 @@ __INLINE LEUART_Parity_TypeDef LEUART_Parity2Def(uint8_t number)
   return (LEUART_Parity_TypeDef) ((number == 0 ? number : (number % 2) + 2) << _LEUART_CTRL_PARITY_SHIFT);
 }
 
+/***************************************************************************//**
+ * @brief
+ *   Set the data bits, stop bits and parity settings.
+ *
+ * @note
+ *   The LEUART peripheral should already be initialized and enabled.
+ *
+ * @param[in] leuart
+ *   A pointer to the LEUART peripheral register block.
+ *
+ * @param[in] databits
+ *   Number of data bits.
+ *
+ * @param[in] stopbits
+ *   Number of stop bits.
+ *
+ * @param[in] parity
+ *   Parity mode.
+ ******************************************************************************/
+void LEUART_FrameSet(LEUART_TypeDef *leuart,
+                     LEUART_Databits_TypeDef databits,
+                     LEUART_Stopbits_TypeDef stopbits,
+                     LEUART_Parity_TypeDef parity)
+{
+  /* Configure databits, parity and stopbits. */
+  leuart->CTRL = (leuart->CTRL & ~(_LEUART_CTRL_DATABITS_MASK
+                                   | _LEUART_CTRL_PARITY_MASK
+                                   | _LEUART_CTRL_STOPBITS_MASK))
+                 | (uint32_t)(databits)
+                 | (uint32_t)(parity)
+                 | (uint32_t)(stopbits);
+}
+
 #endif /* defined(LEUART_COUNT) && (LEUART_COUNT > 0) */

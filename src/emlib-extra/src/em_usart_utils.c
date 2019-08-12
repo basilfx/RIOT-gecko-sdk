@@ -54,4 +54,34 @@ __INLINE USART_Parity_TypeDef USART_Parity2Def(uint8_t number)
   return (USART_Parity_TypeDef) ((number == 0 ? number : (number % 2) + 2) << _USART_FRAME_PARITY_SHIFT);
 }
 
+/***************************************************************************//**
+ * @brief
+ *   Set the data bits, stop bits and parity settings.
+ *
+ * @note
+ *   The USART peripheral should already be initialized and enabled.
+ *
+ * @param[in] usart
+ *   A pointer to the USART peripheral register block.
+ *
+ * @param[in] databits
+ *   Number of data bits.
+ *
+ * @param[in] stopbits
+ *   Number of stop bits.
+ *
+ * @param[in] parity
+ *   Parity mode.
+ ******************************************************************************/
+void USART_FrameSet(USART_TypeDef *usart,
+                    USART_Databits_TypeDef databits,
+                    USART_Stopbits_TypeDef stopbits,
+                    USART_Parity_TypeDef parity)
+{
+  /* Configure databits, stopbits, and parity. */
+  usart->FRAME = (uint32_t)databits
+                 | (uint32_t)stopbits
+                 | (uint32_t)parity;
+}
+
 #endif /* defined(USART_COUNT) && (USART_COUNT > 0) */

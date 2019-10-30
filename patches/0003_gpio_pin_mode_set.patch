@@ -1,0 +1,95 @@
+diff --git dist/emlib/inc/em_gpio.h dist/emlib/inc/em_gpio.h
+index bea098e..a8a4797 100644
+--- dist/emlib/inc/em_gpio.h
++++ dist/emlib/inc/em_gpio.h
+@@ -964,10 +964,36 @@ __STATIC_INLINE void GPIO_PinLock(GPIO_Port_TypeDef port, unsigned int pin)
+ GPIO_Mode_TypeDef GPIO_PinModeGet(GPIO_Port_TypeDef port,
+                                   unsigned int pin);
+ 
+-void GPIO_PinModeSet(GPIO_Port_TypeDef port,
+-                     unsigned int pin,
+-                     GPIO_Mode_TypeDef mode,
+-                     unsigned int out);
++void GPIO_PinModeSetExt(GPIO_Port_TypeDef port,
++                        unsigned int pin,
++                        GPIO_Mode_TypeDef mode,
++                        unsigned int out,
++                        bool changeState);
++
++/***************************************************************************//**
++ * @brief
++ *   Set the mode for a GPIO pin.
++ *
++ * @param[in] port
++ *   The GPIO port to access.
++ *
++ * @param[in] pin
++ *   The pin number in the port.
++ *
++ * @param[in] mode
++ *   The desired pin mode.
++ *
++ * @param[in] out
++ *   A value to set for the pin in the DOUT register. The DOUT setting is important for
++ *   some input mode configurations to determine the pull-up/down direction.
++ ******************************************************************************/
++__STATIC_INLINE void GPIO_PinModeSet(GPIO_Port_TypeDef port,
++                                     unsigned int pin,
++                                     GPIO_Mode_TypeDef mode,
++                                     unsigned int out)
++{
++  GPIO_PinModeSetExt(port, pin, mode, out, true);
++}
+ 
+ /***************************************************************************//**
+  * @brief
+diff --git dist/emlib/src/em_gpio.c dist/emlib/src/em_gpio.c
+index db6d1bf..cac9a8b 100644
+--- dist/emlib/src/em_gpio.c
++++ dist/emlib/src/em_gpio.c
+@@ -261,7 +261,8 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
+ 
+ /***************************************************************************//**
+  * @brief
+- *   Set the mode for a GPIO pin.
++ *   Set the mode for a GPIO pin, with an additional option to prevent changing
++ *   the pin state.
+  *
+  * @param[in] port
+  *   The GPIO port to access.
+@@ -275,17 +276,21 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
+  * @param[in] out
+  *   A value to set for the pin in the DOUT register. The DOUT setting is important for
+  *   some input mode configurations to determine the pull-up/down direction.
++ *
++ * @param[in] changeState
++ *   If true, pin state is set or cleared.
+  ******************************************************************************/
+-void GPIO_PinModeSet(GPIO_Port_TypeDef port,
+-                     unsigned int pin,
+-                     GPIO_Mode_TypeDef mode,
+-                     unsigned int out)
++void GPIO_PinModeSetExt(GPIO_Port_TypeDef port,
++                        unsigned int pin,
++                        GPIO_Mode_TypeDef mode,
++                        unsigned int out,
++                        bool changeState)
+ {
+   EFM_ASSERT(GPIO_PORT_PIN_VALID(port, pin));
+ 
+   /* If disabling a pin, do not modify DOUT to reduce the chance of */
+   /* a glitch/spike (may not be sufficient precaution in all use cases). */
+-  if (mode != gpioModeDisabled) {
++  if (changeState && mode != gpioModeDisabled) {
+     if (out) {
+       GPIO_PinOutSet(port, pin);
+     } else {
+@@ -303,7 +308,7 @@ void GPIO_PinModeSet(GPIO_Port_TypeDef port,
+                           | (mode << ((pin - 8) * 4));
+   }
+ 
+-  if (mode == gpioModeDisabled) {
++  if (changeState && mode == gpioModeDisabled) {
+     if (out) {
+       GPIO_PinOutSet(port, pin);
+     } else {

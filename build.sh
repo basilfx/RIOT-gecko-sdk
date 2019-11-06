@@ -49,6 +49,8 @@ do
     patch -p0 < "${PATCH_FILE}"
 done
 
+find "${DIST_DIR}" -name "*.orig" -type f -delete
+
 # Rename IRQ handlers to match the RIOT-OS IRQ handlers.
 for BLOB_FILE in "${DIST_DIR}/radio/rail_lib/autogen/librail_release/"*".a"
 do

@@ -19,6 +19,7 @@
 #define __RAIL_ZWAVE_H__
 
 #include "rail_types.h"
+#include "rail_chip_specific.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,6 +91,8 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
   RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE_SHIFT = 0,
   /** Shift position of \ref RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES bit */
   RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT,
+  /** Shift position of \ref RAIL_ZWAVE_OPTION_NODE_ID_FILTERING bit */
+  RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT,
 };
 
 // RAIL_ZWAVE_Options_t bitmasks
@@ -122,6 +125,12 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
  */
 #define RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES \
   (1u << RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT)
+/**
+ * An option to filter packets based on Node ID when not
+ * promiscuous.
+ */
+#define RAIL_ZWAVE_OPTION_NODE_ID_FILTERING \
+  (1u << RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT)
 
 /** A value representing all options */
 #define RAIL_ZWAVE_OPTIONS_ALL 0xFFFFFFFFU
@@ -196,7 +205,18 @@ RAIL_ENUM(RAIL_ZWAVE_HomeIdHash_t) {
  * @brief A configuration structure for Z-Wave in RAIL.
  */
 typedef struct RAIL_ZWAVE_Config {
-  RAIL_ZWAVE_Options_t options; /**< Z-Wave options. */
+  /**
+   * Defines Z-Wave options.
+   */
+  RAIL_ZWAVE_Options_t options;
+  /**
+   * Defines Z-Wave ACKing configuration.
+   */
+  RAIL_AutoAckConfig_t ackConfig;
+  /**
+   * Defines state timings for Z-Wave.
+   */
+  RAIL_StateTiming_t timings;
 } RAIL_ZWAVE_Config_t;
 
 /**
@@ -214,6 +234,18 @@ RAIL_ENUM(RAIL_ZWAVE_Baud_t) {
 #define RAIL_ZWAVE_BAUD_9600 ((RAIL_ZWAVE_Baud_t) RAIL_ZWAVE_BAUD_9600)
 #define RAIL_ZWAVE_BAUD_40K  ((RAIL_ZWAVE_Baud_t) RAIL_ZWAVE_BAUD_40K)
 #define RAIL_ZWAVE_BAUD_100K ((RAIL_ZWAVE_Baud_t) RAIL_ZWAVE_BAUD_100K)
+
+// Largest ACK timeout period based on
+// aPhyTurnaroundTimeRxTx (1ms max)+ (aMacTransferAckTimeTX (168 bits)* (1/data rate))
+// For slowest Data Rate R1 (19.6 kbit/s)
+#define RAIL_ZWAVE_MAX_ACK_TIMEOUT_US        (9600U)
+
+// Defines for Transition timing
+#define RAIL_ZWAVE_TIME_IDLE_TO_RX_US        (100U)
+#define RAIL_ZWAVE_TIME_TX_TO_RX_US          (0U)
+#define RAIL_ZWAVE_TIME_IDLE_TO_TX_US        (0U)
+#define RAIL_ZWAVE_TIME_RX_TO_TX_US          (1000U)
+
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -238,6 +270,11 @@ typedef RAIL_ZWAVE_ChannelConfig_t RAIL_ZWAVE_RegionConfig_t[3];
  * @param[in] railHandle A handle of RAIL instance.
  * @param[in] regionCfg Z-Wave channel configuration for the selected region
  * @return Status code indicating success of the function call.
+ *
+ * @note Setting a new Z-Wave Region will default any Low Power values to
+ * Normal Power values for the region.
+ * Z-Wave Region configuration must always be followed by a Low Power setup
+ * in case one desires to have the Low Power ACKing functionality.
  */
 RAIL_Status_t RAIL_ZWAVE_ConfigRegion(RAIL_Handle_t railHandle,
                                       const RAIL_ZWAVE_RegionConfig_t regionCfg);
@@ -333,7 +370,7 @@ RAIL_Status_t RAIL_ZWAVE_SetHomeId(RAIL_Handle_t railHandle,
  * @param[out] pNodeId A pointer to \ref RAIL_ZWAVE_NodeId_t to populate.
  * @return Status code indicating success of the function call.
  *
- * @note: This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
+ * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's NodeId
  *   is provided.
  */
@@ -351,12 +388,73 @@ RAIL_Status_t RAIL_ZWAVE_GetBeamNodeId(RAIL_Handle_t railHandle,
  *   is emplaced.
  * @return Status code indicating success of the function call.
  *
- * @note: This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
+ * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's
  *   channel hopping index is provided.
  */
 RAIL_Status_t RAIL_ZWAVE_GetBeamChannelIndex(RAIL_Handle_t railHandle,
                                              uint8_t *pChannelIndex);
+
+/**
+ * Set the Raw Low Power settings.
+ *
+ * @param[in] railHandle A handle of RAIL instance.
+ * @param[in] powerLevel Desired low power raw level.
+ * @return Status code indicating success of the function call.
+ *
+ * Low Power settings are required during Ack transmissions when
+ * the Low Power Bit is set. This setting is only valid for one
+ * subsequent transmission, after which all transmissions will be
+ * at the nominal power setting, until re-invoked.
+ */
+
+RAIL_Status_t RAIL_ZWAVE_SetTxLowPower(RAIL_Handle_t railHandle,
+                                       uint8_t powerLevel);
+
+/**
+ * Set the Low Power settings in dBm.
+ *
+ * @param[in] railHandle A handle of RAIL instance.
+ * @param[in] powerLevel Desired low power level dBm.
+ * @return Status code indicating success of the function call.
+ *
+ * Low Power settings are required during Ack transmissions when
+ * the Low Power Bit is set. This setting is only valid for one
+ * subsequent transmission, after which all transmissions will be
+ * at the nominal power setting, until re-invoked.
+ */
+RAIL_Status_t RAIL_ZWAVE_SetTxLowPowerDbm(RAIL_Handle_t railHandle,
+                                          RAIL_TxPower_t powerLevel);
+
+/**
+ * Gets the TX low power in raw units (see \ref rail_chip_specific.h for
+ * value ranges).
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return The chip-specific \ref RAIL_TxPowerLevel_t raw value of the low
+ * transmit power.
+ *
+ * This API returns the low raw power value that was set by
+ * \ref RAIL_ZWAVE_SetTxLowPower.
+ *
+ * Calling this function before configuring the Low Power PA
+ * (i.e., before a successful
+ * call to \ref RAIL_ZWAVE_SetTxLowPowerDbm or \ref RAIL_ZWAVE_SetTxLowPower)
+ * will return the low power value same as the nominal power.
+ * Also, calling this function before configuring the PA
+ * (i.e., before a successful call to \ref RAIL_ConfigTxPower) will return an error
+ * (RAIL_TX_POWER_LEVEL_INVALID).
+ */
+RAIL_TxPowerLevel_t RAIL_ZWAVE_GetTxLowPower(RAIL_Handle_t railHandle);
+
+/**
+ * Gets the TX low power in terms of deci-dBm instead of raw power level.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return The chip-specific \ref RAIL_TxPower_t value of the low
+ * transmit power in deci-dBm.
+ */
+RAIL_TxPower_t RAIL_ZWAVE_GetTxLowPowerDbm(RAIL_Handle_t railHandle);
 
 /** EU-European Union", RAIL_ZWAVE_REGION_EU */
 extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU;
@@ -390,6 +488,9 @@ extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_KR;
 
 /** CN-China", RAIL_ZWAVE_REGION_CN */
 extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_CN;
+
+/** Invalid Region */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_INVALID;
 
 /** @} */ // end of Z_Wave
 

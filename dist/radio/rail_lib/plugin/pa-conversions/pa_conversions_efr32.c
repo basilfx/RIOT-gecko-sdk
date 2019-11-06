@@ -173,7 +173,7 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
   if (modeInfo->algorithm == RAIL_PA_ALGORITHM_MAPPING_TABLE) {
     // Loop through the lookup table to find the closest power level
     // without going over.
-    for (powerIndex = (modeInfo->max - 1);
+    for (powerIndex = (int16_t)(modeInfo->max - 1U);
          (powerIndex != 0) && (power < modeInfo->conversion.mappingTable[powerIndex]);
          powerIndex--) {
       // Searching...
@@ -205,8 +205,8 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
   // if this turns out to be incorrect.
   powerIndex = ((power - 200) / 40);
   powerIndex = -powerIndex;
-  if (powerIndex > (modeInfo->segments - 1)) {
-    powerIndex = modeInfo->segments - 1;
+  if (powerIndex > (int16_t)(modeInfo->segments - 1U)) {
+    powerIndex = (int16_t)(modeInfo->segments - 1U);
   }
 
   do {
@@ -221,12 +221,12 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
     }
 
     // Add 500 to do rounding correctly, as opposed to just rounding towards 0
-    powerLevel = ((powerLevel + 500) / 1000);
+    powerLevel = ((powerLevel + 500U) / 1000U);
 
     // In case it turns out the resultant power level was too low and we have
     // to recalculate with the next curve...
     powerIndex++;
-  } while ((powerIndex < modeInfo->segments)
+  } while ((powerIndex < (int16_t)modeInfo->segments)
            && (powerLevel <= paParams->powerParams[powerIndex].maxPowerLevel));
 
   // We already know that powerIndex is at most modeInfo->segments
@@ -239,7 +239,7 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
   // level 1 (approximately -50 dBm). Including it in the piecewise
   // linear fit would skew the curve substantially, so we exclude it
   // from the conversion.
-  if (powerLevel == 0) {
+  if (powerLevel == 0U) {
     powerLevel = 1;
   }
   return powerLevel;
@@ -268,7 +268,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     }
 
     // We 1-index low power PA power levels, but of course arrays are 0 indexed
-    if (powerLevel != 0) {
+    if (powerLevel != 0U) {
       powerLevel--;
     }
 
@@ -279,7 +279,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     // level 1 (approximately -50 dBm). Including it in the piecewise
     // linear fit would skew the curve substantially, so we exclude it
     // from the conversion.
-    if (powerLevel == 0) {
+    if (powerLevel == 0U) {
       return -500;
     }
 
@@ -300,7 +300,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     // Hard code the extremes (i.e. don't use the curve fit) in order
     // to make it clear that we are reaching the extent of the chip's
     // capabilities
-    if (powerLevel <= 1) {
+    if (powerLevel <= 1U) {
       return powerCurve->minPower;
     } else if (powerLevel >= modeInfo->max) {
       return powerCurve->maxPower;
@@ -309,9 +309,9 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
 
     // Figure out which parameter to use based on the power level
     uint8_t x;
-    uint8_t upperBound = modeInfo->segments - 1;
+    uint8_t upperBound = modeInfo->segments - 1U;
     for (x = 0; x < upperBound; x++) {
-      if (powerParams[x + 1].maxPowerLevel < powerLevel) {
+      if (powerParams[x + 1U].maxPowerLevel < powerLevel) {
         break;
       }
     }

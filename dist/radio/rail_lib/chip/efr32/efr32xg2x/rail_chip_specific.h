@@ -27,6 +27,7 @@
 #include "em_gpio.h"
 
 #include "rail_types.h"
+#include "rail_features.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,17 +41,35 @@ extern "C" {
  * @def TRANSITION_TIME_US
  * @brief Time it takes to take care of protocol switching.
  */
-#define TRANSITION_TIME_US 600
+#define TRANSITION_TIME_US 500
 
 /**
- * @def RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
+ * @def EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state.
  */
 #define EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
 
+/**
+ * @def EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
+ * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
+ *   RAIL multiprotocol internal state.
+ */
+#define EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+
+/**
+ * @def EFR32XG23_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
+ * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
+ *   RAIL multiprotocol internal state.
+ */
+#define EFR32XG23_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 1)
 #define RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 2)
+#define RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#define RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE EFR32XG23_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
 #else
 #error "Unsupported platform!"
 #endif //_SILICON_LABS_32B_SERIES_2_CONFIG
@@ -82,10 +101,28 @@ typedef struct RAILSched_Config {
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG21 series.
  */
-#define EFR32XG21_RAIL_STATE_UINT32_BUFFER_SIZE 84
+#define EFR32XG21_RAIL_STATE_UINT32_BUFFER_SIZE 98
+
+/**
+ * @def EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE
+ * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
+ *   internal state for the EFR32XG22 series.
+ */
+#define EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE 98
+
+/**
+ * @def EFR32XG23_RAIL_STATE_UINT32_BUFFER_SIZE
+ * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
+ *   internal state for the EFR32XG23 series.
+ */
+#define EFR32XG23_RAIL_STATE_UINT32_BUFFER_SIZE 82
 
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 1)
 #define RAIL_STATE_UINT32_BUFFER_SIZE EFR32XG21_RAIL_STATE_UINT32_BUFFER_SIZE
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 2)
+#define RAIL_STATE_UINT32_BUFFER_SIZE EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#define RAIL_STATE_UINT32_BUFFER_SIZE EFR32XG23_RAIL_STATE_UINT32_BUFFER_SIZE
 #else
 #error "Unsupported platform!"
 #endif //_SILICON_LABS_32B_SERIES_2_CONFIG
@@ -400,6 +437,7 @@ typedef const uint32_t *RAIL_RadioConfig_t;
  */
 typedef uint8_t RAIL_TxPowerLevel_t;
 
+#if _SILICON_LABS_32B_SERIES_2_CONFIG == 1
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_HP mode.
@@ -415,6 +453,18 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_LP_MAX     (64U)
+#else
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_HP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_HP_MAX     (128U)
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_LP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_LP_MAX     (32U)
+#endif
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_HP mode.
@@ -430,11 +480,26 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_LP_MIN     (1U)
+
+#if RAIL_FEAT_SUBGIG_RADIO
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_SUBGIG mode.
+ */
+#define RAIL_TX_POWER_LEVEL_SUBGIG_MAX (248U)
+#endif
+
 /**
  * Invalid RAIL_TxPowerLevel_t value returned when an error occurs
  * with RAIL_GetTxPower.
  */
-#define RAIL_TX_POWER_LEVEL_INVALID 255U
+#define RAIL_TX_POWER_LEVEL_INVALID (255U)
+/**
+ * Sentinel value that can be passed to RAIL_SetTxPower to set
+ * the highest power level available on the current PA, regardless
+ * of which one is selected.
+ */
+#define RAIL_TX_POWER_LEVEL_MAX (254U)
 
 /**
  * @enum RAIL_TxPowerMode_t
@@ -445,14 +510,38 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * characteristics of a given amplifier, see the data sheet.
  */
 RAIL_ENUM(RAIL_TxPowerMode_t) {
-  /** High-power amplifier, up to 20 dBm, raw values: 0-180 */
+  /**
+   *  High-power 2.4GHz amplifier
+   *  EFR32XG21: up to 20 dBm, raw values: 1-180
+   *  EFR32XG22: up to 6 dBm, raw values: 1-15
+   */
   RAIL_TX_POWER_MODE_2P4_HP,
-  /** Mid-power amplifier, up to 10 dBm, raw values: 0-90 */
+#if _SILICON_LABS_32B_SERIES_2_CONFIG != 2
+  /**
+   *  Mid-power 2.4GHz amplifier
+   *  EFR32XG21: up to 10 dBm, raw values: 1-90
+   *  EFR32XG22: N/A
+   */
   RAIL_TX_POWER_MODE_2P4_MP,
-  /** Low-power amplifier, up to 0 dBm, raw values: 1-7 */
+#endif
+  /**
+   *  Low-power 2.4GHz amplifier
+   *  EFR32XG21: up to 0 dBm, raw values: 1-64
+   *  EFR32XG22: up to 0 dBm, raw values: 1-8
+   */
   RAIL_TX_POWER_MODE_2P4_LP,
   /** Select the highest power PA available on the current chip. */
   RAIL_TX_POWER_MODE_2P4_HIGHEST,
+#if RAIL_FEAT_SUBGIG_RADIO
+  /** High-power amplifier, up to 20 dBm, raw values: 0-180 */
+  RAIL_TX_POWER_MODE_SUBGIG_HP,
+  /** Mid-power amplifier, up to 10 dBm, raw values: 0-90 */
+  RAIL_TX_POWER_MODE_SUBGIG_MP,
+  /** Low-power amplifier, up to 0 dBm, raw values: 1-7 */
+  RAIL_TX_POWER_MODE_SUBGIG_LP,
+  /** Select the highest power PA available on the current chip. */
+  RAIL_TX_POWER_MODE_SUBGIG_HIGHEST,
+#endif
   /** Invalid amplifier Selection */
   RAIL_TX_POWER_MODE_NONE,
 };
@@ -462,6 +551,9 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 #define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
 #define RAIL_TX_POWER_MODE_2P4_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_MP)
 #define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
+#if RAIL_FEAT_SUBGIG_RADIO
+#define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
+#endif
 #define RAIL_TX_POWER_MODE_NONE   ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_NONE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
@@ -472,12 +564,20 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
  * A list of the names for the TX power modes on the EFR32 series 2 parts. This
  * macro is useful for test applications and debugging output.
  */
+#if _SILICON_LABS_32B_SERIES_2_CONFIG == 2
+#define RAIL_TX_POWER_MODE_NAMES { \
+    "RAIL_TX_POWER_MODE_2P4_HP",   \
+    "RAIL_TX_POWER_MODE_2P4_LP",   \
+    "RAIL_TX_POWER_MODE_NONE"      \
+}
+#else
 #define RAIL_TX_POWER_MODE_NAMES { \
     "RAIL_TX_POWER_MODE_2P4_HP",   \
     "RAIL_TX_POWER_MODE_2P4_MP",   \
     "RAIL_TX_POWER_MODE_2P4_LP",   \
     "RAIL_TX_POWER_MODE_NONE"      \
 }
+#endif
 
 /**
  * @struct RAIL_TxPowerConfig_t
@@ -544,19 +644,19 @@ typedef struct RAIL_PtiConfig {
   /** Data output (DOUT) location for pin/port */
   uint8_t doutLoc;
   /** Data output (DOUT) GPIO port */
-  GPIO_Port_TypeDef doutPort;
+  uint8_t doutPort;
   /** Data output (DOUT) GPIO pin */
   uint8_t doutPin;
   /** Data clock (DCLK) location for pin/port. Only used in SPI mode */
   uint8_t dclkLoc;
   /** Data clock (DCLK) GPIO port. Only used in SPI mode */
-  GPIO_Port_TypeDef dclkPort;
+  uint8_t dclkPort;
   /** Data clock (DCLK) GPIO pin. Only used in SPI mode */
   uint8_t dclkPin;
   /** Data frame (DFRAME) location for pin/port */
   uint8_t dframeLoc;
   /** Data frame (DFRAME) GPIO port */
-  GPIO_Port_TypeDef dframePort;
+  uint8_t dframePort;
   /** Data frame (DFRAME) GPIO pin */
   uint8_t dframePin;
 } RAIL_PtiConfig_t;
@@ -598,7 +698,6 @@ RAIL_ENUM(RAIL_AntennaSel_t) {
  * @brief A configuration for antenna selection.
  */
 typedef struct RAIL_AntennaConfig {
-  /** GPIO_DBUSMODEM_ROUTEEN fields */
   /** Antenna 0 Pin Enable */
   bool ant0PinEn;
   /** Antenna 1 Pin Enable */
@@ -607,15 +706,14 @@ typedef struct RAIL_AntennaConfig {
   RAIL_AntennaSel_t ant0Loc;
   /** Map internal default path to ant0Loc */
   #define defaultPath ant0Loc
-  /** GPIO_DBUSMODEM_ANT*ROUTE fields */
   /** Antenna 0 output GPIO port */
-  GPIO_Port_TypeDef ant0Port;
+  uint8_t ant0Port;
   /** Antenna 0 output GPIO pin */
   uint8_t ant0Pin;
   /** Antenna 1 internal RF Path to use */
   RAIL_AntennaSel_t ant1Loc;
   /** Antenna 1 output GPIO port */
-  GPIO_Port_TypeDef ant1Port;
+  uint8_t ant1Port;
   /** Antenna 1 output GPIO pin */
   uint8_t ant1Pin;
 } RAIL_AntennaConfig_t;

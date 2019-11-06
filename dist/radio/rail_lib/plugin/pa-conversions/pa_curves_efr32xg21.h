@@ -30,25 +30,25 @@ extern "C" {
 #define RAIL_PA_CURVES_2P4_HP_VBAT_MAX_POWER      200
 #define RAIL_PA_CURVES_2P4_HP_VBAT_MIN_POWER      -260
 #define RAIL_PA_CURVES_2P4_HP_VBAT_CURVES \
-  { { 180, 2202, -276556 },               \
-    { 80, 792, -47941 },                  \
-    { 45, 452, -7893 },                   \
-    { 27, 261, 6805 },                    \
-    { 17, 163, 10609 },                   \
-    { 10, 94, 10346 },                    \
-    { 6, 58, 8754 },                      \
-    { 4, 40, 7288 } }
+  { { 180, 2187, -278405 },               \
+    { 77, 740, -43289 },                  \
+    { 44, 418, -5245 },                   \
+    { 26, 259, 6835 },                    \
+    { 17, 163, 10581 },                   \
+    { 10, 94, 10330 },                    \
+    { 6, 58, 8737 },                      \
+    { 4, 40, 7290 } }
 
 #define RAIL_PA_CURVES_2P4_MP_VBAT_MAX_POWER      100
 #define RAIL_PA_CURVES_2P4_MP_VBAT_MIN_POWER      -260
 #define RAIL_PA_CURVES_2P4_MP_VBAT_CURVES \
   { { -1, 0, 0 },                         \
     { -1, 0, 0 },                         \
-    { 90, 1782, -111892 },                \
-    { 31, 382, 887 },                     \
-    { 16, 160, 9764 },                    \
-    { 9, 91, 9546 },                      \
-    { 6, 53, 7926 },                      \
+    { 90, 1779, -109403 },                \
+    { 33, 419, -351 },                    \
+    { 17, 166, 10115 },                   \
+    { 10, 97, 9948 },                     \
+    { 6, 59, 8440 },                      \
     { 3, -15, 1499 } }
 
 #define RAIL_PA_CURVES_2P4_LP_VBAT_MAX_POWER      0
@@ -58,10 +58,10 @@ extern "C" {
     { -1, 0, 0 },             \
     { -1, 0, 0 },             \
     { -1, 0, 0 },             \
-    { 64, 1695, 59675 },      \
-    { 48, 793, 53881 },       \
-    { 24, 263, 33942 },       \
-    { 14, 105, 21800 } }
+    { 64, 1560, 54004 },      \
+    { 44, 688, 48701 },       \
+    { 23, 242, 31756 },       \
+    { 14, 106, 21683 } }
 
 // *INDENT-OFF*
 // Macro to declare the variables needed to initialize RAIL_TxPowerCurvesConfig_t for use in

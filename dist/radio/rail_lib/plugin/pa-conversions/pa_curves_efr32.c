@@ -114,6 +114,60 @@ const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = {
   },
 };
 
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+
+static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataHpVbat = {
+  RAIL_PA_CURVES_2P4_HP_VBAT_MAX_POWER,
+  RAIL_PA_CURVES_2P4_HP_VBAT_MIN_POWER,
+  RAIL_PA_CURVES_2P4_HP_VBAT_CURVES,
+};
+static const int16_t RAIL_curves24Lp[RAIL_PA_CURVES_LP_VALUES] =
+  RAIL_PA_CURVES_2P4_LP_VBAT_CURVES;
+
+#ifdef RAIL_PA_CONVERSIONS_WEAK
+SL_WEAK
+#endif
+const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesVbat = {
+  .curves = {
+    {
+      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
+      .segments = RAIL_PA_CURVES_PIECEWISE_SEGMENTS,
+      .min = RAIL_TX_POWER_LEVEL_HP_MIN,
+      .max = RAIL_TX_POWER_LEVEL_HP_MAX,
+      .conversion = { .powerCurve = &RAIL_piecewiseDataHpVbat },
+    },
+    {                                                        \
+      .algorithm = RAIL_PA_ALGORITHM_MAPPING_TABLE,          \
+      .segments = 0U,                                        \
+      .min = RAIL_TX_POWER_LEVEL_LP_MIN,                     \
+      .max = RAIL_TX_POWER_LEVEL_LP_MAX,                     \
+      .conversion = { .mappingTable = &RAIL_curves24Lp[0] }, \
+    },
+  }
+};
+
+#ifdef RAIL_PA_CONVERSIONS_WEAK
+SL_WEAK
+#endif
+const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = {
+  .curves = {
+    {
+      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
+      .segments = RAIL_PA_CURVES_PIECEWISE_SEGMENTS,
+      .min = RAIL_TX_POWER_LEVEL_HP_MIN,
+      .max = RAIL_TX_POWER_LEVEL_HP_MAX,
+      .conversion = { .powerCurve = &RAIL_piecewiseDataHpVbat },
+    },
+    {                                                        \
+      .algorithm = RAIL_PA_ALGORITHM_MAPPING_TABLE,          \
+      .segments = 0U,                                        \
+      .min = RAIL_TX_POWER_LEVEL_LP_MIN,                     \
+      .max = RAIL_TX_POWER_LEVEL_LP_MAX,                     \
+      .conversion = { .mappingTable = &RAIL_curves24Lp[0] }, \
+    },
+  }
+};
+
 #elif defined(_SILICON_LABS_32B_SERIES_2)
 
 static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataHpVbat = {

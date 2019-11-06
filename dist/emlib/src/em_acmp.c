@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Analog Comparator (ACMP) Peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -266,6 +266,9 @@ void ACMP_CapsenseChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef channel)
   /* Make sure that the ACMP is enabled before changing INPUTCTRL. */
   EFM_ASSERT(acmp->EN & ACMP_EN_EN);
 
+  while (acmp->SYNCBUSY != 0U) {
+    /* Wait for synchronization to finish */
+  }
   /* Set channel as positive channel in ACMP */
   BUS_RegMaskedWrite(&acmp->INPUTCTRL, _ACMP_INPUTCTRL_POSSEL_MASK,
                      channel << _ACMP_INPUTCTRL_POSSEL_SHIFT);
@@ -289,6 +292,9 @@ void ACMP_Disable(ACMP_TypeDef *acmp)
   EFM_ASSERT(ACMP_REF_VALID(acmp));
 
 #if defined(_ACMP_EN_MASK)
+  while ((acmp->EN != 0U) && (acmp->SYNCBUSY != 0U)) {
+    /* Wait for synchronization to finish */
+  }
   acmp->EN_CLR = ACMP_EN_EN;
 #else
   acmp->CTRL &= ~ACMP_CTRL_EN;
@@ -521,7 +527,9 @@ void ACMP_ChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef negSel,
 #if defined(_ACMP_INPUTCTRL_MASK)
   /* Make sure that the ACMP is enabled before changing INPUTCTRL. */
   EFM_ASSERT(acmp->EN & ACMP_EN_EN);
-
+  while (acmp->SYNCBUSY != 0U) {
+    /* Wait for synchronization to finish */
+  }
   acmp->INPUTCTRL = (acmp->INPUTCTRL & ~(_ACMP_INPUTCTRL_POSSEL_MASK
                                          | _ACMP_INPUTCTRL_NEGSEL_MASK))
                     | (negSel << _ACMP_INPUTCTRL_NEGSEL_SHIFT)

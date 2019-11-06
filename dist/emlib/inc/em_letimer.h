@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Low Energy Timer (LETIMER) peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -147,21 +147,10 @@ uint32_t LETIMER_CompareGet(LETIMER_TypeDef *letimer, unsigned int comp);
 void LETIMER_CompareSet(LETIMER_TypeDef *letimer,
                         unsigned int comp,
                         uint32_t value);
-
-/***************************************************************************//**
- * @brief
- *   Get LETIMER counter value.
- *
- * @param[in] letimer
- *   Pointer to the LETIMER peripheral register block.
- *
- * @return
- *   Current LETIMER counter value.
- ******************************************************************************/
-__STATIC_INLINE uint32_t LETIMER_CounterGet(LETIMER_TypeDef *letimer)
-{
-  return(letimer->CNT);
-}
+uint32_t LETIMER_CounterGet(LETIMER_TypeDef *letimer);
+#if !defined(_EFM32_GECKO_FAMILY)
+void LETIMER_CounterSet(LETIMER_TypeDef *letimer, uint32_t value);
+#endif
 
 void LETIMER_Enable(LETIMER_TypeDef *letimer, bool enable);
 #if defined(_LETIMER_FREEZE_MASK)
@@ -306,26 +295,7 @@ void LETIMER_RepeatSet(LETIMER_TypeDef *letimer,
 void LETIMER_Reset(LETIMER_TypeDef *letimer);
 void LETIMER_SyncWait(LETIMER_TypeDef *letimer);
 void LETIMER_TopSet(LETIMER_TypeDef *letimer, uint32_t value);
-
-/***************************************************************************//**
- * @brief
- *   Get the current LETIMER top value.
- *
- * @param[in] letimer
- *   A pointer to the LETIMER peripheral register block.
- *
- * @return
- *   The top value. This will be a 16 bit value on series-0 and series-1
- *   devices and a 24 bit value on series-2 devices.
- ******************************************************************************/
-__STATIC_INLINE uint32_t LETIMER_TopGet(LETIMER_TypeDef *letimer)
-{
-#if defined(_LETIMER_TOP_MASK)
-  return letimer->TOP;
-#else
-  return letimer->COMP0;
-#endif
-}
+uint32_t LETIMER_TopGet(LETIMER_TypeDef *letimer);
 
 /** @} (end addtogroup LETIMER) */
 /** @} (end addtogroup emlib) */

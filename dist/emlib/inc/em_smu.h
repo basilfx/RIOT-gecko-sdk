@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Security Management Unit (SMU) peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -391,19 +391,22 @@ typedef enum {
   smuPeripheralWTIMER0   = 32 + _SMU_PPUPATD1_WTIMER0_SHIFT,   /**< SMU peripheral identifier for WTIMER0.   */
   smuPeripheralWTIMER1   = 32 + _SMU_PPUPATD1_WTIMER1_SHIFT,   /**< SMU peripheral identifier for WTIMER1.   */
 
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+#elif defined(_SILICON_LABS_32B_SERIES_2)
+#if defined(SMU_PPUPATD0_SCRATCHPAD)
+  smuPeripheralSCRATCHPAD   = _SMU_PPUPATD0_SCRATCHPAD_SHIFT,     /**< SMU peripheral identifier for SCRATCHPAD */
+#endif
   smuPeripheralEMU          = _SMU_PPUPATD0_EMU_SHIFT,            /**< SMU peripheral identifier for EMU       */
   smuPeripheralCMU          = _SMU_PPUPATD0_CMU_SHIFT,            /**< SMU peripheral identifier for CMU       */
-  smuPeripheralSYXO0        = _SMU_PPUPATD0_SYXO0_SHIFT,          /**< SMU peripheral identifier for SYXO0     */
+  smuPeripheralHFXO         = _SMU_PPUPATD0_HFXO0_SHIFT,          /**< SMU peripheral identifier for HFXO0     */
   smuPeripheralHFRCO0       = _SMU_PPUPATD0_HFRCO0_SHIFT,         /**< SMU peripheral identifier for HFRCO0    */
   smuPeripheralFSRCO        = _SMU_PPUPATD0_FSRCO_SHIFT,          /**< SMU peripheral identifier for FSRCO     */
   smuPeripheralDPLL0        = _SMU_PPUPATD0_DPLL0_SHIFT,          /**< SMU peripheral identifier for DPLL0     */
   smuPeripheralLFXO         = _SMU_PPUPATD0_LFXO_SHIFT,           /**< SMU peripheral identifier for LFXO      */
   smuPeripheralLFRCO        = _SMU_PPUPATD0_LFRCO_SHIFT,          /**< SMU peripheral identifier for LFRCO     */
   smuPeripheralULFRCO       = _SMU_PPUPATD0_ULFRCO_SHIFT,         /**< SMU peripheral identifier for ULFRCO    */
-  smuPeripheralIMEM         = _SMU_PPUPATD0_IMEM_SHIFT,           /**< SMU peripheral identifier for IMEM      */
+  smuPeripheralMSC          = _SMU_PPUPATD0_MSC_SHIFT,            /**< SMU peripheral identifier for MSC       */
   smuPeripheralICACHE0      = _SMU_PPUPATD0_ICACHE0_SHIFT,        /**< SMU peripheral identifier for ICACHE0   */
-  smuPeripheralPRS0         = _SMU_PPUPATD0_PRS0_SHIFT,           /**< SMU peripheral identifier for PRS0      */
+  smuPeripheralPRS          = _SMU_PPUPATD0_PRS_SHIFT,            /**< SMU peripheral identifier for PRS       */
   smuPeripheralGPIO         = _SMU_PPUPATD0_GPIO_SHIFT,           /**< SMU peripheral identifier for GPIO      */
   smuPeripheralLDMA         = _SMU_PPUPATD0_LDMA_SHIFT,           /**< SMU peripheral identifier for LDMA      */
   smuPeripheralLDMAXBAR     = _SMU_PPUPATD0_LDMAXBAR_SHIFT,       /**< SMU peripheral identifier for LDMAXBAR  */
@@ -413,31 +416,65 @@ typedef enum {
   smuPeripheralTIMER3       = _SMU_PPUPATD0_TIMER3_SHIFT,         /**< SMU peripheral identifier for TIMER3    */
   smuPeripheralUSART0       = _SMU_PPUPATD0_USART0_SHIFT,         /**< SMU peripheral identifier for USART0    */
   smuPeripheralUSART1       = _SMU_PPUPATD0_USART1_SHIFT,         /**< SMU peripheral identifier for USART1    */
+#if USART_COUNT > 2
   smuPeripheralUSART2       = _SMU_PPUPATD0_USART2_SHIFT,         /**< SMU peripheral identifier for USART2    */
+#endif
   smuPeripheralBURTC        = _SMU_PPUPATD0_BURTC_SHIFT,          /**< SMU peripheral identifier for BURTC     */
   smuPeripheralI2C1         = _SMU_PPUPATD0_I2C1_SHIFT,           /**< SMU peripheral identifier for I2C1      */
   smuPeripheralCHIPTESTCTRL = _SMU_PPUPATD0_CHIPTESTCTRL_SHIFT,   /**< SMU peripheral identifier for CHIPTESTCTRL*/
+#if defined(SMU_PPUPATD0_LVGD)
   smuPeripheralLVGD         = _SMU_PPUPATD0_LVGD_SHIFT,           /**< SMU peripheral identifier for LVGD      */
+#endif
   smuPeripheralSYSCFG       = _SMU_PPUPATD0_SYSCFG_SHIFT,         /**< SMU peripheral identifier for SYSCFG    */
   smuPeripheralBURAM        = _SMU_PPUPATD0_BURAM_SHIFT,          /**< SMU peripheral identifier for BURAM     */
   smuPeripheralIFADCDEBUG   = _SMU_PPUPATD0_IFADCDEBUG_SHIFT,     /**< SMU peripheral identifier for IFADCDEBUG*/
   smuPeripheralGPCRC        = _SMU_PPUPATD0_GPCRC_SHIFT,          /**< SMU peripheral identifier for GPCRC     */
+#if defined(_SMU_PPUPATD0_RTCC_SHIFT)
   smuPeripheralRTCC         = _SMU_PPUPATD0_RTCC_SHIFT,           /**< SMU peripheral identifier for RTCC      */
-  smuPeripheralLETIMER      = 32 + _SMU_PPUPATD1_LETIMER_SHIFT,   /**< SMU peripheral identifier for LETIMER   */
+#endif
+#if defined(_SMU_PPUPATD1_RTCC_SHIFT)
+  smuPeripheralRTCC         = 32 + _SMU_PPUPATD1_RTCC_SHIFT,      /**< SMU peripheral identifier for RTCC      */
+#endif
+#if defined(_SMU_PPUPATD1_DCDC_SHIFT)
+  smuPeripheralDCDC         = 32 + _SMU_PPUPATD1_DCDC_SHIFT,      /**< SMU peripheral identifier for DCDC      */
+#endif
+#if defined(_SMU_PPUPATD1_PDM_SHIFT)
+  smuPeripheralPDM          = 32 + _SMU_PPUPATD1_PDM_SHIFT,       /**< SMU peripheral identifier for PDM       */
+#endif
+#if defined(_SMU_PPUPATD1_RFSENSE_SHIFT)
+  smuPeripheralRFSENSE      = 32 + _SMU_PPUPATD1_RFSENSE_SHIFT,   /**< SMU peripheral identifier for RFSENSE   */
+#endif
+  smuPeripheralLETIMER0     = 32 + _SMU_PPUPATD1_LETIMER0_SHIFT,  /**< SMU peripheral identifier for LETIMER   */
   smuPeripheralIADC0        = 32 + _SMU_PPUPATD1_IADC0_SHIFT,     /**< SMU peripheral identifier for IADC0     */
+#if defined(ACMP_PRESENT)
   smuPeripheralACMP0        = 32 + _SMU_PPUPATD1_ACMP0_SHIFT,     /**< SMU peripheral identifier for ACMP0     */
   smuPeripheralACMP1        = 32 + _SMU_PPUPATD1_ACMP1_SHIFT,     /**< SMU peripheral identifier for ACMP1     */
+#endif
   smuPeripheralI2C0         = 32 + _SMU_PPUPATD1_I2C0_SHIFT,      /**< SMU peripheral identifier for I2C0      */
-  smuPeripheralHFRCO1       = 32 + _SMU_PPUPATD1_HFRCO1_SHIFT,    /**< SMU peripheral identifier for HFRCO1    */
+#if defined(_SMU_PPUPATD1_HFRCOEM23_SHIFT)
+  smuPeripheralHFRCOEM23    = 32 + _SMU_PPUPATD1_HFRCOEM23_SHIFT, /**< SMU peripheral identifier for HFRCOEM23 */
+#endif
   smuPeripheralWDOG0        = 32 + _SMU_PPUPATD1_WDOG0_SHIFT,     /**< SMU peripheral identifier for WDOG0     */
+#if defined(_SMU_PPUPATD1_WDOG1_SHIFT)
   smuPeripheralWDOG1        = 32 + _SMU_PPUPATD1_WDOG1_SHIFT,     /**< SMU peripheral identifier for WDOG1     */
+#endif
   smuPeripheralAMUXCP0      = 32 + _SMU_PPUPATD1_AMUXCP0_SHIFT,   /**< SMU peripheral identifier for AMUXCP0   */
-  smuPeripheralAES          = 32 + _SMU_PPUPATD1_AES_SHIFT,       /**< SMU peripheral identifier for AES       */
+  smuPeripheralRADIOAES     = 32 + _SMU_PPUPATD1_RADIOAES_SHIFT,  /**< SMU peripheral identifier for RADIOAES  */
+#if defined(_SMU_PPUPATD1_EUART0_SHIFT)
+  smuPeripheralEUART0       = 32 + _SMU_PPUPATD1_EUART0_SHIFT,    /**< SMU peripheral identifier for EUART0    */
+#endif
   smuPeripheralBUFC         = 32 + _SMU_PPUPATD1_BUFC_SHIFT,      /**< SMU peripheral identifier for BUFC      */
   smuPeripheralSMU          = 32 + _SMU_PPUPATD1_SMU_SHIFT,       /**< SMU peripheral identifier for SMU       */
+#if defined(_SMU_PPUPATD1_SMUCFGNS_SHIFT)
+  smuPeripheralSMUCFGNS     = 32 + _SMU_PPUPATD1_SMUCFGNS_SHIFT,  /**< SMU peripheral identifier for SMUCFGNS  */
+#endif
   smuPeripheralAHBRADIO     = 32 + _SMU_PPUPATD1_AHBRADIO_SHIFT,  /**< SMU peripheral identifier for AHBRADIO  */
+#if defined(_SMU_PPUPATD1_SEMAILBOX_SHIFT)
   smuPeripheralSEMAILBOX    = 32 + _SMU_PPUPATD1_SEMAILBOX_SHIFT, /**< SMU peripheral identifier for SEMAILBOX */
-
+#endif
+#if defined(_SMU_PPUPATD1_CRYPTOACC_SHIFT)
+  smuPeripheralCRYPTOACC    = 32 + _SMU_PPUPATD1_CRYPTOACC_SHIFT, /**< SMU peripheral identifier for CRYPTOACC */
+#endif
 #else
 #error "No peripherals defined for SMU for this device configuration."
 #endif
@@ -756,16 +793,16 @@ typedef struct {
   bool privilegedReserved0    : 1;
   bool privilegedEMU          : 1;  /**< Privileged access enabler for EMU          */
   bool privilegedCMU          : 1;  /**< Privileged access enabler for CMU          */
-  bool privilegedSYXO0        : 1;  /**< Privileged access enabler for SYXO0        */
+  bool privilegedHFXO0        : 1;  /**< Privileged access enabler for HFXO0        */
   bool privilegedHFRCO0       : 1;  /**< Privileged access enabler for HFRCO0       */
   bool privilegedFSRCO        : 1;  /**< Privileged access enabler for FSRCO        */
   bool privilegedDPLL0        : 1;  /**< Privileged access enabler for DPLL0        */
   bool privilegedLFXO         : 1;  /**< Privileged access enabler for LFXO         */
   bool privilegedLFRCO        : 1;  /**< Privileged access enabler for LFRCO        */
   bool privilegedULFRCO       : 1;  /**< Privileged access enabler for ULFRCO       */
-  bool privilegedIMEM         : 1;  /**< Privileged access enabler for IMEM         */
+  bool privilegedMSC          : 1;  /**< Privileged access enabler for MSC          */
   bool privilegedICACHE0      : 1;  /**< Privileged access enabler for ICACHE0      */
-  bool privilegedPRS0         : 1;  /**< Privileged access enabler for PRS0         */
+  bool privilegedPRS          : 1;  /**< Privileged access enabler for PRS          */
   bool privilegedGPIO         : 1;  /**< Privileged access enabler for GPIO         */
   bool privilegedLDMA         : 1;  /**< Privileged access enabler for LDMA         */
   bool privilegedLDMAXBAR     : 1;  /**< Privileged access enabler for LDMAXBAR     */
@@ -785,21 +822,72 @@ typedef struct {
   bool privilegedIFADCDEBUG   : 1;  /**< Privileged access enabler for IFADCDEBUG   */
   bool privilegedGPCRC        : 1;  /**< Privileged access enabler for GPCRC        */
   bool privilegedRTCC         : 1;  /**< Privileged access enabler for RTCC         */
-  bool privilegedLETIMER      : 1;  /**< Privileged access enabler for LETIMER      */
+
+  bool privilegedLETIMER0     : 1;  /**< Privileged access enabler for LETIMER      */
   bool privilegedIADC0        : 1;  /**< Privileged access enabler for IADC0        */
   bool privilegedACMP0        : 1;  /**< Privileged access enabler for ACMP0        */
   bool privilegedACMP1        : 1;  /**< Privileged access enabler for ACMP1        */
   bool privilegedI2C0         : 1;  /**< Privileged access enabler for I2C0         */
-  bool privilegedHFRCO1       : 1;  /**< Privileged access enabler for HFRCO1       */
+  bool privilegedHFRCOEM23    : 1;  /**< Privileged access enabler for HFRCOEM23    */
   bool privilegedWDOG0        : 1;  /**< Privileged access enabler for WDOG0        */
   bool privilegedWDOG1        : 1;  /**< Privileged access enabler for WDOG1        */
   bool privilegedAMUXCP0      : 1;  /**< Privileged access enabler for AMUXCP0      */
-  bool privilegedAES          : 1;  /**< Privileged access enabler for AES          */
+  bool privilegedRADIOAES     : 1;  /**< Privileged access enabler for RADIOAES     */
   bool privilegedBUFC         : 1;  /**< Privileged access enabler for BUFC         */
   bool privilegedSMU          : 1;  /**< Privileged access enabler for SMU          */
   bool privilegedAHBRADIO     : 1;  /**< Privileged access enabler for AHBRADIO     */
   bool privilegedSEMAILBOX    : 1;  /**< Privileged access enabler for SEMAILBOX    */
-  bool privilegedWTIMER1      : 1;  /**< Privileged access enabler for WTIMER1      */
+
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  bool privilegedSCRATCHPAD   : 1;  /**< Privileged access enabler for SCRATCHPAD   */
+  bool privilegedEMU          : 1;  /**< Privileged access enabler for EMU          */
+  bool privilegedCMU          : 1;  /**< Privileged access enabler for CMU          */
+  bool privilegedHFXO0        : 1;  /**< Privileged access enabler for HFXO0        */
+  bool privilegedHFRCO0       : 1;  /**< Privileged access enabler for HFRCO0       */
+  bool privilegedFSRCO        : 1;  /**< Privileged access enabler for FSRCO        */
+  bool privilegedDPLL0        : 1;  /**< Privileged access enabler for DPLL0        */
+  bool privilegedLFXO         : 1;  /**< Privileged access enabler for LFXO         */
+  bool privilegedLFRCO        : 1;  /**< Privileged access enabler for LFRCO        */
+  bool privilegedULFRCO       : 1;  /**< Privileged access enabler for ULFRCO       */
+  bool privilegedMSC          : 1;  /**< Privileged access enabler for MSC          */
+  bool privilegedICACHE0      : 1;  /**< Privileged access enabler for ICACHE0      */
+  bool privilegedPRS          : 1;  /**< Privileged access enabler for PRS0         */
+  bool privilegedGPIO         : 1;  /**< Privileged access enabler for GPIO         */
+  bool privilegedLDMA         : 1;  /**< Privileged access enabler for LDMA         */
+  bool privilegedLDMAXBAR     : 1;  /**< Privileged access enabler for LDMAXBAR     */
+  bool privilegedTIMER0       : 1;  /**< Privileged access enabler for TIMER0       */
+  bool privilegedTIMER1       : 1;  /**< Privileged access enabler for TIMER1       */
+  bool privilegedTIMER2       : 1;  /**< Privileged access enabler for TIMER2       */
+  bool privilegedTIMER3       : 1;  /**< Privileged access enabler for TIMER3       */
+  bool privilegedUSART0       : 1;  /**< Privileged access enabler for USART0       */
+  bool privilegedUSART1       : 1;  /**< Privileged access enabler for USART1       */
+  bool privilegedBURTC        : 1;  /**< Privileged access enabler for BURTC        */
+  bool privilegedI2C1         : 1;  /**< Privileged access enabler for I2C1         */
+  bool privilegedCHIPTESTCTRL : 1;  /**< Privileged access enabler for CHIPTESTCTRL */
+  bool privilegedSYSCFGCFGNS  : 1;  /**< Privileged access enabler for SYSCFGCFGNS  */
+  bool privilegedSYSCFG       : 1;  /**< Privileged access enabler for SYSCFG       */
+  bool privilegedBURAM        : 1;  /**< Privileged access enabler for BURAM        */
+  bool privilegedIFADCDEBUG   : 1;  /**< Privileged access enabler for IFADCDEBUG   */
+  bool privilegedGPCRC        : 1;  /**< Privileged access enabler for GPCRC        */
+  bool privilegedDCI          : 1;  /**< Privileged access enabler for DCI          */
+  bool privilegedReserved0    : 1;  /**< Reserved privileged access enabler         */
+
+  bool privilegedDCDC         : 1;  /**< Privileged access enabler for DCDC         */
+  bool privilegedPDM          : 1;  /**< Privileged access enabler for PDM          */
+  bool privilegedRFSENSE      : 1;  /**< Privileged access enabler for RFSENSE      */
+  bool privilegedRADIOAES     : 1;  /**< Privileged access enabler for RADIOAES     */
+  bool privilegedSMU          : 1;  /**< Privileged access enabler for SMU          */
+  bool privilegedSMUCFGNS     : 1;  /**< Privileged access enabler for SMUCFGNS     */
+  bool privilegedRTCC         : 1;  /**< Privileged access enabler for RTCC         */
+  bool privilegedLETIMER0     : 1;  /**< Privileged access enabler for LETIMER0     */
+  bool privilegedIADC0        : 1;  /**< Privileged access enabler for IADC0        */
+  bool privilegedI2C0         : 1;  /**< Privileged access enabler for I2C0         */
+  bool privilegedWDOG0        : 1;  /**< Privileged access enabler for WDOG0        */
+  bool privilegedAMUXCP0      : 1;  /**< Privileged access enabler for AMUXCP0      */
+  bool privilegedEUART0       : 1;  /**< Privileged access enabler for EUART0       */
+  bool privilegedBUFC         : 1;  /**< Privileged access enabler for BUFC         */
+  bool privilegedCRYPTOACC    : 1;  /**< Privileged access enabler for CRYPTOACC    */
+  bool privilegedAHBRADIO     : 1;  /**< Privileged access enabler for AHBRADIO     */
 
 #else
 #error "No peripherals defined for SMU for this device configuration"

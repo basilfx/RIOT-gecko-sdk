@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Direct memory access (LDMA) module peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -96,8 +96,12 @@ void LDMA_DeInit(void)
   LDMA->EN = 0;
 #endif
 
-#if !defined(_SILICON_LABS_32B_SERIES_2)
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
   CMU_ClockEnable(cmuClock_LDMA, false);
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  CMU_ClockEnable(cmuClock_LDMAXBAR, false);
 #endif
 }
 
@@ -163,12 +167,16 @@ void LDMA_Init(const LDMA_Init_t *init)
 
   EFM_ASSERT(init->ldmaInitIrqPriority < (1 << __NVIC_PRIO_BITS));
 
-#if defined(LDMA_EN_EN)
-  LDMA->EN = LDMA_EN_EN;
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+  CMU_ClockEnable(cmuClock_LDMA, true);
 #endif
 
-#if !defined(_SILICON_LABS_32B_SERIES_2)
-  CMU_ClockEnable(cmuClock_LDMA, true);
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  CMU_ClockEnable(cmuClock_LDMAXBAR, true);
+#endif
+
+#if defined(LDMA_EN_EN)
+  LDMA->EN = LDMA_EN_EN;
 #endif
 
   ldmaCtrlVal = init->ldmaInitCtrlNumFixed << _LDMA_CTRL_NUMFIXED_SHIFT;

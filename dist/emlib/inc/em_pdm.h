@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Pulse Density Modulation (PDM) peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -109,6 +109,7 @@ extern "C" {
  ********************************   ENUMS   ************************************
  ******************************************************************************/
 
+#if defined(PDM_CFG0_NUMCH_THREE)
 /** Configure CH3 CLK Polarity. */
 typedef enum {
   pdmCh3ClkPolarityRisingEdge  = _PDM_CFG0_CH3CLKPOL_NORMAL, /**< Input data clocked on rising clock edge. */
@@ -120,6 +121,7 @@ typedef enum {
   pdmCh2ClkPolarityRisingEdge  = _PDM_CFG0_CH2CLKPOL_NORMAL, /**< Input data clocked on rising clock edge. */
   pdmCh2ClkPolarityFallingEdge = _PDM_CFG0_CH2CLKPOL_INVERT  /**< Input data clocked on falling clock edge. */
 } PDM_Ch2ClkPolarity_Typedef;
+#endif
 
 /** Configure CH1 CLK Polarity. */
 typedef enum {
@@ -156,8 +158,10 @@ typedef enum {
 typedef enum {
   pdmNumberOfChannelsOne   = _PDM_CFG0_NUMCH_ONE,       /**< Only one Channel. */
   pdmNumberOfChannelsTwo   = _PDM_CFG0_NUMCH_TWO,       /**< Two Channels. */
+#if defined(PDM_CFG0_NUMCH_THREE)
   pdmNumberOfChannelsThree = _PDM_CFG0_NUMCH_THREE,     /**< Three Channels. */
   pdmNumberOfChannelsFour  = _PDM_CFG0_NUMCH_FOUR       /**< Four Channels. */
+#endif
 } PDM_NumberOfChannels_TypeDef;
 
 /** Configure order of the PDM filter. */
@@ -175,14 +179,20 @@ typedef enum {
 /** PDM initialization structure. */
 typedef struct {
   bool                            start;                /**< Start PDM filter after initialization. */
+#if defined(PDM_CTRL_OUTCLKEN)
   bool                            outClkEn;             /**< Enable PDM clock. */
+#endif
   uint32_t                        dsr;                  /**< PDM down sampling rate. */
   uint32_t                        gain;                 /**< PDM gain. */
+#if defined(PDM_CFG0_NUMCH_THREE)
   PDM_Ch3ClkPolarity_Typedef      ch3ClkPolarity;       /**< Ch 3 clock polarity. */
   PDM_Ch2ClkPolarity_Typedef      ch2ClkPolarity;       /**< Ch 2 clock polarity. */
+#endif
   PDM_Ch1ClkPolarity_Typedef      ch1ClkPolarity;       /**< Ch 1 clock polarity. */
   PDM_Ch0ClkPolarity_Typedef      ch0ClkPolarity;       /**< Ch 0 clock polarity. */
+#if defined(PDM_CFG0_NUMCH_THREE)
   bool                            enableCh2Ch3Stereo;   /**< Enable stereo mode for channel pair CH2 and CH3. */
+#endif
   bool                            enableCh0Ch1Stereo;   /**< Enable stereo mode for channel pair CH0 and CH1. */
   PDM_FifoValidWatermark_Typedef  fifoValidWatermark;   /**< FIFO Data valid level water-mark. */
   PDM_DataFormat_TypeDef          dataFormat;           /**< PDM filter data output format. */
@@ -199,6 +209,7 @@ typedef struct {
  *  Stereo Ch0/1, 16bit samples, 44,100 Hz sampling rate,
  *  32 times oversampling (requires 1,411,209 Hz PDM clock).
  */
+#if defined(PDM_CFG0_NUMCH_THREE)
 #define PDM_INIT_DEFAULT                                                                   \
   {                                                                                        \
     true,                           /* Start PDM filter after initialization. */           \
@@ -217,6 +228,22 @@ typedef struct {
     pdmFilterOrderFifth,            /* Fifth order filter. */                              \
     0U                              /* No clock prescaling. */                             \
   }
+#else
+#define PDM_INIT_DEFAULT                                                                   \
+  {                                                                                        \
+    true,                           /* Start PDM filter after initialization. */           \
+    32U,                            /* PDM down sampling rate. */                          \
+    5U,                             /* PDM gain. */                                        \
+    pdmCh1ClkPolarityFallingEdge,   /* Input data clocked on falling clock edge. */        \
+    pdmCh0ClkPolarityRisingEdge,    /* Input data clocked on rising clock edge. */         \
+    true,                           /* Enable stereo mode for channel pair CH0 and CH1. */ \
+    pdmFifoValidWatermarkOne,       /* At least one word water-mark level. */              \
+    pdmDataFormatDouble16,          /* Two 16-bit samples per FIFO entry. */               \
+    pdmNumberOfChannelsTwo,         /* Two Channels. */                                    \
+    pdmFilterOrderFifth,            /* Fifth order filter. */                              \
+    0U                              /* No clock prescaling. */                             \
+  }
+#endif
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
@@ -270,7 +297,11 @@ __STATIC_INLINE void PDM_FifoFlush(PDM_TypeDef *pdm)
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntClear(PDM_TypeDef *pdm, uint32_t flags)
 {
+#if defined(PDM_HAS_SET_CLEAR)
+  pdm->IF_CLR = flags;
+#else
   pdm->IFC = flags;
+#endif
 }
 
 /***************************************************************************//**
@@ -371,7 +402,11 @@ __STATIC_INLINE uint32_t PDM_IntGetEnabled(PDM_TypeDef *pdm)
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntSet(PDM_TypeDef *pdm, uint32_t flags)
 {
+#if defined(PDM_HAS_SET_CLEAR)
+  pdm->IF_SET = flags;
+#else
   pdm->IFS = flags;
+#endif
 }
 
 /***************************************************************************//**

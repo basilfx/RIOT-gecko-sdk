@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Peripheral Reflex System (PRS) Peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -506,8 +506,9 @@ void PRS_PinOutput(unsigned int ch, PRS_ChType_t type, GPIO_Port_TypeDef port, u
  * @details
  *   This function allows you to combine the output of one PRS channel with the
  *   the signal of another PRS channel using various logic functions. Note that
- *   the hardware only allows one PRS channel to be combined with the previous
- *   channel. So for instance channel 5 can be combined only with channel 4.
+ *   for series 2, config 1 devices, the hardware only allows a PRS channel to
+ *   be combined with the previous channel. So for instance channel 5 can be
+ *   combined only with channel 4.
  *
  *   The logic function operates on two PRS channels called A and B. The output
  *   of PRS channel B is combined with the PRS source configured for channel A
@@ -528,10 +529,21 @@ void PRS_Combine(unsigned int chA, unsigned int chB, PRS_Logic_t logic)
 {
   EFM_ASSERT(chA < PRS_ASYNC_CHAN_COUNT);
   EFM_ASSERT(chB < PRS_ASYNC_CHAN_COUNT);
-  EFM_ASSERT(chA == ((chB + 1) % PRS_ASYNC_CHAN_COUNT));
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+  EFM_ASSERT(chA == ((chB + 1) % PRS_ASYNC_CHAN_COUNT));
   PRS->ASYNC_CH[chA].CTRL = (PRS->ASYNC_CH[chA].CTRL & ~_PRS_ASYNC_CH_CTRL_FNSEL_MASK)
                             | ((uint32_t)logic << _PRS_ASYNC_CH_CTRL_FNSEL_SHIFT);
+
+#else
+  PRS->ASYNC_CH[chA].CTRL = (PRS->ASYNC_CH[chA].CTRL
+                             & ~(_PRS_ASYNC_CH_CTRL_FNSEL_MASK
+                                 | _PRS_ASYNC_CH_CTRL_AUXSEL_MASK))
+                            | ((uint32_t)logic << _PRS_ASYNC_CH_CTRL_FNSEL_SHIFT)
+                            | ((uint32_t)chB << _PRS_ASYNC_CH_CTRL_AUXSEL_SHIFT);
+  PRS->ASYNC_CH[chB].CTRL = (PRS->ASYNC_CH[chB].CTRL & ~_PRS_ASYNC_CH_CTRL_FNSEL_MASK)
+                            | PRS_ASYNC_CH_CTRL_FNSEL_DEFAULT;
+#endif
 }
 #endif
 

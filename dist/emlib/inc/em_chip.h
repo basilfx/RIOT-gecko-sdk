@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Chip Initialization API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -36,6 +36,10 @@
 #include "em_system.h"
 #include "em_gpio.h"
 #include "em_bus.h"
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_220)
+#include "em_cmu.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -274,6 +278,19 @@ __STATIC_INLINE void CHIP_Init(void)
   MSC->CTRL |= 0x1UL << 8;
 #endif
 
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_89)
+  SYSTEM_ChipRevision_TypeDef chipRev;
+  SYSTEM_ChipRevisionGet(&chipRev);
+
+  if ((chipRev.major > 1) || (chipRev.minor >= 3)) {
+    /* PLFRCO trim values */
+    *(volatile uint32_t *)(CMU_BASE + 0x28CUL) = 608;
+    *(volatile uint32_t *)(CMU_BASE + 0x290UL) = 356250;
+    *(volatile uint32_t *)(CMU_BASE + 0x2F0UL) = 0x04000118;
+    *(volatile uint32_t *)(CMU_BASE + 0x2F8UL) = 0x08328400;
+  }
+#endif
+
 /* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
 #if defined(_LCD_DISPCTRL_CHGRDST_MASK)
   CMU->HFBUSCLKEN0 |= CMU_HFBUSCLKEN0_LE;
@@ -296,18 +313,23 @@ __STATIC_INLINE void CHIP_Init(void)
     *(volatile uint32_t*)(HFXO0_BASE + 0x30U) =
       (*(volatile uint32_t*)(HFXO0_BASE + 0x30U) & 0xFFFF0FFFU)
       | 0x0000C000U;
+    /* Change default SQBUF bias current. */
+    *(volatile uint32_t*)(HFXO0_BASE + 0x30U) |= 0x700;
   }
 
   if (chipRev.major == 0x01 && chipRev.minor == 0x0) {
     /* Trigger RAM read for each RAM instance */
-    uint32_t value;
     volatile uint32_t *dmem = (volatile uint32_t *) DMEM_RAM0_RAM_MEM_BASE;
     for (uint32_t i = 0U; i < DMEM_NUM_BANK; i++) {
-      value = *dmem;
+      // Force memory read
+      *dmem;
       dmem += (DMEM_BANK0_SIZE / 4U);
-      (void) value;
     }
   }
+#endif
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_220)
+  CMU_HFRCODPLLBandSet(cmuHFRCODPLLFreq_19M0Hz);
 #endif
 }
 

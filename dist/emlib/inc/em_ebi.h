@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief External Bus Interface (EBI) peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>

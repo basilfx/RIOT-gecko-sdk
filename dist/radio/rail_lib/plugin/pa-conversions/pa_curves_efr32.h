@@ -27,9 +27,12 @@ extern "C" {
 
 #ifdef _SILICON_LABS_32B_SERIES_1
 #include "pa_curves_efr32xg1x.h"
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#include "pa_curves_efr32xg22.h"
 #elif defined (_SILICON_LABS_32B_SERIES_2)
 #include "pa_curves_efr32xg21.h"
 #else
+
 #error "Unsupported platform!"
 #endif
 

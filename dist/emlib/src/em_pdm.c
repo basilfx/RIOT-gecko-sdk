@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Pulse Density Modulation (PDM) peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -92,6 +92,7 @@ void PDM_Init(PDM_TypeDef *pdm, const PDM_Init_TypeDef *init)
 
   pdm->EN = PDM_EN_EN_DISABLE;
 
+#if defined(PDM_CFG0_NUMCH_THREE)
   pdm->CFG0 = ((uint32_t)init->ch3ClkPolarity       << _PDM_CFG0_CH3CLKPOL_SHIFT)
               | ((uint32_t)init->ch2ClkPolarity     << _PDM_CFG0_CH2CLKPOL_SHIFT)
               | ((uint32_t)init->ch1ClkPolarity     << _PDM_CFG0_CH1CLKPOL_SHIFT)
@@ -102,14 +103,25 @@ void PDM_Init(PDM_TypeDef *pdm, const PDM_Init_TypeDef *init)
               | ((uint32_t)init->filterOrder        << _PDM_CFG0_FORDER_SHIFT)
               | (init->enableCh2Ch3Stereo ? PDM_CFG0_STEREOMODECH23_CH23ENABLE : 0U)
               | (init->enableCh0Ch1Stereo ? PDM_CFG0_STEREOMODECH01_CH01ENABLE : 0U);
+#else
+  pdm->CFG0 = ((uint32_t)init->ch1ClkPolarity       << _PDM_CFG0_CH1CLKPOL_SHIFT)
+              | ((uint32_t)init->ch0ClkPolarity     << _PDM_CFG0_CH0CLKPOL_SHIFT)
+              | ((uint32_t)init->fifoValidWatermark << _PDM_CFG0_FIFODVL_SHIFT)
+              | ((uint32_t)init->dataFormat         << _PDM_CFG0_DATAFORMAT_SHIFT)
+              | ((uint32_t)init->numChannels        << _PDM_CFG0_NUMCH_SHIFT)
+              | ((uint32_t)init->filterOrder        << _PDM_CFG0_FORDER_SHIFT)
+              | (init->enableCh0Ch1Stereo ? PDM_CFG0_STEREOMODECH01_CH01ENABLE : 0U);
+#endif
 
   pdm->CFG1 = init->prescaler << _PDM_CFG1_PRESC_SHIFT;
 
   pdm->EN = PDM_EN_EN_ENABLE;
 
   pdm->CTRL = (init->dsr    << _PDM_CTRL_DSR_SHIFT)
-              | (init->gain << _PDM_CTRL_GAIN_SHIFT)
-              | (init->outClkEn ? PDM_CTRL_OUTCLKEN : 0U);
+#if defined(PDM_CTRL_OUTCLKEN)
+              | (init->outClkEn ? PDM_CTRL_OUTCLKEN : 0U)
+#endif
+              | (init->gain << _PDM_CTRL_GAIN_SHIFT);
 
   if (init->start) {
     PDM_Clear(pdm);
@@ -131,15 +143,33 @@ void PDM_Reset(PDM_TypeDef *pdm)
     // Wait for any pending CMD synchronization
   }
 
-  pdm->CFG0      = _PDM_CFG0_RESETVALUE;
-  pdm->CFG1      = _PDM_CFG1_RESETVALUE;
+  if (pdm->EN != 0U) {
+    pdm->CMD = PDM_CMD_FIFOFL | PDM_CMD_CLEAR | PDM_CMD_STOP;
+    while (pdm->SYNCBUSY != 0U) {
+    }
+  }
+
+#if defined(PDM_HAS_SET_CLEAR)
+  pdm->EN_SET    = PDM_EN_EN;
+#endif
   pdm->CTRL      = _PDM_CTRL_RESETVALUE;
   pdm->IEN       = _PDM_IEN_RESETVALUE;
+#if defined(PDM_HAS_SET_CLEAR)
+  pdm->IF_CLR    = _PDM_IF_MASK;
+#else
   pdm->IFC       = _PDM_IFC_MASK;
+#endif
+#if defined(_PDM_ROUTEPEN_MASK)
   pdm->ROUTEPEN  = _PDM_ROUTEPEN_RESETVALUE;
   pdm->ROUTELOC0 = _PDM_ROUTELOC0_RESETVALUE;
   pdm->ROUTELOC1 = _PDM_ROUTELOC1_RESETVALUE;
+#endif
+  while (pdm->SYNCBUSY != 0U) {
+    /* Must wait for SYNCBUSY before disabling an enabled pdm. */
+  }
   pdm->EN        = _PDM_EN_RESETVALUE;
+  pdm->CFG0      = _PDM_CFG0_RESETVALUE;
+  pdm->CFG1      = _PDM_CFG1_RESETVALUE;
 
   while (pdm->SYNCBUSY != 0U) {
     // Wait for any pending CMD synchronization

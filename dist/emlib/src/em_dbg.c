@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Debug (DBG) Peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -138,6 +138,8 @@ void DBG_SWOEnable(unsigned int location)
 }
 #endif
 
+#if defined(LOCKBITS_BASE) && !defined(_EFM32_GECKO_FAMILY)
+
 /***************************************************************************//**
  * @brief
  *   Disable debug access.
@@ -208,6 +210,8 @@ void DBG_DisableDebugAccess(DBG_LockMode_TypeDef lockMode)
   }
 #endif
 }
+
+#endif /* defined(LOCKBITS_BASE) && !defined(_EFM32_GECKO_FAMILY) */
 
 /** @} (end addtogroup DBG) */
 /** @} (end addtogroup emlib) */

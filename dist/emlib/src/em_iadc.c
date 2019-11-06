@@ -1,7 +1,7 @@
 /***************************************************************************//**
  * @file
  * @brief Incremental Analog to Digital Converter (IADC) Peripheral API
- * @version 5.7.0
+ * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -105,6 +105,11 @@
 
 static void IADC_disable(IADC_TypeDef *iadc)
 {
+#if defined(IADC_STATUS_SYNCBUSY)
+  while ((iadc->STATUS & IADC_STATUS_SYNCBUSY) != 0U) {
+    // Wait for synchronization to finish before disable
+  }
+#endif
   iadc->EN_CLR = IADC_EN_EN;
 }
 

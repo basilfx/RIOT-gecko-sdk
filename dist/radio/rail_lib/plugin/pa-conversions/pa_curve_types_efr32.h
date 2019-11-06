@@ -21,7 +21,7 @@
 #ifndef __PA_CURVE_TYPES_EFR32_H_
 #define __PA_CURVE_TYPES_EFR32_H_
 
-#include "rail_types.h"
+#include "rail_chip_specific.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.6.feature_root_2.6.3.201909121532-203"
+GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.7.feature_root_2.7.0.201912121612-219"
 GECKO_SDK_URL="https://devtools.silabs.com/studio/v4/updates/binary/"
 
 DIST_DIR=`pwd`/dist
@@ -19,8 +19,8 @@ wget -O "${TEMP_DIR}/gecko_sdk.zip" "${GECKO_SDK_URL}${GECKO_SDK_VERSION}"
 unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.6/platform/emlib" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.6/platform/radio" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.7/platform/emlib" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.7/platform/radio" "${DIST_DIR}"
 
 # These files are deprecated and cause build errors.
 rm "${DIST_DIR}/emlib/src/em_int.c"

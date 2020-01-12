@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Assign correct part number for include file
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -50,22 +49,6 @@ extern "C" {
  *  Macros specifying the emlib and CMSIS version.
  * @{
  ******************************************************************************/
-
-/* *INDENT-OFF* */
-/** Version number of emlib peripheral API. */
-#define _EMLIB_VERSION 5.8.3
-/* *INDENT-ON* */
-
-/** Major version of emlib. Bumped when incompatible API changes are introduced. */
-#define _EMLIB_VERSION_MAJOR 5
-
-/** Minor version of emlib. Bumped when functionality is added in a backward-
-    compatible manner. */
-#define _EMLIB_VERSION_MINOR 8
-
-/** Patch revision of emlib. Bumped when adding backward-compatible bug
-    fixes.*/
-#define _EMLIB_VERSION_PATCH 3
 
 /* *INDENT-OFF* */
 /** Version number of targeted CMSIS package. */

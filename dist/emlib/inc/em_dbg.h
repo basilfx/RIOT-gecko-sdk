@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Debug (DBG) API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -95,6 +94,37 @@ void DBG_SWOEnable(unsigned int location);
 #endif
 
 void DBG_DisableDebugAccess(DBG_LockMode_TypeDef lockMode);
+
+#if defined (EMU_CTRL_EM2DBGEN)
+/***************************************************************************//**
+ * @brief
+ *   Enable or disable debug support while in EM2 mode.
+ *
+ * @warning
+ *   Disabling debug support in EM2 will reduce current consumption with 1-2 uA,
+ *   but some debuggers will have problems regaining control over a device which
+ *   is in EM2 and has debug support disabled.
+ *
+ *   To remedy this, set the WSTK switch next to the battery holder to USB
+ *   (powers down the EFR). Execute Simplicity Commander with command line
+ *   parameters:
+ *     "./commander.exe device recover"
+ *   and then immediately move the switch to the AEM postion. An additional
+ *     "./commander.exe device masserase"
+ *   command completes the recovery procedure.
+ *
+ * @param[in] enable
+ *   Boolean true enables EM2 debug support, false disables.
+ ******************************************************************************/
+__STATIC_INLINE void DBG_EM2DebugEnable(bool enable)
+{
+  if (enable) {
+    EMU->CTRL_SET = EMU_CTRL_EM2DBGEN;
+  } else {
+    EMU->CTRL_CLR = EMU_CTRL_EM2DBGEN;
+  }
+}
+#endif
 
 /** @} (end addtogroup DBG) */
 /** @} (end addtogroup emlib) */

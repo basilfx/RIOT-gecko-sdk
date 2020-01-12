@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Universal asynchronous receiver/transmitter (EUSART) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
@@ -42,17 +41,20 @@
 
 /// Enable selection.
 typedef enum {
-  /// Disable both receiver and transmitter.
+  /// Disable the peripheral.
   eusartDisable = 0x0,
 
+  /// Enable the peripheral, both transmitter and receiver are disabled.
+  eusartEnable = (EUSART_CMD_RXDIS | EUSART_CMD_TXDIS),
+
   /// Enable receiver only, transmitter disabled.
-  eusartEnableRx = EUSART_CMD_RXEN,
+  eusartEnableRx = (EUSART_CMD_RXEN | EUSART_CMD_TXDIS),
 
   /// Enable transmitter only, receiver disabled.
-  eusartEnableTx = EUSART_CMD_TXEN,
+  eusartEnableTx = (EUSART_CMD_TXEN | EUSART_CMD_RXDIS),
 
   /// Enable both receiver and transmitter.
-  eusartEnable = (EUSART_CMD_RXEN | EUSART_CMD_TXEN)
+  eusartEnableRxTx = (EUSART_CMD_RXEN | EUSART_CMD_TXEN)
 } EUSART_Enable_TypeDef;
 
 /// Data bit selection.
@@ -66,7 +68,7 @@ typedef enum {
 typedef enum {
   eusartNoParity   = EUSART_FRAMECFG_PARITY_NONE,    ///< No parity.
   eusartEvenParity = EUSART_FRAMECFG_PARITY_EVEN,    ///< Even parity.
-  eusartIddParity  = EUSART_FRAMECFG_PARITY_ODD      ///< Odd parity.
+  eusartOddParity  = EUSART_FRAMECFG_PARITY_ODD      ///< Odd parity.
 } EUSART_Parity_TypeDef;
 
 /// Stop bits selection.
@@ -83,7 +85,7 @@ typedef enum {
   eusartOVS8  = EUSART_CFG0_OVS_X8,      ///< 8x oversampling.
   eusartOVS6  = EUSART_CFG0_OVS_X6,      ///< 6x oversampling.
   eusartOVS4  = EUSART_CFG0_OVS_X4,      ///< 4x oversampling.
-  eusartOVS0  = EUSART_CFG0_OVS_DISABLE  ///< Oversamplig disabled.
+  eusartOVS0  = EUSART_CFG0_OVS_DISABLE  ///< Oversampling disabled.
 } EUSART_OVS_TypeDef;
 
 typedef enum {
@@ -101,8 +103,8 @@ typedef enum {
 
 /// Majority vote enable.
 typedef enum {
-  eusartMajortityVoteEnable  = EUSART_CFG0_MVDIS_DEFAULT,
-  eusartMajortityVoteDisable = EUSART_CFG0_MVDIS
+  eusartMajorityVoteEnable  = EUSART_CFG0_MVDIS_DEFAULT,
+  eusartMajorityVoteDisable = EUSART_CFG0_MVDIS
 } EUSART_MajorityVote_TypeDef;
 
 /// Block reception enable.
@@ -117,27 +119,28 @@ typedef enum {
   eusartTristateTxDisable = EUSART_CMD_TXTRIDIS
 } EUSART_TristateTx_TypeDef;
 
-/// Tx output tristate enable.
+/// IrDA filter enable.
 typedef enum {
-  eusartIrdaRxFileterEnable  = EUSART_IRHFCFG_IRHFFILT_ENABLE,
-  eusartIrdaRxFileterDisable = EUSART_IRHFCFG_IRHFFILT_DISABLE
-} EUSART_IrdaRxFilterEnable_typeDef;
+  eusartIrDARxFilterEnable  = EUSART_IRHFCFG_IRHFFILT_ENABLE,
+  eusartIrDARxFilterDisable = EUSART_IRHFCFG_IRHFFILT_DISABLE
+} EUSART_IrDARxFilterEnable_TypeDef;
 
 /// Pulse width selection for IrDA mode.
 typedef enum {
   /// IrDA pulse width is 1/16 for OVS=X16 and 1/8 for OVS=X8
-  eusartIrDAPwONE   = EUSART_IRHFCFG_IRHFPW_ONE,
+  eusartIrDAPulseWidthOne   = EUSART_IRHFCFG_IRHFPW_ONE,
 
   /// IrDA pulse width is 2/16 for OVS=X16 and 2/8 for OVS=X8
-  eusartIrDAPwTWO   = EUSART_IRHFCFG_IRHFPW_TWO,
+  eusartIrDAPulseWidthTwo   = EUSART_IRHFCFG_IRHFPW_TWO,
 
   /// IrDA pulse width is 3/16 for OVS=X16 and 3/8 for OVS=X8
-  eusartIrDAPwTHREE = EUSART_IRHFCFG_IRHFPW_THREE,
+  eusartIrDAPulseWidthThree = EUSART_IRHFCFG_IRHFPW_THREE,
 
   /// IrDA pulse width is 4/16 for OVS=X16 and 4/8 for OVS=X8
-  eusartIrDAPwFOUR  = EUSART_IRHFCFG_IRHFPW_FOUR
-} EUSART_IrDAPw_Typedef;
+  eusartIrDAPulseWidthFour  = EUSART_IRHFCFG_IRHFPW_FOUR
+} EUSART_IrDAPulseWidth_Typedef;
 
+/// PRS trigger enable.
 typedef enum {
   /// Disable trigger on both receiver and transmitter.
   eusartPrsTriggerDisable = 0x0,
@@ -149,12 +152,13 @@ typedef enum {
   eusartPrsTriggerEnableTx = EUSART_TRIGCTRL_TXTEN,
 
   /// Enable trigger on both receive and transmit.
-  eusartPrsTriggerEnable = (EUSART_TRIGCTRL_RXTEN | EUSART_TRIGCTRL_TXTEN)
-} EUSART_PrsTriggerEnable_typeDef;
+  eusartPrsTriggerEnableRxTx = (EUSART_TRIGCTRL_RXTEN | EUSART_TRIGCTRL_TXTEN)
+} EUSART_PrsTriggerEnable_TypeDef;
 
 /// PRS Channel type.
-typedef uint8_t EUSART_PrsChannel_typeDef;
+typedef uint8_t EUSART_PrsChannel_TypeDef;
 
+/// IO polarity selection.
 typedef enum {
   /// Disable inversion on both Rx and Tx signals.
   eusartInvertIODisable = (EUSART_CFG0_RXINV_DISABLE | EUSART_CFG0_TXINV_DISABLE),
@@ -167,7 +171,7 @@ typedef enum {
 
   /// Enable trigger on both receive and transmit.
   eusartInvertIOEnable = (EUSART_CFG0_RXINV_ENABLE | EUSART_CFG0_TXINV_ENABLE)
-} EUSART_InvertIO_typeDef;
+} EUSART_InvertIO_TypeDef;
 
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
@@ -179,10 +183,13 @@ typedef struct {
 
   /// Enable the collision Detection feature.
   /// Internal (setting loopbackEnable) or external loopback must be done to use this feature.
-  bool collisionDectEnable;
+  bool collisionDetectEnable;
+
+  /// If true, data will be send with most significant bit first.
+  bool msbFirst;
 
   /// Enable inversion of Rx and/or Tx signals.
-  EUSART_InvertIO_typeDef invertIO;
+  EUSART_InvertIO_TypeDef invertIO;
 
   /// Enable the automatic wake up from EM2 to EM1 for DMA Rx operation.
   bool dmaWakeUpOnRx;
@@ -201,10 +208,10 @@ typedef struct {
 
   /// Enable EUSART capability to use a PRS channel as an input data line for the receiver.
   /// The configured Rx GPIO signal won't be routed to the EUSART receiver.
-  bool prsInputEnable;
+  bool prsRxEnable;
 
   /// PRS Channel used to transmit data from PRS to the EUSART.
-  EUSART_PrsChannel_typeDef prsDataChannel;
+  EUSART_PrsChannel_TypeDef prsRxChannel;
 
   /// Enable Multiprocessor mode. Address and data filtering using the 9th bit.
   bool multiProcessorEnable;
@@ -246,43 +253,44 @@ typedef struct {
 
   /// Advanced initialization structure pointer. It can be NULL.
   EUSART_AdvancedInit_TypeDef *advancedSettings;
-} EUSART_Init_TypeDef;
+} EUSART_UartInit_TypeDef;
 
 /// IrDA Initialization structure.
 typedef struct {
   /// General EUSART initialization structure.
-  EUSART_Init_TypeDef init;
+  EUSART_UartInit_TypeDef init;
 
   /// Enable the IrDA low frequency mode. Only Rx operation are enabled.
-  bool irdaLowFrequencyEnable;
+  bool irDALowFrequencyEnable;
 
   /// Set to enable filter on IrDA demodulator.
-  EUSART_IrdaRxFilterEnable_typeDef irdaRxFilterEnable;
+  EUSART_IrDARxFilterEnable_TypeDef irDARxFilterEnable;
 
   /// Configure the pulse width generated by the IrDA modulator as a fraction
   /// of the configured EUSART bit period.
-  EUSART_IrDAPw_Typedef irdaPulseWidth;
-}EUSART_InitIrda_TypeDef;
+  EUSART_IrDAPulseWidth_Typedef irDAPulseWidth;
+} EUSART_IrDAInit_TypeDef;
 
+/// PRS Trigger initialization structure.
 typedef struct {
   /// PRS to EUSART trigger mode.
-  EUSART_PrsTriggerEnable_typeDef prs_trigger_enable;
+  EUSART_PrsTriggerEnable_TypeDef prs_trigger_enable;
 
   /// PRS channel to be used to trigger auto transmission.
-  EUSART_PrsChannel_typeDef prs_trigger_channel;
-}EUSART_PrsTriggerInit_typeDef;
+  EUSART_PrsChannel_TypeDef prs_trigger_channel;
+}EUSART_PrsTriggerInit_TypeDef;
 
-/// Default configuration for EUSART initialization structure in high-frequency clock.
-#define EUSART_INIT_DEFAULT_HF                                                                        \
+/// Default configuration for EUSART initialization structure in UART mode with high-frequency clock.
+#define EUSART_UART_INIT_DEFAULT_HF                                                                   \
   {                                                                                                   \
-    eusartEnable,              /* Enable RX/TX when initialization completed. */                      \
+    eusartEnableRxTx,          /* Enable RX/TX when initialization completed. */                      \
     0,                         /* Use current configured reference clock for configuring baud rate.*/ \
     115200,                    /* 115200 bits/s. */                                                   \
     eusartOVS16,               /* Oversampling x16. */                                                \
     eusartDataBits8,           /* 8 data bits. */                                                     \
     eusartNoParity,            /* No parity. */                                                       \
     eusartStopbits1,           /* 1 stop bit. */                                                      \
-    eusartMajortityVoteEnable, /* Majority vote enabled. */                                           \
+    eusartMajorityVoteEnable,  /* Majority vote enabled. */                                           \
     eusartLoopbackDisable,     /* Loop back disabled. */                                              \
     NULL,                      /* Default advanced settings. */                                       \
   }
@@ -291,48 +299,49 @@ typedef struct {
 #define EUSART_DEFAULT_START_FRAME 0x00u
 
 /// Default configuration for EUSART advanced initialization structure.
-#define EUSART_ADVANCED_INIT_DEFAULT                                         \
-  {                                                                          \
-    eusartHwFlowControlNone,        /* Flow control disabled. */             \
-    false,                          /* Collision dection disabled. */        \
-    eusartInvertIODisable,          /* Rx and Tx signal active High. */      \
-    false,                          /* No DMA wake up on reception. */       \
-    false,                          /* No DMA wake up on transmission. */    \
-    false,                          /* Halt DMA on error Disabled. */        \
-    EUSART_DEFAULT_START_FRAME,     /* No start frame.  */                   \
-    false,                          /* Tx auto Tristate disabled. */         \
-    false,                          /* Do not use PRS signal as Rx signal.*/ \
-    (EUSART_PrsChannel_typeDef) 0u, /* EUSART Rx prs channel 0. */           \
-    false,                          /* Multiporcessor mode disabled. */      \
-    false,                          /* Multiporcessor address bit : 0.*/     \
+#define EUSART_ADVANCED_INIT_DEFAULT                                                         \
+  {                                                                                          \
+    eusartHwFlowControlNone,        /* Flow control disabled. */                             \
+    false,                          /* Collision dectection disabled. */                     \
+    false,                          /* Data is sent with the least significant bit first. */ \
+    eusartInvertIODisable,          /* Rx and Tx signal active high. */                      \
+    false,                          /* No DMA wake up on reception. */                       \
+    false,                          /* No DMA wake up on transmission. */                    \
+    false,                          /* Halt DMA on error disabled. */                        \
+    EUSART_DEFAULT_START_FRAME,     /* No start frame.  */                                   \
+    false,                          /* Tx auto tristate disabled. */                         \
+    false,                          /* Do not use PRS signal as Rx signal.*/                 \
+    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART Rx connected to prs channel 0. */              \
+    false,                          /* Multiprocessor mode disabled. */                      \
+    false,                          /* Multiprocessor address bit : 0.*/                     \
   }
 
-/// Default configuration for EUSART initialization structure in low-frequency clock.
-#define EUSART_INIT_DEFAULT_LF                                                                         \
+/// Default configuration for EUSART initialization structure in UART mode with low-frequency clock.
+#define EUSART_UART_INIT_DEFAULT_LF                                                                    \
   {                                                                                                    \
-    eusartEnable,               /* Enable RX/TX when initialization completed. */                      \
+    eusartEnableRxTx,           /* Enable RX/TX when initialization completed. */                      \
     0,                          /* Use current configured reference clock for configuring baud rate.*/ \
     9600,                       /* 9600 bits/s. */                                                     \
     eusartOVS0,                 /* Oversampling disabled. */                                           \
     eusartDataBits8,            /* 8 data bits. */                                                     \
     eusartNoParity,             /* No parity. */                                                       \
     eusartStopbits1,            /* 1 stop bit. */                                                      \
-    eusartMajortityVoteDisable, /* Majority vote enabled. */                                           \
+    eusartMajorityVoteDisable,  /* Majority vote enabled. */                                           \
     eusartLoopbackDisable,      /* Loop back disabled. */                                              \
     NULL,                       /* Default advanced settings. */                                       \
   }
 
 /// Default configuration for EUSART initialization structure in IrDA mode with high-frequency clock.
-#define EUSART_INIT_DEFAULT_IRDA_HF                                         \
-  {                                                                         \
-    EUSART_INIT_DEFAULT_HF,     /* Default high frequency configuration. */ \
-    false,                      /* Disable IrDA low frequency mode. */      \
-    eusartIrdaRxFileterDisable, /* Rx Filter disabled. */                   \
-    eusartIrDAPwONE,            /* Pulse width is set to 1/16. */           \
+#define EUSART_IRDA_INIT_DEFAULT_HF                                          \
+  {                                                                          \
+    EUSART_UART_INIT_DEFAULT_HF, /* Default high frequency configuration. */ \
+    false,                       /* Disable IrDA low frequency mode. */      \
+    eusartIrDARxFilterDisable,   /* Rx Filter disabled. */                   \
+    eusartIrDAPulseWidthOne,     /* Pulse width is set to 1/16. */           \
   }
 
 /// Default configuration for EUSART initialization structure in IrDA mode with low-frequency clock.
-#define EUSART_INIT_DEFAULT_IRDA_LF                                                                      \
+#define EUSART_IRDA_INIT_DEFAULT_LF                                                                      \
   {                                                                                                      \
     {                                                                                                    \
       eusartEnableRx,             /* Enable RX when initialization completed (Tx not allowed). */        \
@@ -342,13 +351,13 @@ typedef struct {
       eusartDataBits8,            /* 8 data bits. */                                                     \
       eusartNoParity,             /* No parity. */                                                       \
       eusartStopbits1,            /* 1 stop bit. */                                                      \
-      eusartMajortityVoteDisable, /* Majority vote enabled. */                                           \
+      eusartMajorityVoteDisable,  /* Majority vote enabled. */                                           \
       eusartLoopbackDisable,      /* Loop back disabled. */                                              \
       NULL,                       /* Default advanced settings. */                                       \
     },                                                                                                   \
     true,                         /* Enable IrDA low frequency mode. */                                  \
-    eusartIrdaRxFileterDisable,   /* Rx Filter disabled. */                                              \
-    eusartIrDAPwONE,              /* Pulse width is set to 1. */                                         \
+    eusartIrDARxFilterDisable,    /* Rx Filter disabled. */                                              \
+    eusartIrDAPulseWidthOne,      /* Pulse width is set to 1. */                                         \
   }
 
 /*******************************************************************************
@@ -356,30 +365,30 @@ typedef struct {
  ******************************************************************************/
 
 /***************************************************************************//**
- * Initializes the EUSART when used with the high frequency clock.
+ * Initializes the EUSART when used in UART mode with the high frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
  ******************************************************************************/
-void EUSART_InitHf(EUSART_TypeDef *eusart, EUSART_Init_TypeDef const *init);
+void EUSART_UartInitHf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init);
 
 /***************************************************************************//**
- * Initializes the EUSART when used with the low frequency clock.
+ * Initializes the EUSART when used in UART mode with the low frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
  ******************************************************************************/
-void EUSART_InitLf(EUSART_TypeDef *eusart, EUSART_Init_TypeDef const *init);
+void EUSART_UartInitLf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init);
 
 /***************************************************************************//**
  * Initializes the EUSART when used in IrDA mode with the high or low
  * frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
- * @param irda_init A pointer to the initialization structure.
+ * @param irdaInit A pointer to the initialization structure.
  ******************************************************************************/
-void EUSART_IrdaInit(EUSART_TypeDef *eusart,
-                     EUSART_InitIrda_TypeDef const *irda_init);
+void EUSART_IrDAInit(EUSART_TypeDef *eusart,
+                     const EUSART_IrDAInit_TypeDef *irdaInit);
 
 /***************************************************************************//**
  * Configures the EUSART to its reset state.
@@ -402,7 +411,7 @@ void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable);
  * @param eusart Pointer to the EUSART peripheral register block.
  *
  * @note This function is normally used to receive one frame when operating with
- *       frame length of 8 bits. See EUSART_Rx_ext() for reception of 9 bit frames.
+ *       frame length of 8 bits. See EUSART_RxExt() for reception of 9 bit frames.
  *       Notice that possible parity/stop bits are not considered a part of the
  *       specified frame bit length.
  * @note This function will stall if buffer is empty until data is received.
@@ -417,12 +426,12 @@ uint8_t EUSART_Rx(EUSART_TypeDef *eusart);
  * @param eusart Pointer to the EUSART peripheral register block.
  *
  * @note This function is normally used to receive one frame and additional RX
- *       status information is required.
+ *       status information.
  * @note This function will stall if buffer is empty until data is received.
  *
  * @return Data received and receive status.
  ******************************************************************************/
-uint16_t EUSART_Rx_ext(EUSART_TypeDef *eusart);
+uint16_t EUSART_RxExt(EUSART_TypeDef *eusart);
 
 /***************************************************************************//**
  * Transmits one frame.
@@ -432,7 +441,7 @@ uint16_t EUSART_Rx_ext(EUSART_TypeDef *eusart);
  *
  * @note Depending on the frame length configuration, 8 (least significant) bits
  *       from @p data are transmitted. If the frame length is 9, 8 bits are
- *       transmitted from @p data. See sEUSART_TxExt() for transmitting 9 bit frame
+ *       transmitted from @p data. See EUSART_TxExt() for transmitting 9 bit frame
  *       with full control of all 9 bits.
  * @note This function will stall if the 4 frame FIFO is full, until the buffer
  *       becomes available.
@@ -457,8 +466,8 @@ void EUSART_TxExt(EUSART_TypeDef *eusart, uint16_t data);
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param refFreq The EUSART reference clock frequency in Hz that will be used.
- *                 If set to 0, the currently configured reference clock is
- *                 assumed.
+ *                 If set to 0, the currently configured peripheral clock is
+ *                 used.
  * @param baudrate A baudrate to try to achieve.
  ******************************************************************************/
 void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
@@ -497,13 +506,14 @@ void  EUSART_TxTristateSet(EUSART_TypeDef *eusart,
  * Initializes the automatic enabling of transmissions and/or reception using
  * the PRS as a trigger.
  * @note
- *   Initialize EUSART with sl_eusart_init_Xf() before enabling the PRS trigger.
+ *   Initialize EUSART with sl_eusart_initHf() or sl_eusart_initLf() before
+ *   enabling the PRS trigger.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init Pointer to the initialization structure.
  ******************************************************************************/
 void EUSART_PrsTriggerEnable(EUSART_TypeDef *eusart,
-                             const EUSART_PrsTriggerInit_typeDef *init);
+                             const EUSART_PrsTriggerInit_TypeDef *init);
 
 /***************************************************************************//**
  * Gets EUSART STATUS register.
@@ -514,8 +524,6 @@ void EUSART_PrsTriggerEnable(EUSART_TypeDef *eusart,
  ******************************************************************************/
 __STATIC_INLINE uint32_t EUSART_StatusGet(EUSART_TypeDef *eusart)
 {
-  while ((eusart->SYNCBUSY & _EUSART_SYNCBUSY_MASK) != 0U) {
-  }
   return eusart->STATUS;
 }
 

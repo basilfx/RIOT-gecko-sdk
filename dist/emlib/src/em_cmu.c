@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Clock management unit (CMU) Peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -76,8 +75,14 @@
 
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
 // Maximum allowed core frequency vs. wait-states on flash accesses.
-#define CMU_MAX_FLASHREAD_FREQ_0WS        40000000UL
-#define CMU_MAX_FLASHREAD_FREQ_1WS        80000000UL
+//#define CMU_MAX_FLASHREAD_FREQ_0WS        40000000UL
+//#define CMU_MAX_FLASHREAD_FREQ_1WS        80000000UL
+
+// Maximum allowed core frequency vs. wait-states and vscale on flash accesses.
+#define CMU_MAX_FREQ_0WS_1V1              40000000UL
+#define CMU_MAX_FREQ_1WS_1V1              80000000UL
+#define CMU_MAX_FREQ_0WS_1V0              80000000UL
+#define CMU_MAX_FREQ_1WS_1V0              80000000UL
 #endif
 
 // Maximum allowed PCLK frequency.
@@ -85,6 +90,13 @@
 
 // Maximum allowed RHCLK frequency.
 #define CMU_MAX_RHCLK_FREQ                40000000UL
+
+#if defined(EMU_VSCALE_PRESENT)
+// This macro is intended to be used as input to CMU_UpdateWaitStates()
+#define VSCALE_DEFAULT    (2 - (int)EMU_VScaleGet())
+#else
+#define VSCALE_DEFAULT    VSCALE_EM01_HIGH_PERFORMANCE
+#endif
 
 /*******************************************************************************
  **************************   LOCAL VARIABLES   ********************************
@@ -672,12 +684,6 @@ static void traceClkGet(uint32_t *freq, CMU_Select_TypeDef *sel)
   CMU_Select_TypeDef s;
 
   switch (CMU->TRACECLKCTRL & _CMU_TRACECLKCTRL_CLKSEL_MASK) {
-    // By default, TRACECLK is driven by PCLK
-    case _CMU_TRACECLKCTRL_CLKSEL_DEFAULT:
-      f = SystemHCLKGet() / CMU_ClockDivGet(cmuClock_PCLK);
-      s = cmuSelect_PCLK;
-      break;
-
     case _CMU_TRACECLKCTRL_CLKSEL_HCLK:
       f = SystemHCLKGet();
       s = cmuSelect_HCLK;
@@ -1175,7 +1181,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
                         | ((div - 1U) << _CMU_SYSCLKCTRL_HCLKPRESC_SHIFT);
 
       // Update CMSIS core clock variable and set optimum wait-states
-      CMU_UpdateWaitStates(SystemCoreClockGet(), 0);
+      CMU_UpdateWaitStates(SystemCoreClockGet(), VSCALE_DEFAULT);
 
       // Set optimal PCLK divisor
       pclkDivOptimize();
@@ -1384,6 +1390,11 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
           break;
       }
 
+#if defined(EMU_VSCALE_PRESENT)
+      // VSCALE up before changing clock.
+      EMU_VScaleEM01(emuVScaleEM01_HighPerformance, true);
+#endif
+
       // Set max wait-states and PCLK divisor while changing core clock.
       waitStateMax();
       pclkDivMax();
@@ -1396,7 +1407,12 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~_CMU_SYSCLKCTRL_CLKSEL_MASK) | tmp;
 
       // Update CMSIS core clock variable and set optimum wait-states.
-      CMU_UpdateWaitStates(SystemCoreClockGet(), 0);
+      CMU_UpdateWaitStates(SystemCoreClockGet(), VSCALE_DEFAULT);
+
+#if defined(EMU_VSCALE_PRESENT)
+      // Check if possible to downscale VSCALE setting.
+      EMU_VScaleEM01ByClock(0, true);
+#endif
 
       // Set optimal PCLK divisor
       pclkDivOptimize();
@@ -1758,6 +1774,14 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
   EFM_ASSERT(init->n <= (_DPLL_CFG1_N_MASK >> _DPLL_CFG1_N_SHIFT));
   EFM_ASSERT(init->m <= (_DPLL_CFG1_M_MASK >> _DPLL_CFG1_M_SHIFT));
 
+#if defined(EMU_VSCALE_PRESENT)
+  if ((EMU_VScaleGet() == emuVScaleEM01_LowPower)
+      && (init->frequency > CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX)) {
+    EFM_ASSERT(false);
+    return false;
+  }
+#endif
+
   // Find correct HFRCODPLL band, and retrieve a HFRCOCAL value.
   for (i = 0; i < HFRCOCALTABLE_ENTRIES; i++) {
     if ((init->frequency    >= hfrcoCalTable[i].minFreq)
@@ -1844,7 +1868,7 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
     EFM_ASSERT(init->frequency == SystemHFRCODPLLClockGet());
 
     // Set optimal wait-states and PCLK divisor
-    CMU_UpdateWaitStates(sysFreq, 0);
+    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
     pclkDivOptimize();
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
     // Set optimal RHCLK prescaler
@@ -1881,6 +1905,9 @@ CMU_HFRCODPLLFreq_TypeDef CMU_HFRCODPLLBandGet(void)
 void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
 {
   uint32_t freqCal, sysFreq;
+#if defined(EMU_VSCALE_PRESENT)
+  uint32_t prevFreq;
+#endif
 
   // Get calibration data from DEVINFO
   freqCal = HFRCODPLLDevinfoGet(freq);
@@ -1898,6 +1925,9 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
   }
 
   // Update CMSIS HFRCODPLL frequency.
+#if defined(EMU_VSCALE_PRESENT)
+  prevFreq = SystemHFRCODPLLClockGet();
+#endif
   SystemHFRCODPLLClockSet(freq);
 
   // Set max wait-states and PCLK divisor while changing core clock
@@ -1925,6 +1955,13 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
       break;
   }
 
+#if defined(EMU_VSCALE_PRESENT)
+  if ((uint32_t)freq > prevFreq) {
+    /* When increasing frequency voltage scale must be done before the change. */
+    EMU_VScaleEM01ByClock((uint32_t)freq, true);
+  }
+#endif
+
   // Activate new band selection
   HFRCO0->CAL = freqCal;
 
@@ -1934,13 +1971,20 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
     // Call @ref SystemCoreClockGet() to update CMSIS core clock variable.
     sysFreq = SystemCoreClockGet();
     EFM_ASSERT(sysFreq <= (uint32_t)freq);
-    CMU_UpdateWaitStates(sysFreq, 0);
+    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
     pclkDivOptimize();
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
     // Set optimal RHCLK prescaler
     rhclkPrescOptimize();
 #endif
   }
+
+#if defined(EMU_VSCALE_PRESENT)
+  if ((uint32_t)freq <= prevFreq) {
+    /* When decreasing frequency voltage scale must be done after the change. */
+    EMU_VScaleEM01ByClock(0, true);
+  }
+#endif
 }
 
 /**************************************************************************//**
@@ -2307,11 +2351,14 @@ void CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val)
  *   0 or 1, higher number is lower voltage.
  *   @li 0 = 1.1 V (VSCALE2)
  *   @li 1 = 1.0 V (VSCALE1)
- *
  ******************************************************************************/
 void CMU_UpdateWaitStates(uint32_t freq, int vscale)
 {
-  flashWaitStateControl(freq, vscale);
+  if (vscale > 0) {
+    flashWaitStateControl(freq, VSCALE_EM01_LOW_POWER);
+  } else {
+    flashWaitStateControl(freq, VSCALE_EM01_HIGH_PERFORMANCE);
+  }
 }
 
 /*******************************************************************************
@@ -2528,6 +2575,8 @@ static void em4GrpaClkGet(uint32_t *freq, CMU_Select_TypeDef *sel)
  *
  * @param[in] vscale
  *   Voltage Scale level. Supported levels are 0 and 1 where 0 is the default.
+ *   @li 0 = 1.1 V (VSCALE2)
+ *   @li 1 = 1.0 V (VSCALE1)
  ******************************************************************************/
 static void flashWaitStateControl(uint32_t coreFreq, int vscale)
 {
@@ -2539,6 +2588,10 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
   CMU->CLKEN1_SET = CMU_CLKEN1_MSC;
 #endif
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  coreFreq *= CMU_ClockDivGet(cmuClock_CORE);
+#endif
+
   // Make sure the MSC is unlocked
   mscLocked = (MSC->STATUS & _MSC_STATUS_REGLOCK_MASK)
               == MSC_STATUS_REGLOCK_LOCKED;
@@ -2548,7 +2601,12 @@ static void flashWaitStateControl(uint32_t coreFreq, int vscale)
   mode = MSC->READCTRL & ~_MSC_READCTRL_MODE_MASK;
 
   // Set new mode based on the core clock frequency
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
   if (coreFreq <= CMU_MAX_FLASHREAD_FREQ_0WS) {
+#else // defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  if ((coreFreq <= CMU_MAX_FREQ_0WS_1V1)
+      || (vscale >= 1)) {
+#endif
     mode |= MSC_READCTRL_MODE_WS0;
   } else {
     mode |= MSC_READCTRL_MODE_WS1;
@@ -2937,9 +2995,9 @@ static void wdog0ClkGet(uint32_t *freq, CMU_Select_TypeDef *sel)
 #endif
 
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
-#define VSCALE_DEFAULT    (EMU_VScaleGet())
+#define VSCALE_DEFAULT    ((int)EMU_VScaleGet())
 #else
-#define VSCALE_DEFAULT    0
+#define VSCALE_DEFAULT    VSCALE_EM01_HIGH_PERFORMANCE
 #endif
 
 /*******************************************************************************
@@ -3982,7 +4040,7 @@ static uint32_t lfClkGet(CMU_Clock_TypeDef lfClkBranch)
       break;
 #elif defined(_CMU_LFBCLKSEL_LFB_HFCLKLE)
     case _CMU_LFBCLKSEL_LFB_HFCLKLE:
-      ret = SystemCoreClockGet()
+      ret = SystemHFClockGet()
             / SL_Log2ToDiv(((CMU->HFPRESC & _CMU_HFPRESC_HFCLKLEPRESC_MASK)
                             >> _CMU_HFPRESC_HFCLKLEPRESC_SHIFT) + 1UL);
       break;
@@ -4745,7 +4803,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
       freq = SystemCoreClockGet();
 
       /* Optimize flash access wait state setting for the current core clk. */
-      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
       break;
 #endif
 
@@ -4779,7 +4837,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
       freq = SystemCoreClockGet();
 
       /* Optimize wait state setting for the current core clk. */
-      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
       break;
 
     case CMU_LFAPRESC0_REG:
@@ -5575,7 +5633,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
       freq = SystemCoreClockGet();
       /* Optimize flash and HFLE wait states and set optimized HFPER clock-tree
          prescalers. */
-      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
       setHfLeConfig(CMU_ClockFreqGet(cmuClock_HFLE));
       hfperClkOptimizedPrescaler();
       break;
@@ -5622,7 +5680,7 @@ void CMU_ClockPrescSet(CMU_Clock_TypeDef clock, CMU_ClkPresc_TypeDef presc)
       /* Update the CMSIS core clock variable (this function updates the global variable).
          Optimize flash and HFLE wait states. */
       freq = SystemCoreClockGet();
-      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
       setHfLeConfig(CMU_ClockFreqGet(cmuClock_HFLE));
       break;
 
@@ -6619,7 +6677,7 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       freq = SystemCoreClockGet();
 
       /* Optimize flash access wait state setting for the currently selected core clk. */
-      CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+      CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
 
 #if defined(_EMU_CMD_EM01VSCALE0_MASK)
       /* Keep EMU module informed on the source HF clock frequency. This will apply voltage
@@ -7287,7 +7345,7 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
     EFM_ASSERT(sysFreq <= init->frequency);
     EFM_ASSERT(sysFreq <= SystemHfrcoFreq);
     EFM_ASSERT(init->frequency == SystemHfrcoFreq);
-    CMU_UpdateWaitStates(sysFreq, (int)VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
   }
 
   // Reduce HFLE frequency if possible.
@@ -7443,7 +7501,7 @@ void CMU_HFRCOBandSet(CMU_HFRCOBand_TypeDef band)
   if (osc == cmuSelect_HFRCO) {
     /* Call @ref SystemCoreClockGet() to update the CMSIS core clock variable. */
     freq = SystemCoreClockGet();
-    CMU_UpdateWaitStates(freq, (int)VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(freq, VSCALE_DEFAULT);
   }
 
 #if defined(CMU_MAX_FREQ_HFLE)
@@ -7614,7 +7672,7 @@ void CMU_HFRCOBandSet(CMU_HFRCOFreq_TypeDef setFreq)
     EFM_ASSERT(sysFreq <= (uint32_t)setFreq);
     EFM_ASSERT(sysFreq <= SystemHfrcoFreq);
     EFM_ASSERT((uint32_t)setFreq == SystemHfrcoFreq);
-    CMU_UpdateWaitStates(sysFreq, (int)VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(sysFreq, VSCALE_DEFAULT);
   }
 
   /* Reduce HFLE frequency if possible. */
@@ -7806,7 +7864,7 @@ void CMU_HFXOAutostartEnable(uint32_t userSel,
 #endif
   /* Set wait-states for HFXO if automatic start and select is configured. */
   if ((userSel > 0UL) || enEM0EM1StartSel) {
-    CMU_UpdateWaitStates(hfxoFreq, (int)VSCALE_DEFAULT);
+    CMU_UpdateWaitStates(hfxoFreq, VSCALE_DEFAULT);
     setHfLeConfig(hfxoFreq);
   }
 
@@ -8661,7 +8719,7 @@ void CMU_USHFRCOBandSet(CMU_USHFRCOBand_TypeDef band)
   uint32_t           fineTuning;
 
   /* Cannot switch band if USHFRCO is already selected as HF clock. */
-  EFM_ASSERT(CMU_ClockSelectGet(cmuClock_HF) != cmuSelect_USHFRCO);
+  EFM_ASSERT(CMU_ClockSelectGet(cmuClock_HF) != cmuSelect_USHFRCODIV2);
 
   /* Read tuning value from calibration table. */
   switch (band) {

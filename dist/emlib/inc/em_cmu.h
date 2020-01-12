@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Clock management unit (CMU) API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -93,6 +92,17 @@ extern "C" {
 #define CMU_CLK_BRANCH_POS         7U
 #define CMU_CLK_BRANCH_MASK        0x1FU
 #endif  // defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+
+#if defined(_EMU_CMD_EM01VSCALE1_MASK)
+/* Maximum clock frequency for VSCALE voltages. */
+#define CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX     40000000UL
+#endif
+
+/* Macros for VSCALE for use with the CMU_UpdateWaitStates(freq, vscale) API.
+ * NOTE: The values must align with the values in EMU_VScaleEM01_TypeDef for
+ * Series1 parts (highest VSCALE voltage = lowest numerical value). */
+#define VSCALE_EM01_LOW_POWER           1
+#define VSCALE_EM01_HIGH_PERFORMANCE    0
 
 /** @endcond */
 
@@ -1065,6 +1075,12 @@ __STATIC_INLINE void CMU_WdogUnlock(void)
 /* Maximum clock frequency for VSCALE voltages. */
 #define CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX     20000000UL
 #endif
+
+/* Macros for VSCALE for use with the CMU_UpdateWaitStates(freq, vscale) API.
+ * NOTE: The values must align with the values in EMU_VScaleEM01_TypeDef for
+ * Series1 parts (highest VSCALE voltage = lowest numerical value). */
+#define VSCALE_EM01_LOW_POWER           2
+#define VSCALE_EM01_HIGH_PERFORMANCE    0
 
 #if defined(USB_PRESENT) && defined(_CMU_HFCORECLKEN0_USBC_MASK)
 #define USBC_CLOCK_PRESENT

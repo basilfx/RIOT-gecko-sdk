@@ -9,12 +9,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -38,7 +51,7 @@ extern "C" {
     { 41, 343, 22520 },                   \
     { 22, 209, 22360 },                   \
     { 14, 124, 18896 },                   \
-    { 8, 75, 14632 } }
+    { 7, 40, 10519 } }
 
 #define RAIL_PA_CURVES_2P4_HP_DCDC_MAX_POWER      140
 #define RAIL_PA_CURVES_2P4_HP_DCDC_MIN_POWER      -260
@@ -50,19 +63,19 @@ extern "C" {
     { 37, 331, 24456 },                   \
     { 23, 224, 23902 },                   \
     { 14, 140, 20330 },                   \
-    { 9, 81, 15607 } }
+    { 7, 37, 10371 } }
 
 #define RAIL_PA_CURVES_SG_VBAT_MAX_POWER          200
 #define RAIL_PA_CURVES_SG_VBAT_MIN_POWER          -260
 #define RAIL_PA_CURVES_SG_VBAT_CURVES \
-  { { 248, 2924, -336264 },           \
-    { 130, 1265, -71090 },            \
-    { 77, 735, -8632 },               \
-    { 47, 451, 13197 },               \
-    { 30, 281, 19428 },               \
-    { 18, 172, 19088 },               \
-    { 12, 108, 16305 },               \
-    { 7, 67, 12870 } }
+  { { 248, 2757, -319913 },           \
+    { 123, 1173, -64900 },            \
+    { 74, 694, -8378 },               \
+    { 45, 429, 12097 },               \
+    { 28, 263, 18309 },               \
+    { 18, 167, 18071 },               \
+    { 11, 103, 15386 },               \
+    { 6, 34, 9064 } }
 
 #define RAIL_PA_CURVES_SG_DCDC_MAX_POWER          150
 #define RAIL_PA_CURVES_SG_DCDC_MIN_POWER          -260
@@ -74,7 +87,7 @@ extern "C" {
     { 31, 304, 19712 },               \
     { 18, 192, 19146 },               \
     { 11, 110, 15607 },               \
-    { 6, 56, 11146 } }
+    { 5, 31, 8239 } }
 
 #define RAIL_PA_CURVES_2P4_LP  \
   {                            \

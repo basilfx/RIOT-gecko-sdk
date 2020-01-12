@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Chip Initialization API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -291,8 +290,8 @@ __STATIC_INLINE void CHIP_Init(void)
   }
 #endif
 
-/* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
 #if defined(_LCD_DISPCTRL_CHGRDST_MASK)
+/* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
   CMU->HFBUSCLKEN0 |= CMU_HFBUSCLKEN0_LE;
   CMU->LFACLKEN0   |= CMU_LFACLKEN0_LCD;
   *(volatile uint32_t *)(LCD_BASE + 0x034) |= (0x1UL << 12);
@@ -326,10 +325,26 @@ __STATIC_INLINE void CHIP_Init(void)
       dmem += (DMEM_BANK0_SIZE / 4U);
     }
   }
+
+  /* Set TRACE clock to intended reset value. */
+  CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_CLKSEL_MASK)
+                      | CMU_TRACECLKCTRL_CLKSEL_HFRCOEM23;
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_220)
   CMU_HFRCODPLLBandSet(cmuHFRCODPLLFreq_19M0Hz);
+#endif
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
+  if (SYSTEM_GetProdRev() == 1) {
+    bool hfrcoClkIsOff = (CMU->CLKEN0 & CMU_CLKEN0_HFRCO0) == 0;
+    CMU->CLKEN0_SET = CMU_CLKEN0_HFRCO0;
+    /* Enable HFRCO CLKOUT0. */
+    *(volatile uint32_t*)(0x40012020UL) = 0x4UL;
+    if (hfrcoClkIsOff) {
+      CMU->CLKEN0_CLR = CMU_CLKEN0_HFRCO0;
+    }
+  }
 #endif
 }
 

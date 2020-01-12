@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Incremental Analog to Digital Converter (IADC) Peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -129,11 +128,11 @@ static IADC_Result_t IADC_ConvertRawDataToResult(uint32_t rawData,
       result.data = (rawData & 0x00FFFFFFUL)
                     | ((rawData & 0x00800000UL) != 0x0UL ? 0xFF000000UL : 0x0UL);
       // Mask out data and shift down
-      result.id   = (uint8_t) (rawData & 0xFF000000UL) >> 24;
+      result.id   = (uint8_t)((rawData & 0xFF000000UL) >> 24);
       break;
     case iadcAlignLeft12:
       result.data = rawData & 0xFFFFFF00UL;
-      result.id   = (uint8_t) (rawData & 0x000000FFUL);
+      result.id   = (uint8_t)(rawData & 0x000000FFUL);
       break;
     default:
       break;

@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Secure Element API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -255,7 +254,8 @@ void SE_executeCommand(SE_Command_t *command)
   SE_DataTransfer_t *inDataDesc;
   uint32_t *inData;
   uint32_t checksum;
-
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   // Set base of Mailbox Input data structure in SYSCFG register in order
   // for Root Code to find it.
   SYSCFG->ROOTDATA0 = ROOT_MAILBOX_INPUT_BASE;
@@ -264,6 +264,9 @@ void SE_executeCommand(SE_Command_t *command)
   // for Root Code to know where to write output data.
   // Write command into FIFO
   SYSCFG->ROOTDATA1 = ROOT_MAILBOX_OUTPUT_BASE;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
 
   rootInMb->magic   = SE_RESPONSE_MAILBOX_VALID;
   rootInMb->command = command->command;
@@ -320,7 +323,13 @@ bool rootIsOutputMailboxValid(void)
 {
   // Setup pointer to the Root Code Output Mailbox data structure
   // (must be stored in a RAM area which is not used by the root code)
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
+
   uint32_t *mbPtr = (uint32_t*) rootOutMb;
   uint32_t checksum;
   unsigned int mbLen, cnt;
@@ -363,7 +372,12 @@ bool rootIsOutputMailboxValid(void)
  ******************************************************************************/
 SE_Response_t SE_getVersion(uint32_t *version)
 {
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
 
   if (version == NULL) {
     return SE_RESPONSE_INVALID_PARAMETER;
@@ -399,7 +413,12 @@ SE_Response_t SE_getVersion(uint32_t *version)
  ******************************************************************************/
 SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus)
 {
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
 
   if (cfgStatus == NULL) {
     return SE_RESPONSE_INVALID_PARAMETER;
@@ -427,7 +446,12 @@ SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus)
  ******************************************************************************/
 bool SE_isCommandCompleted(void)
 {
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
 
   // First verify that the response is ok
   if (!rootIsOutputMailboxValid()) {
@@ -440,14 +464,38 @@ bool SE_isCommandCompleted(void)
 
 /***************************************************************************//**
  * @brief
+ *   Read the previously executed command.
+ *
+ * @details
+ *   This function reads the previously executed command.
+ *
+ * @return
+ *   One of the SE command words.
+ *   SE_RESPONSE_MAILBOX_INVALID when the mailbox content is invalid.
+ ******************************************************************************/
+uint32_t SE_readExecutedCommand(void)
+{
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
+
+  // First verify that the Output Mailbox includes a valid response.
+  if (!SE_isCommandCompleted()) {
+    return SE_RESPONSE_MAILBOX_INVALID;
+  }
+
+  return rootOutMb->command;
+}
+
+/***************************************************************************//**
+ * @brief
  *   Read the status of the previously executed command.
  *
  * @details
  *   This function reads the status of the previously executed command.
- *
- * @note
- *   The command response needs to be read for every executed command, and can
- *   only be read once per executed command (FIFO behavior).
  *
  * @return
  *   One of the SE_RESPONSE return codes:
@@ -460,12 +508,21 @@ bool SE_isCommandCompleted(void)
  *   because of conflicting Secure/Non-Secure memory accesses,
  *   SE_RESPONSE_CRYPTO_ERROR on an internal SE failure, or
  *   SE_RESPONSE_INVALID_PARAMETER when an invalid parameter was passed
+ *   SE_RESPONSE_MAILBOX_INVALID when the mailbox content is invalid
  ******************************************************************************/
 SE_Response_t SE_readCommandResponse(void)
 {
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
 
-  SE_waitCommandCompletion();
+  // First verify that the Output Mailbox includes a valid response.
+  if (!SE_isCommandCompleted()) {
+    return SE_RESPONSE_MAILBOX_INVALID;
+  }
 
   return (SE_Response_t)(rootOutMb->status & SE_RESPONSE_MASK);
 }
@@ -503,7 +560,12 @@ SE_Response_t SE_ackCommand(SE_Command_t *command)
 {
   // Setup pointer to the Root Code Output Mailbox data structure
   // (must be stored in a RAM area which is not used by the root code)
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
   root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
   uint32_t *mbData = (uint32_t*) rootOutMb->data;
   SE_DataTransfer_t *outDataDesc = command->data_out;
   unsigned int outDataLen, outDataCnt, i, outDescLen;

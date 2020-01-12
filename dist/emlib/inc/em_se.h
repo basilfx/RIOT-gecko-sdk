@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Secure Element API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -78,20 +77,20 @@ extern "C" {
 
 /* Command words for the Security Engine. */
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 #define SE_COMMAND_WRAP_KEY                 0x01000000UL
 #define SE_COMMAND_UNWRAP_KEY               0x01020000UL
 #define SE_COMMAND_TRANSFER_KEY             0x01060000UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 #define SE_COMMAND_CREATE_KEY               0x02000000UL
 #define SE_COMMAND_READPUB_KEY              0x02010000UL
 
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 #define SE_COMMAND_DERIVE_KEY_PBKDF2        0x02020002UL
 #define SE_COMMAND_DERIVE_KEY_HKDF          0x02020003UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 #define SE_COMMAND_HASH                     0x03000000UL
 #define SE_COMMAND_HASHUPDATE               0x03010000UL
@@ -108,20 +107,20 @@ extern "C" {
 #define SE_COMMAND_SIGNATURE_SIGN           0x06000000UL
 #define SE_COMMAND_SIGNATURE_VERIFY         0x06010000UL
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 #define SE_COMMAND_EDDSA_SIGN               0x06020000UL
 #define SE_COMMAND_EDDSA_VERIFY             0x06030000UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 #define SE_COMMAND_TRNG_GET_RANDOM          0x07000000UL
 #define SE_COMMAND_READ_CLOCK               0x07020000UL
 
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 #define SE_COMMAND_ATTEST_CERTIFY           0x0A000000UL
 #define SE_COMMAND_ATTEST_TIME              0x0A010000UL
 #define SE_COMMAND_ATTEST_PUBKEY            0x0A020000UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 #define SE_COMMAND_JPAKE_R1_GENERATE        0x0B000000UL
 #define SE_COMMAND_JPAKE_R1_VERIFY          0x0B000100UL
@@ -130,13 +129,13 @@ extern "C" {
 #define SE_COMMAND_JPAKE_GEN_SESSIONKEY     0x0B020000UL
 
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 #define SE_COMMAND_AEAD_ENCRYPT             0x0C000000UL
 #define SE_COMMAND_AEAD_DECRYPT             0x0C010000UL
 #define SE_COMMAND_CHACHA20_ENCRYPT         0x0C020000UL
 #define SE_COMMAND_CHACHA20_DECRYPT         0x0C030000UL
 #define SE_COMMAND_POLY1305_KEY_MAC         0x0C040000UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 #define SE_COMMAND_DH                       0x0E000000UL
 
@@ -147,7 +146,7 @@ extern "C" {
 #define SE_COMMAND_STATUS_SE_IMAGE          0x43040000UL
 #define SE_COMMAND_CHECK_HOST_IMAGE         0x43050001UL
 #define SE_COMMAND_APPLY_HOST_IMAGE         0x43060001UL
-#define SE_COMMAND_STATUS_HOST_IMAGE        0x43070001UL
+#define SE_COMMAND_STATUS_HOST_IMAGE        0x43070000UL
 
 #if defined(SEMAILBOX_PRESENT)
 
@@ -157,8 +156,6 @@ extern "C" {
 #define SE_COMMAND_WRITE_USER_DATA          0x43090000UL
 #define SE_COMMAND_ERASE_USER_DATA          0x430A0000UL
 
-#endif // #if defined(SEMAILBOX_PRESENT)
-
 #define SE_COMMAND_DBG_LOCK_APPLY           0x430C0000
 #define SE_COMMAND_DBG_LOCK_ENABLE_SECURE   0x430D0000
 #define SE_COMMAND_DBG_LOCK_DISABLE_SECURE  0x430E0000
@@ -166,7 +163,10 @@ extern "C" {
 #define SE_COMMAND_DEVICE_ERASE_DISABLE     0x43100000
 #define SE_COMMAND_DBG_LOCK_STATUS          0x43110000
 
+#define SE_COMMAND_PROTECTED_REGISTER       0x43210000
+
 #define SE_COMMAND_GET_CHALLENGE            0xFD000000UL
+#define SE_COMMAND_ROLL_CHALLENGE           0xFD000100UL
 #define SE_COMMAND_OPEN_DEBUG               0xFD010001UL
 #define SE_COMMAND_DISABLE_TAMPER           0xFD020001UL
 
@@ -194,12 +194,12 @@ extern "C" {
 #define SE_COMMAND_OPTION_HASH_SHA256       0x00000400UL
 
 #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
-  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_ADVANCED))
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT))
 /** Use SHA384 as hash algorithm */
 #define SE_COMMAND_OPTION_HASH_SHA384       0x00000500UL
 /** Use SHA512 as hash algorithm */
 #define SE_COMMAND_OPTION_HASH_SHA512       0x00000600UL
-#endif /* _SILICON_LABS_SECURITY_FEATURE_ADVANCED */
+#endif /* _SILICON_LABS_SECURITY_FEATURE_VAULT */
 
 /** Execute algorithm in ECB mode */
 #define SE_COMMAND_OPTION_MODE_ECB          0x00000100UL
@@ -239,8 +239,13 @@ extern "C" {
 #define SE_COMMAND_OPTION_PADDING_PSS       0x00000004UL
 
 /* Special parameters for the Secure Element commands. */
+#define SE_COMMAND_OPTION_READ              0x00000000UL
+#define SE_COMMAND_OPTION_WRITE             0x00000100UL
+
 /** Magic paramater for deleting user data */
 #define SE_COMMAND_OPTION_ERASE_UD          0xDE1E7EADUL
+
+#endif // #if defined(SEMAILBOX_PRESENT)
 
 /* Response status codes for the Secure Element */
 #define SE_RESPONSE_MASK                    0x000F0000UL
@@ -314,7 +319,7 @@ typedef struct {
 /** Default initialization of data transfer struct */
 #define SE_DATATRANSFER_DEFAULT(address, length)                               \
   {                                                                            \
-    (address),                         /* Pointer to data block */             \
+    (void*)(address),                  /* Pointer to data block */             \
     (void*)SE_DATATRANSFER_STOP,       /* This is the last block by default */ \
     (length) | SE_DATATRANSFER_REALIGN /* Add size, use realign by default */  \
   }
@@ -443,6 +448,7 @@ __STATIC_INLINE bool SE_isCommandCompleted(void);
 __STATIC_INLINE SE_Response_t SE_readCommandResponse(void);
 #elif defined(CRYPTOACC_PRESENT)
 bool SE_isCommandCompleted(void);
+uint32_t SE_readExecutedCommand(void);
 SE_Response_t SE_readCommandResponse(void);
 #endif // #if defined(SEMAILBOX_PRESENT)
 

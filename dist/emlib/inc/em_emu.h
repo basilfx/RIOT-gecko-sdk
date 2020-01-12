@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Energy Management Unit (EMU) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -56,7 +55,8 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+#if defined(_EMU_STATUS_VSCALE_MASK) \
+  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_200)
 #define EMU_VSCALE_PRESENT
 #endif
 
@@ -406,7 +406,12 @@ typedef enum {
       EM0/1 voltage scaling is applied when core clock frequency is
       changed from @ref CMU or when calling @ref EMU_EM01Init() when HF
       clock is already below the limit. */
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  /** Minimum VSCALE level in EM0/1 is VSCALE1. */
+  emuVScaleEM01_LowPower        = _EMU_STATUS_VSCALE_VSCALE1,
+#else
   emuVScaleEM01_LowPower        = _EMU_STATUS_VSCALE_VSCALE0,
+#endif
 } EMU_VScaleEM01_TypeDef;
 #endif
 
@@ -1002,6 +1007,24 @@ __STATIC_INLINE void EMU_DCDCUnlock(void)
 }
 #endif
 
+#if defined(_SILICON_LABS_32B_SERIES_1)
+/***************************************************************************//**
+ * @brief
+ *   Check status of the internal LDO regulator.
+ *
+ * @return
+ *   Return true if the regulator is on, false if regulator is off.
+ ******************************************************************************/
+__STATIC_INLINE bool EMU_LDOStatusGet(void)
+{
+  if ((*(volatile uint32_t*)0x400E303C & 0x00000040UL) == 0UL) {
+    return true;
+  } else {
+    return false;
+  }
+}
+#endif
+
 /***************************************************************************//**
  * @brief
  *   Enter energy mode 1 (EM1).
@@ -1020,6 +1043,13 @@ __STATIC_INLINE void EMU_EnterEM1(void)
  ******************************************************************************/
 __STATIC_INLINE void EMU_VScaleWait(void)
 {
+#if defined(_SILICON_LABS_32B_SERIES_1)
+  if (EMU_LDOStatusGet() == false) {
+    /* Skip waiting if the LDO regulator is turned off. */
+    return;
+  }
+#endif
+
   while (BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VSCALEBUSY_SHIFT) != 0U) {
   }
 }

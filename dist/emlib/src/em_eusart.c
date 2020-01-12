@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Universal asynchronous receiver/transmitter (EUSART) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
@@ -48,8 +47,10 @@
  *********************************   DEFINES   *********************************
  ******************************************************************************/
 
-#if (EUART_COUNT == 1) && defined(EUART0)
+#if defined(EUART_PRESENT)
   #define EUSART_REF_VALID(ref)    ((ref) == EUART0)
+  #define EUSART_EM2_CAPABLE(ref)  (true)
+  #define EUSART_RX_FIFO_SIZE  4u
 #endif
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
@@ -57,9 +58,10 @@
 /*******************************************************************************
  **************************   LOCAL FUNCTIONS   ********************************
  ******************************************************************************/
-static void eusart_init_common(EUSART_TypeDef *eusart,
-                               EUSART_Init_TypeDef const *init,
-                               EUSART_InitIrda_TypeDef const *irda_init);
+
+static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
+                                   const EUSART_UartInit_TypeDef *init,
+                                   const EUSART_IrDAInit_TypeDef *irdaInit);
 
 /***************************************************************************//**
  * Wait for ongoing sync of register(s) to the low-frequency domain to complete.
@@ -94,31 +96,35 @@ __STATIC_INLINE uint32_t EUSART_BaudrateCalc(uint32_t refFreq,
 /***************************************************************************//**
  * Initializes the EUSART when used with the high frequency clock.
  ******************************************************************************/
-void EUSART_InitHf(EUSART_TypeDef *eusart, EUSART_Init_TypeDef const *init)
+void EUSART_UartInitHf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
+  // Init structure must be provided.
+  EFM_ASSERT(init);
 
   // Assert features specific to HF.
   // The oversampling must not be disabled when using a high frequency clock.
   EFM_ASSERT(init->oversampling != eusartOVS0);
 
   // Initialize EUSART with common features to HF and LF.
-  eusart_init_common(eusart, init, NULL);
+  EUSART_AsyncInitCommon(eusart, init, NULL);
 }
 
 /***************************************************************************//**
  * Initializes the EUSART when used with the low frequency clock.
  *
- * @note (1) When EUSARTn_CFG0_OVS is set to OVS_DISABLE (0x4), the peripheral
+ * @note (1) When EUSART oversampling is set to eusartOVS0 (Disable), the peripheral
  *           clock frequency must be at least three times higher than the
  *           chosen baud rate. In LF, max input clock is 32768 (LFXO or LFRCO),
  *           thus 32768 / 3 ~ 9600 baudrate.
  ******************************************************************************/
-void EUSART_InitLf(EUSART_TypeDef *eusart, EUSART_Init_TypeDef const *init)
+void EUSART_UartInitLf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init)
 {
-  // Make sure the module exists on the selected chip.
-  EFM_ASSERT(EUSART_REF_VALID(eusart));
+  // Make sure the module exists and is Low frequency capable.
+  EFM_ASSERT(EUSART_REF_VALID(eusart) && EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
+  // Init structure must be provided.
+  EFM_ASSERT(init);
 
   // Assert features specific to LF.
   // LFXO, LFRCO, ULFRCO can be a clock source in LF.
@@ -132,42 +138,46 @@ void EUSART_InitLf(EUSART_TypeDef *eusart, EUSART_Init_TypeDef const *init)
   // The oversampling must be disabled when using a low frequency clock.
   EFM_ASSERT(init->oversampling == eusartOVS0);
   // The Mojority Vote must be disabled when using a low frequency clock.
-  EFM_ASSERT(init->majorityVote == eusartMajortityVoteDisable);
+  EFM_ASSERT(init->majorityVote == eusartMajorityVoteDisable);
   // Number of stop bits can only be 1 or 2 in LF.
   EFM_ASSERT((init->stopbits == eusartStopbits1) || (init->stopbits == eusartStopbits2));
   // In LF, max baudrate is 9600. See Note #1.
   EFM_ASSERT(init->baudrate <= 9600 && init->baudrate != 0);
 
   // Initialize EUSART with common features to HF and LF.
-  eusart_init_common(eusart, init, NULL);
+  EUSART_AsyncInitCommon(eusart, init, NULL);
 }
 
 /***************************************************************************//**
  * Initializes the EUSART when used in IrDA mode with the high or low
  * frequency clock.
  ******************************************************************************/
-void EUSART_IrdaInit(EUSART_TypeDef *eusart,
-                     EUSART_InitIrda_TypeDef const *irda_init)
+void EUSART_IrDAInit(EUSART_TypeDef *eusart,
+                     const EUSART_IrDAInit_TypeDef *irdaInit)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
+  // Init structure must be provided.
+  EFM_ASSERT(irdaInit);
 
-  if (irda_init->irdaLowFrequencyEnable) {
+  if (irdaInit->irDALowFrequencyEnable) {
+    // Validate the low frequency capability of the EUSART instance.
+    EFM_ASSERT(EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
     // The oversampling must be disabled when using a low frequency clock.
-    EFM_ASSERT(irda_init->init.oversampling == eusartOVS0);
+    EFM_ASSERT(irdaInit->init.oversampling == eusartOVS0);
     // Number of stop bits can only be 1 or 2 in LF.
-    EFM_ASSERT((irda_init->init.stopbits == eusartStopbits1) || (irda_init->init.stopbits == eusartStopbits2));
+    EFM_ASSERT((irdaInit->init.stopbits == eusartStopbits1) || (irdaInit->init.stopbits == eusartStopbits2));
     // In LF, max baudrate is 9600. See Note #1.
-    EFM_ASSERT(irda_init->init.baudrate <= 9600);
-    EFM_ASSERT(irda_init->init.enable == eusartEnableRx || irda_init->init.enable == eusartDisable);
+    EFM_ASSERT(irdaInit->init.baudrate <= 9600);
+    EFM_ASSERT(irdaInit->init.enable == eusartEnableRx || irdaInit->init.enable == eusartDisable);
   } else {
-    EFM_ASSERT(irda_init->init.oversampling != eusartOVS0);
+    EFM_ASSERT(irdaInit->init.oversampling != eusartOVS0);
     // In HF, 2.4 kbps <= baudrate <= 1.152 Mbps.
-    EFM_ASSERT(irda_init->init.baudrate >= 2400 && irda_init->init.baudrate <= 1152000);
+    EFM_ASSERT(irdaInit->init.baudrate >= 2400 && irdaInit->init.baudrate <= 1152000);
   }
 
   // Initialize EUSART with common features to HF and LF.
-  eusart_init_common(eusart, &irda_init->init, irda_init);
+  EUSART_AsyncInitCommon(eusart, &irdaInit->init, irdaInit);
 }
 
 /***************************************************************************//**
@@ -175,21 +185,21 @@ void EUSART_IrdaInit(EUSART_TypeDef *eusart,
  ******************************************************************************/
 void EUSART_Reset(EUSART_TypeDef *eusart)
 {
+  uint8_t i = 0;
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
 
-  // Disable all features
-  if (eusart->EN) {
-    eusart_sync(eusart, (EUSART_SYNCBUSY_RXDIS | EUSART_SYNCBUSY_TXDIS | EUSART_SYNCBUSY_TXTRIDIS | EUSART_SYNCBUSY_RXBLOCKDIS));
-    eusart->CMD = EUSART_CMD_RXDIS | EUSART_CMD_TXDIS | EUSART_CMD_TXTRIDIS | EUSART_CMD_CLEARTX | EUSART_CMD_RXBLOCKDIS;
-    eusart_sync(eusart, (EUSART_SYNCBUSY_RXDIS | EUSART_SYNCBUSY_TXDIS | EUSART_SYNCBUSY_TXTRIDIS | EUSART_SYNCBUSY_RXBLOCKDIS));
-  }
-
+  // Enable peripheral to reset internal state.
+  eusart->EN_SET = EUSART_EN_EN;
+  eusart_sync(eusart, (EUSART_SYNCBUSY_RXDIS | EUSART_SYNCBUSY_TXDIS | EUSART_SYNCBUSY_TXTRIDIS | EUSART_SYNCBUSY_RXBLOCKDIS));
+  eusart->CMD = EUSART_CMD_RXDIS | EUSART_CMD_TXDIS | EUSART_CMD_TXTRIDIS | EUSART_CMD_CLEARTX | EUSART_CMD_RXBLOCKDIS;
+  eusart_sync(eusart, (EUSART_SYNCBUSY_RXDIS | EUSART_SYNCBUSY_TXDIS | EUSART_SYNCBUSY_TXTRIDIS | EUSART_SYNCBUSY_RXBLOCKDIS));
+  eusart->CLKDIV = _EUSART_CLKDIV_RESETVALUE;
+  eusart_sync(eusart, _EUSART_SYNCBUSY_DIV_MASK);
   // Clear Rx FIFO.
-  eusart->RXDATA;
-  eusart->RXDATA;
-  eusart->RXDATA;
-  eusart->RXDATA;
+  for (i = 0; i < EUSART_RX_FIFO_SIZE; i++) {
+    eusart->RXDATA;
+  }
 
   // Ensure that the peripheral is disabled while configuring.
   eusart->EN_CLR = EUSART_EN_EN;
@@ -197,7 +207,6 @@ void EUSART_Reset(EUSART_TypeDef *eusart)
   // Set all configurable register to its reset value.
   eusart->CFG0 = _EUSART_CFG0_RESETVALUE;
   eusart->CFG1 = _EUSART_CFG1_RESETVALUE;
-  eusart->CLKDIV = _EUSART_CLKDIV_RESETVALUE;
   eusart->FRAMECFG = _EUSART_FRAMECFG_RESETVALUE;
   eusart->IRHFCFG = _EUSART_IRHFCFG_RESETVALUE;
   eusart->IRLFCFG = _EUSART_IRLFCFG_RESETVALUE;
@@ -206,7 +215,7 @@ void EUSART_Reset(EUSART_TypeDef *eusart)
   eusart->SIGFRAMECFG = _EUSART_SIGFRAMECFG_RESETVALUE;
   eusart->TRIGCTRL = _EUSART_TRIGCTRL_RESETVALUE;
   eusart->IEN = _EUSART_IEN_RESETVALUE;
-  eusart->IF_CLR = _EUSART_IF_MASK;
+  eusart->IF_CLR = _EUSART_IF_MASK;;
 }
 
 /***************************************************************************//**
@@ -214,31 +223,36 @@ void EUSART_Reset(EUSART_TypeDef *eusart)
  ******************************************************************************/
 void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable)
 {
-  uint32_t tmp;
+  uint32_t tmp = 0;;
 
   // Make sure that the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
 
-  // Disable as specified.
-  tmp   = ~((uint32_t)(enable));
-  tmp  &= (_EUSART_CMD_RXEN_MASK | _EUSART_CMD_TXEN_MASK);
-  tmp <<= 1;
-  // Enable as specified.
-  tmp |= (uint32_t)(enable);
+  if (enable == eusartDisable) {
+    eusart->EN_CLR = EUSART_EN_EN;
+  } else {
+    eusart->EN_SET = EUSART_EN_EN;
 
-  eusart_sync(eusart, EUSART_SYNCBUSY_RXEN | EUSART_SYNCBUSY_TXEN); // Wait for low frequency register synchronization.
-  eusart->CMD = tmp;
-  eusart_sync(eusart, EUSART_SYNCBUSY_RXEN | EUSART_SYNCBUSY_TXEN); // Wait for low frequency register synchronization.
+    tmp = (enable)
+          & (_EUSART_CMD_RXEN_MASK | _EUSART_CMD_TXEN_MASK
+             | _EUSART_CMD_RXDIS_MASK | _EUSART_CMD_TXDIS_MASK);
 
-  tmp = 0u;
-  if ((_EUSART_CMD_RXEN_MASK & enable) != 0u) {
-    tmp |= EUSART_STATUS_RXENS;
+    eusart_sync(eusart, _EUSART_SYNCBUSY_MASK); // Wait for low frequency register synchronization.
+    eusart->CMD = tmp;
+    eusart_sync(eusart,
+                EUSART_SYNCBUSY_RXEN | EUSART_SYNCBUSY_TXEN
+                | EUSART_SYNCBUSY_RXDIS | EUSART_SYNCBUSY_TXDIS); // Wait for low frequency register synchronization.
+
+    tmp = 0;
+    if (_EUSART_CMD_RXEN_MASK & enable) {
+      tmp |= EUSART_STATUS_RXENS;
+    }
+    if (_EUSART_CMD_TXEN_MASK & enable) {
+      tmp |= EUSART_STATUS_TXENS;
+    }
+    while ((eusart->STATUS & (_EUSART_STATUS_TXENS_MASK | _EUSART_STATUS_RXENS_MASK)) != tmp) {
+    } // Wait for the status register to be updated.
   }
-  if ((_EUSART_CMD_TXEN_MASK & enable) != 0u) {
-    tmp |= EUSART_STATUS_TXENS;
-  }
-  while ((eusart->STATUS & (_EUSART_STATUS_TXENS_MASK | _EUSART_STATUS_RXENS_MASK)) != tmp) {
-  } // Wait for the status register to be updated.
 }
 
 /***************************************************************************//**
@@ -254,7 +268,7 @@ uint8_t EUSART_Rx(EUSART_TypeDef *eusart)
 /***************************************************************************//**
  * Receives one 8-9 bit frame with extended information.
  ******************************************************************************/
-uint16_t EUSART_Rx_ext(EUSART_TypeDef *eusart)
+uint16_t EUSART_RxExt(EUSART_TypeDef *eusart)
 {
   while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
   } // Wait for incoming data.
@@ -305,6 +319,9 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
 
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
+
+  // The peripheral must be enabled to configure the baud rate.
+  EFM_ASSERT(eusart->EN == EUSART_EN_EN);
 
   /*
    * Use integer division to avoid forcing in float division
@@ -476,12 +493,15 @@ void  EUSART_TxTristateSet(EUSART_TypeDef *eusart,
  * the PRS as a trigger.
  ******************************************************************************/
 void EUSART_PrsTriggerEnable(EUSART_TypeDef *eusart,
-                             const EUSART_PrsTriggerInit_typeDef *init)
+                             const EUSART_PrsTriggerInit_TypeDef *init)
 {
   uint32_t tmp;
 
   // Make sure that the module exists on the selected chip.
   EFM_ASSERT(EUSART_REF_VALID(eusart));
+
+  // The peripheral must be enabled to configure the PRS trigger.
+  EFM_ASSERT(eusart->EN == EUSART_EN_EN);
 
   PRS->CONSUMER_EUART0_TRIGGER_SET = (init->prs_trigger_channel & _PRS_CONSUMER_EUART0_TRIGGER_MASK);
 
@@ -616,15 +636,16 @@ __STATIC_INLINE uint32_t EUSART_BaudrateCalc(uint32_t refFreq,
 }
 
 /***************************************************************************//**
- * Initializes the EUSART with settings common to high and low frequency clock.
+ * Initializes the EUSART with asynchronous common settings to high
+ * and low frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
- * @param irda_init Pointer to Irda initialization structure.
+ * @param irdaInit Pointer to IrDA initialization structure.
  ******************************************************************************/
-static void eusart_init_common(EUSART_TypeDef *eusart,
-                               EUSART_Init_TypeDef const *init,
-                               EUSART_InitIrda_TypeDef const *irda_init)
+static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
+                                   const EUSART_UartInit_TypeDef  *init,
+                                   const EUSART_IrDAInit_TypeDef  *irdaInit)
 {
   // LF register about to be modified requires sync busy check.
   if (eusart->EN) {
@@ -657,9 +678,10 @@ static void eusart_init_common(EUSART_TypeDef *eusart,
     eusart->CFG0 |= (uint32_t)init->advancedSettings->dmaHaltOnError << _EUSART_CFG0_ERRSDMA_SHIFT;
     eusart->CFG0 |= (uint32_t)init->advancedSettings->txAutoTristate << _EUSART_CFG0_AUTOTRI_SHIFT;
     eusart->CFG0 |= (uint32_t)init->advancedSettings->invertIO & (_EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK);
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->collisionDectEnable << _EUSART_CFG0_CCEN_SHIFT;
+    eusart->CFG0 |= (uint32_t)init->advancedSettings->collisionDetectEnable << _EUSART_CFG0_CCEN_SHIFT;
     eusart->CFG0 |= (uint32_t)init->advancedSettings->multiProcessorEnable << _EUSART_CFG0_MPM_SHIFT;
     eusart->CFG0 |= (uint32_t)init->advancedSettings->multiProcessorAddressBitHigh << _EUSART_CFG0_MPAB_SHIFT;
+    eusart->CFG0 |= (uint32_t)init->advancedSettings->msbFirst << _EUSART_CFG0_MSBF_SHIFT;
 
     // Configure global configuration register 1.
     eusart->CFG1 = (uint32_t)init->advancedSettings->dmaWakeUpOnRx << _EUSART_CFG1_RXDMAWU_SHIFT
@@ -680,15 +702,15 @@ static void eusart_init_common(EUSART_TypeDef *eusart,
     if (init->advancedSettings->startFrame) {
       eusart->CFG1 |= EUSART_CFG1_SFUBRX;
     }
-    if (init->advancedSettings->prsInputEnable) {
+    if (init->advancedSettings->prsRxEnable) {
       eusart->CFG1 |= EUSART_CFG1_RXPRSEN;
       //Configure PRS channel as input data line for EUSART.
-      PRS->CONSUMER_EUART0_RX_SET = (init->advancedSettings->prsDataChannel & _PRS_CONSUMER_EUART0_RX_MASK);
+      PRS->CONSUMER_EUART0_RX_SET = (init->advancedSettings->prsRxChannel & _PRS_CONSUMER_EUART0_RX_MASK);
     }
   }
 
-  if (irda_init) {
-    if (irda_init->irdaLowFrequencyEnable) {
+  if (irdaInit) {
+    if (irdaInit->irDALowFrequencyEnable) {
       eusart->IRLFCFG_SET = (uint32_t)(EUSART_IRLFCFG_IRLFEN);
     } else {
       // Configure IrDA HF configuration register.
@@ -696,8 +718,8 @@ static void eusart_init_common(EUSART_TypeDef *eusart,
                                                  | _EUSART_IRHFCFG_IRHFEN_MASK
                                                  | _EUSART_IRHFCFG_IRHFFILT_MASK))
                             | (uint32_t)(EUSART_IRHFCFG_IRHFEN)
-                            | (uint32_t)(irda_init->irdaPulseWidth)
-                            | (uint32_t)(irda_init->irdaRxFilterEnable);
+                            | (uint32_t)(irdaInit->irDAPulseWidth)
+                            | (uint32_t)(irdaInit->irDARxFilterEnable);
     }
   }
 
@@ -710,9 +732,7 @@ static void eusart_init_common(EUSART_TypeDef *eusart,
   }
 
   // Finally enable the Rx and/or Tx channel (as specified).
-  eusart_sync(eusart, _EUSART_SYNCBUSY_RXEN_MASK & _EUSART_SYNCBUSY_TXEN_MASK); // Wait for low frequency register synchronization.
-  eusart->CMD = (uint32_t)init->enable;
-  eusart_sync(eusart, _EUSART_SYNCBUSY_RXEN_MASK & _EUSART_SYNCBUSY_TXEN_MASK); // Wait for low frequency register synchronization.
+  EUSART_Enable(eusart, init->enable);
   while (~EUSART_StatusGet(eusart) & (_EUSART_STATUS_RXIDLE_MASK | _EUSART_STATUS_TXIDLE_MASK)) {
   }
 }

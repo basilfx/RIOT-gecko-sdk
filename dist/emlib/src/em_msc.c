@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Flash controller (MSC) Peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -32,25 +31,17 @@
 #include "em_msc.h"
 #if defined(MSC_COUNT) && (MSC_COUNT > 0)
 
-#include "em_system.h"
-#if defined(_MSC_TIMEBASE_MASK)
-#include "em_cmu.h"
-#endif
 #include "em_assert.h"
-#if defined(_SILICON_LABS_32B_SERIES_2)
-#include "em_common.h"
-#endif
-#if defined(_MSC_ECCCTRL_MASK) || defined(_SYSCFG_DMEM0ECCCTRL_MASK)
 #include "em_cmu.h"
+#include "em_common.h"
 #include "em_core.h"
-#endif
+#include "em_system.h"
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
 #if defined(__ICCARM__)
-/* Suppress warnings originating from use of EFM_ASSERT() with IAR Embedded Workbench:
-   EFM_ASSERT() is implemented as a local ramfunc */
-#pragma diag_suppress=Ta022
+/* Suppress warnings originating from use of EFM_ASSERT() with IAR Embedded Workbench */
+#pragma diag_suppress=Ta022,Ta023
 #endif
 
 #if defined(EM_MSC_RUN_FROM_FLASH) && defined(_EFM32_GECKO_FAMILY)
@@ -196,11 +187,6 @@
  ******************************      TYPEDEFS     ******************************
  ******************************************************************************/
 
-typedef enum {
-  mscWriteIntSafe,
-  mscWriteFast,
-} MSC_WriteStrategy_Typedef;
-
 #if defined(_MSC_ECCCTRL_MASK) || defined(_SYSCFG_DMEM0ECCCTRL_MASK)
 typedef struct {
   uint32_t           initSyndromeEnable;
@@ -242,58 +228,14 @@ static const MSC_EccBank_Typedef eccBankTbl[MSC_ECC_BANKS] =
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_WriteWordI(uint32_t *address,
                void const *data,
-               uint32_t numBytes,
-               MSC_WriteStrategy_Typedef writeStrategy);
+               uint32_t numBytes);
 
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_LoadWriteData(uint32_t* data,
-                  uint32_t numWords,
-                  MSC_WriteStrategy_Typedef writeStrategy);
+                  uint32_t numWords);
 
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_LoadVerifyAddress(uint32_t* address);
-
-#if !defined(EM_MSC_RUN_FROM_FLASH)
-
-MSC_RAMFUNC_DECLARATOR void mscRfAssertEFM(const char *file, int line);
-
-/***************************************************************************//**
- * @brief
- *   Local ramfunc assertEFM.
- *
- *   A local ramfunc version of assertEFM is needed because certain MSC functions
- *   are allocated to RAM. The Flash may get erased and code normally located in
- *   Flash must therefore have a RAM copy.
- *
- *   This function is invoked through EFM_ASSERT() macro usage only and should
- *   not be used explicitly.
- *
- * @param[in] file
- *   The source file where assertion failed.
- *
- * @param[in] line
- *   A line number in the source file where assertion failed.
- ******************************************************************************/
-MSC_RAMFUNC_DEFINITION_BEGIN
-void mscRfAssertEFM(const char *file, int line)
-{
-  (void)file;  /* Unused parameter */
-  (void)line;  /* Unused parameter */
-
-  while (true) {
-  }
-}
-MSC_RAMFUNC_DEFINITION_END
-
-/* Undef the define from em_assert.h and redirect to a local ramfunc version. */
-#undef  EFM_ASSERT
-#if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
-#define EFM_ASSERT(expr)    ((expr) ? ((void)0) : mscRfAssertEFM(__FILE__, __LINE__))
-#else
-#define EFM_ASSERT(expr)    ((void)(expr))
-#endif /* defined(DEBUG_EFM) || defined(DEBUG_EFM_USER) */
-
-#endif /* !EM_MSC_RUN_FROM_FLASH */
 
 /** @endcond */
 
@@ -599,7 +541,6 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
 }
 MSC_RAMFUNC_DEFINITION_END
 
-#if 0       // Masserase is only possible from SE, code kept for doc. purposes
 MSC_RAMFUNC_DEFINITION_BEGIN
 MSC_Status_TypeDef MSC_MassErase(void)
 {
@@ -610,17 +551,15 @@ MSC_Status_TypeDef MSC_MassErase(void)
   }
 
   MSC->WRITECTRL_SET    = MSC_WRITECTRL_WREN;
-  // NOTE: Only SE can clear MELOCKBIT, so this function does not really work...
   MSC->MISCLOCKWORD_CLR = MSC_MISCLOCKWORD_MELOCKBIT;
   MSC->WRITECMD         = MSC_WRITECMD_ERASEMAIN0;
   retVal                = mscStatusWait(MSC_STATUS_BUSY, 0);
   MSC->MISCLOCKWORD_SET = MSC_MISCLOCKWORD_MELOCKBIT;
-  MSC->WRITECTRL_CLR    = MSC_MSC_WRITECTRL_WREN;
+  MSC->WRITECTRL_CLR    = MSC_WRITECTRL_WREN;
 
   return retVal;
 }
 MSC_RAMFUNC_DEFINITION_END
-#endif
 
 #else // defined(_SILICON_LABS_32B_SERIES_2)
 
@@ -637,7 +576,7 @@ void MSC_Init(void)
   uint32_t freq, cycles;
 #endif
 
-#if defined(_EMU_STATUS_VSCALE_MASK)
+#if defined(_EMU_STATUS_VSCALE_MASK) && defined(_SILICON_LABS_32B_SERIES_1)
   /* VSCALE must be done. Flash erase and write requires VSCALE2. */
   EFM_ASSERT(!(EMU->STATUS & _EMU_STATUS_VSCALEBUSY_MASK));
   EFM_ASSERT((EMU->STATUS & _EMU_STATUS_VSCALE_MASK) == EMU_STATUS_VSCALE_VSCALE2);
@@ -816,8 +755,6 @@ MSC_RAMFUNC_DEFINITION_END
  *   A pointer to the first data word to load.
  * @param[in] numWords
  *   A number of data words (32-bit) to load.
- * @param[in] writeStrategy
- *   A write strategy to apply.
  * @return
  *   Returns the status of the data load operation.
  * @verbatim
@@ -828,21 +765,16 @@ MSC_RAMFUNC_DEFINITION_END
  ******************************************************************************/
 MSC_RAMFUNC_DEFINITION_BEGIN
 MSC_Status_TypeDef MSC_LoadWriteData(uint32_t* data,
-                                     uint32_t numWords,
-                                     MSC_WriteStrategy_Typedef writeStrategy)
+                                     uint32_t numWords)
 {
   uint32_t timeOut;
   uint32_t wordIndex;
   bool useWDouble = false;
   MSC_Status_TypeDef retval = mscReturnOk;
-#if !defined(_EFM32_GECKO_FAMILY)
-  uint32_t irqState;
-#endif
 
-#if defined(_MSC_WRITECTRL_LPWRITE_MASK) && defined(_MSC_WRITECTRL_WDOUBLE_MASK)
+#if defined(_SILICON_LABS_32B_SERIES_0) && defined(_MSC_WRITECTRL_WDOUBLE_MASK)
   /* If the LPWRITE (Low Power Write) is NOT enabled, set WDOUBLE (Write Double word). */
   if (!(MSC->WRITECTRL & MSC_WRITECTRL_LPWRITE)) {
-#if defined(_SILICON_LABS_32B_SERIES_0)
     /* If the number of words to be written is odd, align by writing
        a single word first, before setting the WDOUBLE bit. */
     if (numWords & 0x1) {
@@ -882,7 +814,6 @@ MSC_Status_TypeDef MSC_LoadWriteData(uint32_t* data,
     }
     /* Set the double word option to write two words per
        data phase. */
-#endif
     MSC->WRITECTRL |= MSC_WRITECTRL_WDOUBLE;
     useWDouble = true;
   }
@@ -890,123 +821,23 @@ MSC_Status_TypeDef MSC_LoadWriteData(uint32_t* data,
 
   /* Write the rest as a double word write if wordsPerDataPhase == 2 */
   if (numWords > 0) {
-    /**** Write strategy: mscWriteIntSafe ****/
-    if (writeStrategy == mscWriteIntSafe) {
-      /* Requires a system core clock at 1MHz or higher */
-      EFM_ASSERT(SystemCoreClock >= 1000000);
-      wordIndex = 0;
-      while (wordIndex < numWords) {
-        if (!useWDouble) {
-          MSC->WDATA = *data++;
-          wordIndex++;
-          MSC->WRITECMD = MSC_WRITECMD_WRITEONCE;
-        } else { // useWDouble == true
-                 /* Trigger a double write according to flash properties. */
+    /* Requires a system core clock at 1MHz or higher */
+    EFM_ASSERT(SystemCoreClock >= 1000000);
+    wordIndex = 0;
+    while (wordIndex < numWords) {
+      if (!useWDouble) {
+        MSC->WDATA = *data++;
+        wordIndex++;
+        MSC->WRITECMD = MSC_WRITECMD_WRITEONCE;
+      } else {
+        /* Trigger a double write according to flash properties. */
 #if defined(_SILICON_LABS_32B_SERIES_0) && defined(_MSC_WRITECTRL_WDOUBLE_MASK)
-          MSC->WDATA = *data++;
-          while (!(MSC->STATUS & MSC_STATUS_WDATAREADY)) ;
-          MSC->WDATA = *data++;
-          wordIndex += 2;
-          MSC->WRITECMD = MSC_WRITECMD_WRITEONCE;
-
-#elif defined(_SILICON_LABS_32B_SERIES_1) && defined(_MSC_WRITECTRL_WDOUBLE_MASK)
-          while (!(MSC->STATUS & MSC_STATUS_WDATAREADY)) ;
-          do {
-            MSC->WDATA = *data++;
-            wordIndex++;
-          } while ((MSC->STATUS & MSC_STATUS_WDATAREADY)
-                   && (wordIndex < numWords));
-          MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
+        MSC->WDATA = *data++;
+        while (!(MSC->STATUS & MSC_STATUS_WDATAREADY)) ;
+        MSC->WDATA = *data++;
+        wordIndex += 2;
+        MSC->WRITECMD = MSC_WRITECMD_WRITEONCE;
 #endif
-        }
-
-        /* Wait for the transaction to finish. */
-        timeOut = MSC_PROGRAM_TIMEOUT;
-        while ((MSC->STATUS & MSC_STATUS_BUSY) && (timeOut != 0)) {
-          timeOut--;
-        }
-        /* Check for a timeout. */
-        if (timeOut == 0) {
-          retval = mscReturnTimeOut;
-          break;
-        }
-        /* Check for a write protected flash area. */
-        if (MSC->STATUS & MSC_STATUS_LOCKED) {
-          retval = mscReturnLocked;
-          break;
-        }
-#if defined(_EFM32_GECKO_FAMILY)
-        MSC->ADDRB += 4;
-        MSC->WRITECMD = MSC_WRITECMD_LADDRIM;
-#endif
-      }
-    }
-    /**** Write strategy: mscWriteFast ****/
-    else {
-#if defined(_EFM32_GECKO_FAMILY)
-      /* Gecko does not have auto-increment of ADDR. */
-      EFM_ASSERT(false);
-#else
-      /* Requires a system core clock at 14 MHz or higher. */
-      EFM_ASSERT(SystemCoreClock >= 14000000);
-
-      /*
-       * Protect from interrupts to be sure to satisfy the us timing
-       * needs of the MSC flash programming state machine.
-       */
-      irqState = __get_PRIMASK();
-      __disable_irq();
-
-      wordIndex = 0;
-      while (wordIndex < numWords) {
-        /* Wait for the MSC to be ready for the next word. */
-        while (!(MSC->STATUS & MSC_STATUS_WDATAREADY)) {
-          /* If the write to MSC->WDATA below missed the 30 us timeout and the
-             following MSC_WRITECMD_WRITETRIG command arrived while
-             MSC_STATUS_BUSY is 1, the MSC_WRITECMD_WRITETRIG could be ignored by
-             the MSC. In this case, MSC_STATUS_WORDTIMEOUT is set to 1
-             and MSC_STATUS_BUSY is 0. A new trigger is therefore needed to
-             complete write of data in MSC->WDATA.
-             If WDATAREADY became high since entering the loop, exit and continue
-             to the next WDATA write.
-           */
-          if ((MSC->STATUS & (MSC_STATUS_WORDTIMEOUT
-                              | MSC_STATUS_BUSY
-                              | MSC_STATUS_WDATAREADY))
-              == MSC_STATUS_WORDTIMEOUT) {
-            MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
-          }
-        }
-
-        if (!useWDouble) {
-          MSC->WDATA = *data;
-          MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
-          data++;
-          wordIndex++;
-        } else { // useWDouble == true
-                 /* Trigger double write according to flash properties. */
-#if defined(_SILICON_LABS_32B_SERIES_0)
-          MSC->WDATA = *data;
-          if (wordIndex & 0x1) {
-            MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
-          }
-          data++;
-          wordIndex++;
-
-#elif (_SILICON_LABS_32B_SERIES_1_CONFIG >= 2)
-          do {
-            MSC->WDATA = *data++;
-            wordIndex++;
-          } while ((MSC->STATUS & MSC_STATUS_WDATAREADY)
-                   && (wordIndex < numWords));
-          MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
-#endif
-        }
-      } // End of: while (wordIndex < numWords) {
-
-      if (irqState == 0) {
-        /* Restore the previous interrupt state. */
-        __enable_irq();
       }
 
       /* Wait for the transaction to finish. */
@@ -1017,13 +848,18 @@ MSC_Status_TypeDef MSC_LoadWriteData(uint32_t* data,
       /* Check for a timeout. */
       if (timeOut == 0) {
         retval = mscReturnTimeOut;
+        break;
       }
       /* Check for a write protected flash area. */
       if (MSC->STATUS & MSC_STATUS_LOCKED) {
         retval = mscReturnLocked;
+        break;
       }
+#if defined(_EFM32_GECKO_FAMILY)
+      MSC->ADDRB += 4;
+      MSC->WRITECMD = MSC_WRITECMD_LADDRIM;
 #endif
-    } /* writeStrategy */
+    }
   }
 
 #if defined(_MSC_WRITECTRL_WDOUBLE_MASK)
@@ -1037,23 +873,20 @@ MSC_RAMFUNC_DEFINITION_END
 
 /***************************************************************************//**
  * @brief
- *   An internal flash write function with the select write strategy parameter.
+ *   An internal flash write function.
  * @param[in] address
  *   A write address.
  * @param[in] data
  *   A pointer to the first data word to load.
  * @param[in] numBytes
  *   A nsumber of data bytes to load, which must be a multiple of 4 bytes.
- * @param[in] writeStrategy
- *  A wWrite strategy to apply.
  * @return
  *   Returns the status of the data load operation.
  ******************************************************************************/
 MSC_RAMFUNC_DEFINITION_BEGIN
 MSC_Status_TypeDef MSC_WriteWordI(uint32_t *address,
                                   void const *data,
-                                  uint32_t numBytes,
-                                  MSC_WriteStrategy_Typedef writeStrategy)
+                                  uint32_t numBytes)
 {
   uint32_t wordCount;
   uint32_t numWords;
@@ -1071,7 +904,7 @@ MSC_Status_TypeDef MSC_WriteWordI(uint32_t *address,
   /* Check a number of bytes. Must be divisible by four. */
   EFM_ASSERT((numBytes & 0x3) == 0);
 
-#if defined(_EMU_STATUS_VSCALE_MASK)
+#if defined(_EMU_STATUS_VSCALE_MASK) && defined(_SILICON_LABS_32B_SERIES_1)
   /* VSCALE must be done and flash write requires VSCALE2. */
   EFM_ASSERT(!(EMU->STATUS & _EMU_STATUS_VSCALEBUSY_MASK));
   EFM_ASSERT((EMU->STATUS & _EMU_STATUS_VSCALE_MASK) == EMU_STATUS_VSCALE_VSCALE2);
@@ -1108,7 +941,7 @@ MSC_Status_TypeDef MSC_WriteWordI(uint32_t *address,
       pageWords = numWords - wordCount;
     }
     /* Write the data in the current page. */
-    retval = MSC_LoadWriteData(pData, pageWords, writeStrategy);
+    retval = MSC_LoadWriteData(pData, pageWords);
     if (mscReturnOk != retval) {
       break;
     }
@@ -1127,7 +960,7 @@ MSC_Status_TypeDef MSC_WriteWordI(uint32_t *address,
   if (*address != *pData) {
     retval = MSC_LoadVerifyAddress(address);
     if (mscReturnOk == retval) {
-      retval = MSC_LoadWriteData(pData, 1, writeStrategy);
+      retval = MSC_LoadWriteData(pData, 1);
     }
   }
 #endif
@@ -1185,7 +1018,7 @@ MSC_Status_TypeDef MSC_ErasePage(uint32_t *startAddress)
 
   /* An address must be aligned to pages. */
   EFM_ASSERT((((uint32_t) startAddress) & (FLASH_PAGE_SIZE - 1)) == 0);
-#if defined(_EMU_STATUS_VSCALE_MASK)
+#if defined(_EMU_STATUS_VSCALE_MASK) && defined(_SILICON_LABS_32B_SERIES_1)
   /* VSCALE must be done and flash erase requires VSCALE2. */
   EFM_ASSERT(!(EMU->STATUS & _EMU_STATUS_VSCALEBUSY_MASK));
   EFM_ASSERT((EMU->STATUS & _EMU_STATUS_VSCALE_MASK) == EMU_STATUS_VSCALE_VSCALE2);
@@ -1281,12 +1114,10 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
                                  void const *data,
                                  uint32_t numBytes)
 {
-  return MSC_WriteWordI(address, data, numBytes, mscWriteIntSafe);
+  return MSC_WriteWordI(address, data, numBytes);
 }
 MSC_RAMFUNC_DEFINITION_END
 
-#if !defined(_EFM32_GECKO_FAMILY)
-#if !defined (EM_MSC_RUN_FROM_FLASH) || (_SILICON_LABS_GECKO_INTERNAL_SDID < 84)
 /***************************************************************************//**
  * @brief
  *   Writes data to flash memory. This function is faster than MSC_WriteWord(),
@@ -1303,6 +1134,10 @@ MSC_RAMFUNC_DEFINITION_END
  *   this is done automatically by using attributes in the function proctype.
  *   For Keil uVision IDE, define a section called "ram_code" and place this manually
  *   in the project's scatter file.
+ *
+ * @deprecated
+ *   This function is deprecated, the functionality is the same as calling
+ *   @ref MSC_WriteWord().
  *
  * @param[in] address
  *   A pointer to the flash word to write to. Must be aligned to words.
@@ -1326,11 +1161,9 @@ MSC_Status_TypeDef MSC_WriteWordFast(uint32_t *address,
                                      void const *data,
                                      uint32_t numBytes)
 {
-  return MSC_WriteWordI(address, data, numBytes, mscWriteFast);
+  return MSC_WriteWord(address, data, numBytes);
 }
 MSC_RAMFUNC_DEFINITION_END
-#endif // !defined (EM_MSC_RUN_FROM_FLASH) || (_SILICON_LABS_GECKO_INTERNAL_SDID < 84)
-#endif // !defined(_EFM32_GECKO_FAMILY)
 
 #if defined(_MSC_MASSLOCK_MASK)
 /***************************************************************************//**
@@ -1343,7 +1176,7 @@ MSC_RAMFUNC_DEFINITION_END
  *   lost. The lock bit, MLW will prevent this operation from executing and
  *   might prevent a successful mass erase.
  ******************************************************************************/
-MSC_RAMFUNC_DEFINITION_BEGIN
+SL_RAMFUNC_DEFINITION_BEGIN
 MSC_Status_TypeDef MSC_MassErase(void)
 {
   bool wasLocked;
@@ -1385,7 +1218,7 @@ MSC_Status_TypeDef MSC_MassErase(void)
   /* This will only successfully return if calling function is also in SRAM. */
   return mscReturnOk;
 }
-MSC_RAMFUNC_DEFINITION_END
+SL_RAMFUNC_DEFINITION_END
 #endif  // defined(_MSC_MASSLOCK_MASK)
 
 #endif // defined(_SILICON_LABS_32B_SERIES_2)
@@ -1495,6 +1328,14 @@ static void mscEccReadWriteExistingDma(uint32_t start,
     size  -= ECC_DMA_DESC_SIZE;
     descCnt++;
   } while (size);
+
+  /* Make sure descCnt is valid to avoid out-of-bounds access when writing to
+     dmaDesc array. */
+  if ((descCnt < 2) || (descCnt > ECC_DMA_DESCS)) {
+    while (true) {
+      EFM_ASSERT(false);
+    }
+  }
 
   /* Now, divide the descriptor list in two parts, one for each channel,
      by setting the link bit and address 0 of the descriptor in the middle

@@ -8,12 +8,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -87,6 +100,9 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_INVALID_REGISTER = 52,
   RAIL_ASSERT_FAILED_LO_DIV_NULL_STATE = 53,
   RAIL_ASSERT_CACHE_CONFIG_FAILED = 54,
+  RAIL_ASSERT_NULL_TRANSITIONS = 55,
+  RAIL_ASSERT_BAD_LDMA_TRANSFER = 56,
+  RAIL_ASSERT_BUS_ERROR = 57,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -145,6 +161,9 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_INVALID_REGISTER                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_REGISTER)
 #define RAIL_ASSERT_FAILED_LO_DIV_NULL_STATE                   ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_LO_DIV_NULL_STATE)
 #define RAIL_ASSERT_CACHE_CONFIG_FAILED                        ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_CACHE_CONFIG_FAILED)
+#define RAIL_ASSERT_NULL_TRANSITIONS                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_NULL_TRANSITIONS)
+#define RAIL_ASSERT_BAD_LDMA_TRANSFER                          ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_BAD_LDMA_TRANSFER)
+#define RAIL_ASSERT_BUS_ERROR                                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_BUS_ERROR)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -227,6 +246,9 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*52*/ "Attempted to read invalid register",                                       \
     /*53*/ "Can't read register value from NULL state",                                \
     /*54*/ "DMP radio config caching failed",                                          \
+    /*55*/ "NULL was supplied as a RAIL_StateTransitions_t argument",                  \
+    /*56*/ "LDMA transfer failed",                                                     \
+    /*57*/ "Bus fault",                                                                \
 }
 
 /**

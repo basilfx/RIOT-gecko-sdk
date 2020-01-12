@@ -6,12 +6,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -132,7 +145,7 @@ RAIL_ENUM(RAIL_BLE_Coding_t) {
 #define RAIL_BLE_Coding_125kbps_DSA ((RAIL_BLE_Coding_t) RAIL_BLE_Coding_125kbps_DSA)
 #define RAIL_BLE_Coding_500kbps     ((RAIL_BLE_Coding_t) RAIL_BLE_Coding_500kbps)
 #define RAIL_BLE_Coding_500kbps_DSA ((RAIL_BLE_Coding_t) RAIL_BLE_Coding_500kbps_DSA)
-#endif//DOXYGEN_SHOULD_SKIP_THIS
+#endif //DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @enum RAIL_BLE_Phy_t
@@ -155,7 +168,7 @@ RAIL_ENUM(RAIL_BLE_Phy_t) {
 #define RAIL_BLE_2Mbps        ((RAIL_BLE_Phy_t) RAIL_BLE_2Mbps)
 #define RAIL_BLE_Coded125kbps ((RAIL_BLE_Phy_t) RAIL_BLE_Coded125kbps)
 #define RAIL_BLE_Coded500kbps ((RAIL_BLE_Phy_t) RAIL_BLE_Coded500kbps)
-#endif//DOXYGEN_SHOULD_SKIP_THIS
+#endif //DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @struct RAIL_BLE_State_t
@@ -173,10 +186,10 @@ typedef struct RAIL_BLE_State {
 } RAIL_BLE_State_t;
 
 /**
- * Configures RAIL to run in BLE mode.
+ * Configure RAIL to run in BLE mode.
  *
  * @param[in] railHandle A handle for RAIL instance.
- * This function will change your radio, channel configuration, and other
+ * This function changes your radio, channel configuration, and other
  * parameters to match what is needed for BLE. To switch back to a
  * default RAIL mode, call RAIL_BLE_Deinit() first. This function
  * will configure the protocol output on PTI to \ref RAIL_PTI_PROTOCOL_BLE.
@@ -184,12 +197,12 @@ typedef struct RAIL_BLE_State {
 void RAIL_BLE_Init(RAIL_Handle_t railHandle);
 
 /**
- * Takes RAIL out of BLE mode.
+ * Take RAIL out of BLE mode.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * This function will undo some of the configuration that happens when you call
  * RAIL_BLE_Init(). After this you can safely run your normal radio
- * initialization code to use a non-BLE configuration. This function will \b
+ * initialization code to use a non-BLE configuration. This function does \b
  * not change back your radio or channel configurations so you must do this by
  * manually reinitializing. This also resets the protocol output on PTI to \ref
  * RAIL_PTI_PROTOCOL_CUSTOM.
@@ -197,7 +210,7 @@ void RAIL_BLE_Init(RAIL_Handle_t railHandle);
 void RAIL_BLE_Deinit(RAIL_Handle_t railHandle);
 
 /**
- * Determines whether BLE mode is enabled or not.
+ * Determine whether BLE mode is enabled or not.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return True if BLE mode is enabled and false otherwise.
@@ -207,28 +220,28 @@ void RAIL_BLE_Deinit(RAIL_Handle_t railHandle);
 bool RAIL_BLE_IsEnabled(RAIL_Handle_t railHandle);
 
 /**
- * Switches the Viterbi 1 Mbps BLE PHY.
+ * Switch the Viterbi 1 Mbps BLE PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return A status code indicating success of the function call.
  *
- * Use this function to switch back to the defualt BLE 1 Mbps PHY if you
+ * Use this function to switch back to the default BLE 1 Mbps PHY if you
  * have switched to the 2 Mbps or another configuration. You may only call this
  * function after initializing BLE and while the radio is idle.
  *
- * @note The EFR32XG1 family does not support BLE Viterbi PHYs, however calls
+ * @note The EFR32XG1 family does not support BLE Viterbi PHYs. However, calls
  *   to this function from that family will be silently redirected to the legacy
  *   \ref RAIL_BLE_ConfigPhy1Mbps().
  */
 RAIL_Status_t RAIL_BLE_ConfigPhy1MbpsViterbi(RAIL_Handle_t railHandle);
 
 /**
- * Switches the legacy non-Viterbi 1 Mbps BLE PHY.
+ * Switch the legacy non-Viterbi 1 Mbps BLE PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return A status code indicating success of the function call.
  *
- * You can use this function to switch back to the legacy BLE 1 Mbps PHY if you
+ * Use this function to switch back to the legacy BLE 1 Mbps PHY if you
  * have switched to the 2 Mbps or another configuration. You may only call this
  * function after initializing BLE and while the radio is idle.
  *
@@ -237,12 +250,12 @@ RAIL_Status_t RAIL_BLE_ConfigPhy1MbpsViterbi(RAIL_Handle_t railHandle);
 RAIL_Status_t RAIL_BLE_ConfigPhy1Mbps(RAIL_Handle_t railHandle);
 
 /**
- * Switches the Viterbi 2 Mbps BLE PHY.
+ * Switch the Viterbi 2 Mbps BLE PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return A status code indicating success of the function call.
  *
- * You can use this function to switch back to the BLE 2 Mbps PHY from the
+ * Use this function to switch back to the BLE 2 Mbps PHY from the
  * default 1 Mbps option. You may only call this function after initializing BLE
  * and while the radio is idle.
  *
@@ -251,7 +264,7 @@ RAIL_Status_t RAIL_BLE_ConfigPhy1Mbps(RAIL_Handle_t railHandle);
 RAIL_Status_t RAIL_BLE_ConfigPhy2MbpsViterbi(RAIL_Handle_t railHandle);
 
 /**
- * Switches the legacy non-Viterbi 2 Mbps BLE PHY.
+ * Switch the legacy non-Viterbi 2 Mbps BLE PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return A status code indicating success of the function call.
@@ -266,7 +279,7 @@ RAIL_Status_t RAIL_BLE_ConfigPhy2MbpsViterbi(RAIL_Handle_t railHandle);
 RAIL_Status_t RAIL_BLE_ConfigPhy2Mbps(RAIL_Handle_t railHandle);
 
 /**
- * Switches to the BLE Coded PHY.
+ * Switch to the BLE Coded PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @param[in] bleCoding The RAIL_BLE_Coding_t to use
@@ -311,7 +324,7 @@ RAIL_Status_t RAIL_BLE_ConfigChannelRadioParams(RAIL_Handle_t railHandle,
  * Change the current BLE PHY and go into receive
  *
  * @param[in] railHandle A handle for RAIL instance.
- * @param[in] phy Which PHY to receive on
+ * @param[in] phy Indicates which PHY to receive on
  * @param[in] railChannel Which channel of the given PHY to receive on
  * @param[in] startRxTime When to enter RX
  * @param[in] crcInit The value to use for CRC initialization.
@@ -322,7 +335,7 @@ RAIL_Status_t RAIL_BLE_ConfigChannelRadioParams(RAIL_Handle_t railHandle,
  * for sending BLE test mode packets that don't have this turned on.
  * @return A status code indicating success of the function call.
  *
- * This function is used to implement auxillary packet reception, as defined in
+ * This function is used to implement axillary packet reception, as defined in
  * the BLE specification. The radio will be put into IDLE, the PHY and channel
  * will be changed, and then receive will be entered at the start time given.
  * The new receive will have a timeout of 30 us, which means that this function
@@ -370,7 +383,7 @@ RAIL_ENUM_GENERIC(RAIL_BLE_AoxOptions_t, uint16_t) {
 };
 
 /**
- * Sets one of the two AoX sampling/switching modes: 1us or 2us window.
+ * Sets one of the two AoX sampling/switching modes: 1 us or 2 us window.
  */
 #define RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE  (1U << RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE_SHIFT)
 /**
@@ -444,7 +457,7 @@ typedef struct RAIL_BLE_AoxConfig {
 bool RAIL_BLE_LockCteBuffer(RAIL_Handle_t railHandle, bool lock);
 
 /**
- * Determines whether the CTE buffer is currently locked or not.
+ * Determine whether the CTE buffer is currently locked or not.
  *
  * @param[in] railHandle A handle for RAIL instance.
  * @return True if CTE buffer is locked and false otherwise.
@@ -452,15 +465,24 @@ bool RAIL_BLE_LockCteBuffer(RAIL_Handle_t railHandle, bool lock);
 bool RAIL_BLE_CteBufferIsLocked(RAIL_Handle_t railHandle);
 
 /**
- * Configures Angle of Arrival/Departure (AoX) functionality. AoX is a method
+ * Get the effective sample rate used by the ADC to capture the CTE samples.
+ *
+ * @param[in] railHandle A handle for RAIL instance.
+ * @return The actual sample rate used to capture the CTE in samples per second.
+ * On unsupported platforms this returns 0.
+ */
+uint32_t RAIL_BLE_GetCteSampleRate(RAIL_Handle_t railHandle);
+
+/**
+ * Configure Angle of Arrival/Departure (AoX) functionality. AoX is a method
  * of radio localization which infers angle of arrival/departure of the signal
  * based on different phases of the raw I/Q signal from different antennas by
  * controlling external RF switch during the continuous tone extension (CTE).
  * Connection based AoX packets are different than normal BLE packets in that
- * they have 3 header bytes instead of 2, and they have CTE appended after the
+ * they have 3 header bytes instead of 2 and they have CTE appended after the
  * payload's CRC. 3rd byte or CTE info contains CTE length. Connectionless AoX
- * packets have 2 header bytes and CTE info is part of the paylod. AoX is
- * supported on efr32xg12/13/14 only on legacy 1Mbps BLE PHY. Note that
+ * packets have 2 header bytes and CTE info is part of the payload. AoX is
+ * supported on EFR32XG12/13/14 only on legacy 1Mbps BLE PHY. Note that
  * \ref RAIL_TX_OPTION_REMOVE_CRC_SHIFT option in \ref RAIL_TxOptions_t will
  * not work when \ref RAIL_BLE_AOX_OPTIONS_TX_ENABLED is enabled. Also
  * note that calling \ref RAIL_GetRadioEntropy during AoX reception may break

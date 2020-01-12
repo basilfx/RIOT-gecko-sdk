@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief RAM code support.
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -141,8 +140,8 @@ extern "C" {
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
-#elif defined(__GNUC__) && defined(__CROSSWORKS_ARM)
-/* Rowley Crossworks */
+#elif defined(__GNUC__) && (defined(__CROSSWORKS_ARM) || defined(__SES_ARM))
+/* Rowley Crossworks and Segger Embedded Studio */
 #define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".fast")))
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END

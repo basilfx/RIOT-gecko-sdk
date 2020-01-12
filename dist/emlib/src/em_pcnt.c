@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Pulse Counter (PCNT) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>

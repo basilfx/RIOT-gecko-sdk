@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief General purpose utilities.
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -58,7 +57,8 @@ extern "C" {
  * @n
  * @note
  *  The RAIL library provides a generic interface for all Silicon Labs radio features.
- *  RAIL documentation is available from Simplicity Studio.
+ *  RAIL documentation is available from [Simplicity Studio](http://www.silabs.com/simplicity) 
+ *  or at [docs.silabs.com](https://docs.silabs.com/rail/latest/).
  *
  * @{
  ******************************************************************************/

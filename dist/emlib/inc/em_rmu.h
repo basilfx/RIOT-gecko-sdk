@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Reset Management Unit (RMU) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -116,11 +115,11 @@ typedef enum {
 #if defined(_EMU_RSTCTRL_DECBODRMODE_MASK)
   rmuResetDecouple = _EMU_RSTCTRL_DECBODRMODE_MASK,    /**< Decouple monitoring select */
 #endif
-#if defined(_EMU_RSTCTRL_M0SYSRMODE_MASK)
-  rmuResetM0Sys = _EMU_RSTCTRL_M0SYSRMODE_MASK,        /**< M0+ (SE) system reset select */
+#if defined(_EMU_RSTCTRL_SESYSRMODE_MASK)
+  rmuResetSESys = _EMU_RSTCTRL_SESYSRMODE_MASK,        /**< M0+ (SE) system reset select */
 #endif
-#if defined(_EMU_RSTCTRL_M0LOCKUPRMODE_MASK)
-  rmuResetM0Lockup = _EMU_RSTCTRL_M0LOCKUPRMODE_MASK,  /**< M0+ (SE) lockup select */
+#if defined(_EMU_RSTCTRL_SELOCKUPRMODE_MASK)
+  rmuResetSELockup = _EMU_RSTCTRL_SELOCKUPRMODE_MASK,  /**< M0+ (SE) lockup select */
 #endif
 } RMU_Reset_TypeDef;
 

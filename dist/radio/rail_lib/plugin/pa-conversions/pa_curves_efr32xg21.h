@@ -9,12 +9,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -37,7 +50,7 @@ extern "C" {
     { 17, 163, 10581 },                   \
     { 10, 94, 10330 },                    \
     { 6, 58, 8737 },                      \
-    { 4, 40, 7290 } }
+    { 4, 24, 5747 } }
 
 #define RAIL_PA_CURVES_2P4_MP_VBAT_MAX_POWER      100
 #define RAIL_PA_CURVES_2P4_MP_VBAT_MIN_POWER      -260
@@ -49,7 +62,7 @@ extern "C" {
     { 17, 166, 10115 },                   \
     { 10, 97, 9948 },                     \
     { 6, 59, 8440 },                      \
-    { 3, -15, 1499 } }
+    { 3, 21, 5037 } }
 
 #define RAIL_PA_CURVES_2P4_LP_VBAT_MAX_POWER      0
 #define RAIL_PA_CURVES_2P4_LP_VBAT_MIN_POWER      -260
@@ -61,7 +74,7 @@ extern "C" {
     { 64, 1560, 54004 },      \
     { 44, 688, 48701 },       \
     { 23, 242, 31756 },       \
-    { 14, 106, 21683 } }
+    { 12, 65, 17054 } }
 
 // *INDENT-OFF*
 // Macro to declare the variables needed to initialize RAIL_TxPowerCurvesConfig_t for use in

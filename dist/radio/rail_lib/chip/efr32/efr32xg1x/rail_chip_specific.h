@@ -7,12 +7,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -110,28 +123,28 @@ typedef struct RAILSched_Config {
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG1 series.
  */
-#define EFR32XG1_RAIL_STATE_UINT32_BUFFER_SIZE 86
+#define EFR32XG1_RAIL_STATE_UINT32_BUFFER_SIZE 92
 
 /**
  * @def EFR32XG12_RAIL_STATE_UINT32_BUFFER_SIZE
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG12 series.
  */
-#define EFR32XG12_RAIL_STATE_UINT32_BUFFER_SIZE 86
+#define EFR32XG12_RAIL_STATE_UINT32_BUFFER_SIZE 92
 
 /**
  * @def EFR32XG13_RAIL_STATE_UINT32_BUFFER_SIZE
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG13 series.
  */
-#define EFR32XG13_RAIL_STATE_UINT32_BUFFER_SIZE 86
+#define EFR32XG13_RAIL_STATE_UINT32_BUFFER_SIZE 92
 
 /**
  * @def EFR32XG14_RAIL_STATE_UINT32_BUFFER_SIZE
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG14 series.
  */
-#define EFR32XG14_RAIL_STATE_UINT32_BUFFER_SIZE 86
+#define EFR32XG14_RAIL_STATE_UINT32_BUFFER_SIZE 94
 
 #if (_SILICON_LABS_32B_SERIES_1_CONFIG == 1)
 #define RAIL_STATE_UINT32_BUFFER_SIZE EFR32XG1_RAIL_STATE_UINT32_BUFFER_SIZE
@@ -223,12 +236,12 @@ typedef struct RAIL_Config {
  *
  * The temperature-dependent calibrations are used to recalibrate the synth if
  * the temperature crosses 0C or the temperature delta since the last
- * calibration exceeds 70C while in receive. RAIL will run the VCO
- * calibration automatically upon entering receive state, so that the application can
- * omit this calibration if the stack re-enters receive with enough
- * frequency to avoid reaching the temperature delta. If the application does not
- * calibrate for temperature, it's possible to miss receive packets due to
- * a drift in the carrier frequency.
+ * calibration exceeds 70C while in receive. RAIL will run the VCO calibration
+ * automatically upon entering receive or transmit states, so the application
+ * can omit this calibration if the stack re-enters receive or transmit with
+ * enough frequency to avoid reaching the temperature delta. If the application
+ * does not calibrate for temperature, it's possible to miss receive packets due
+ * to a drift in the carrier frequency.
  */
 
 /** EFR32-specific temperature calibration bit */
@@ -252,7 +265,7 @@ typedef struct RAIL_Config {
 #define RAIL_CAL_INVALID_VALUE    (0xFFFFFFFFU)
 
 /**
- * Applies a given image rejection calibration value.
+ * Apply a given image rejection calibration value.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @param[in] imageRejection The image rejection value to apply.
@@ -271,7 +284,7 @@ RAIL_Status_t RAIL_ApplyIrCalibration(RAIL_Handle_t railHandle,
                                       uint32_t imageRejection);
 
 /**
- * Runs the image rejection calibration.
+ * Run the image rejection calibration.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @param[out] imageRejection The result of the image rejection calibration.
@@ -293,7 +306,7 @@ RAIL_Status_t RAIL_CalibrateIr(RAIL_Handle_t railHandle,
                                uint32_t *imageRejection);
 
 /**
- * Calibrates image rejection for IEEE 802.15.4 2.4 GHz
+ * Calibrate image rejection for IEEE 802.15.4 2.4 GHz.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @param[out] imageRejection The result of the image rejection calibration.
@@ -307,7 +320,7 @@ RAIL_Status_t RAIL_IEEE802154_CalibrateIr2p4Ghz(RAIL_Handle_t railHandle,
                                                 uint32_t *imageRejection);
 
 /**
- * Calibrates image rejection for IEEE 802.15.4 915 MHz and 868 MHz
+ * Calibrate image rejection for IEEE 802.15.4 915 MHz and 868 MHz.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @param[out] imageRejection The result of the image rejection calibration.
@@ -321,7 +334,7 @@ RAIL_Status_t RAIL_IEEE802154_CalibrateIrSubGhz(RAIL_Handle_t railHandle,
                                                 uint32_t *imageRejection);
 
 /**
- * Calibrates image rejection for Bluetooth Low Energy
+ * Calibrate image rejection for Bluetooth Low Energy.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @param[out] imageRejection The result of the image rejection calibration.
@@ -335,19 +348,19 @@ RAIL_Status_t RAIL_BLE_CalibrateIr(RAIL_Handle_t railHandle,
                                    uint32_t *imageRejection);
 
 /**
- * Runs the temperature calibration.
+ * Run the temperature calibration.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @return A status code indicating success of the function call.
  *
  * Run the temperature calibration, which needs to recalibrate the synth if
  * the temperature crosses 0C or the temperature delta since the last
- * calibration exceeds 70C while in receive. RAIL will run the VCO
- * calibration automatically upon entering receive state, so that the application can
- * omit this calibration if the stack re-enters receive with enough
- * frequency to avoid reaching the temperature delta. If the application does not
- * calibrate for temperature, it's possible to miss receive packets due to
- * a drift in the carrier frequency.
+ * calibration exceeds 70C while in receive. RAIL will run the VCO calibration
+ * automatically upon entering receive or transmit states, so the application
+ * can omit this calibration if the stack re-enters receive or transmit with
+ * enough frequency to avoid reaching the temperature delta. If the application
+ * does not calibrate for temperature, it's possible to miss receive packets due
+ * to a drift in the carrier frequency.
  *
  * If multiple protocols are used, this function will return
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
@@ -405,7 +418,7 @@ typedef struct RAIL_CalValues {
 typedef int16_t RAIL_FrequencyOffset_t;
 
 /**
- * Specifies an invalid frequency offset value. This will be returned if you
+ * Specify an invalid frequency offset value. This will be returned if you
  * call \ref RAIL_GetRxFreqOffset() at an invalid time.
  */
 #define RAIL_FREQUENCY_OFFSET_INVALID ((int16_t)0xFFFF)
@@ -507,9 +520,13 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  */
 RAIL_ENUM(RAIL_TxPowerMode_t) {
   /** High-power amplifier, up to 20 dBm, raw values: 0-252 */
-  RAIL_TX_POWER_MODE_2P4_HP,
+  RAIL_TX_POWER_MODE_2P4GIG_HP,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_HP */
+  RAIL_TX_POWER_MODE_2P4_HP = RAIL_TX_POWER_MODE_2P4GIG_HP,
   /** Low-power amplifier, up to 0 dBm, raw values: 1-7 */
-  RAIL_TX_POWER_MODE_2P4_LP,
+  RAIL_TX_POWER_MODE_2P4GIG_LP,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_LP */
+  RAIL_TX_POWER_MODE_2P4_LP = RAIL_TX_POWER_MODE_2P4GIG_LP,
   /** SubGig amplifier, up to 20 dBm, raw values: 0-248 */
   RAIL_TX_POWER_MODE_SUBGIG,
   /** Invalid amplifier Selection */
@@ -518,6 +535,8 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
+#define RAIL_TX_POWER_MODE_2P4GIG_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HP)
+#define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
 #define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
 #define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
 #define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
@@ -704,6 +723,14 @@ typedef struct RAIL_AntennaConfig {
 #define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (25U)
 
 /** @} */  // end of group Rx_Channel_Hopping
+
+/// Fixed-width type indicating the needed alignment for RX and TX FIFOs. Note
+/// that docs.silabs.com will incorrectly indicate that this is always a
+/// uint8_t, but it does vary across RAIL platforms.
+#define RAIL_FIFO_ALIGNMENT_TYPE uint8_t
+
+/// Alignment that is needed for the RX and TX FIFOs.
+#define RAIL_FIFO_ALIGNMENT (sizeof(RAIL_FIFO_ALIGNMENT_TYPE))
 
 #ifdef __cplusplus
 }

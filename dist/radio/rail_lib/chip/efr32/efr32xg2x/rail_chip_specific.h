@@ -7,12 +7,25 @@
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is distributed to you in Source Code format and is governed by the
- * sections of the MSLA applicable to Source Code.
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
 
@@ -101,14 +114,14 @@ typedef struct RAILSched_Config {
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG21 series.
  */
-#define EFR32XG21_RAIL_STATE_UINT32_BUFFER_SIZE 98
+#define EFR32XG21_RAIL_STATE_UINT32_BUFFER_SIZE 104
 
 /**
  * @def EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE
  * @brief The size, in 32-bit words, of RAIL_StateBuffer_t to store RAIL
  *   internal state for the EFR32XG22 series.
  */
-#define EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE 98
+#define EFR32XG22_RAIL_STATE_UINT32_BUFFER_SIZE 106
 
 /**
  * @def EFR32XG23_RAIL_STATE_UINT32_BUFFER_SIZE
@@ -205,12 +218,12 @@ typedef struct RAIL_Config {
  *
  * The temperature-dependent calibrations are used to recalibrate the synth if
  * the temperature crosses 0C or the temperature delta since the last
- * calibration exceeds 70C while in receive. RAIL will run the VCO
- * calibration automatically upon entering receive state, so that the application can
- * omit this calibration if the stack re-enters receive with enough
- * frequency to avoid reaching the temperature delta. If the application does not
- * calibrate for temperature, it's possible to miss receive packets due to
- * a drift in the carrier frequency.
+ * calibration exceeds 70C while in receive. RAIL will run the VCO calibration
+ * automatically upon entering receive or transmit states, so the application
+ * can omit this calibration if the stack re-enters receive or transmit with
+ * enough frequency to avoid reaching the temperature delta. If the application
+ * does not calibrate for temperature, it's possible to miss receive packets due
+ * to a drift in the carrier frequency.
  */
 
 /** EFR32-specific temperature calibration bit */
@@ -324,12 +337,12 @@ RAIL_Status_t RAIL_BLE_CalibrateIr(RAIL_Handle_t railHandle,
  *
  * Run the temperature calibration, which needs to recalibrate the synth if
  * the temperature crosses 0C or the temperature delta since the last
- * calibration exceeds 70C while in receive. RAIL will run the VCO
- * calibration automatically upon entering receive state, so that the application can
- * omit this calibration if the stack re-enters receive with enough
- * frequency to avoid reaching the temperature delta. If the application does not
- * calibrate for temperature, it's possible to miss receive packets due to
- * a drift in the carrier frequency.
+ * calibration exceeds 70C while in receive. RAIL will run the VCO calibration
+ * automatically upon entering receive or transmit states, so the application
+ * can omit this calibration if the stack re-enters receive or transmit with
+ * enough frequency to avoid reaching the temperature delta. If the application
+ * does not calibrate for temperature, it's possible to miss receive packets due
+ * to a drift in the carrier frequency.
  *
  * If multiple protocols are used, this function will return
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
@@ -463,7 +476,7 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
-#define RAIL_TX_POWER_LEVEL_LP_MAX     (32U)
+#define RAIL_TX_POWER_LEVEL_LP_MAX     (16U)
 #endif
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
@@ -513,25 +526,33 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
   /**
    *  High-power 2.4GHz amplifier
    *  EFR32XG21: up to 20 dBm, raw values: 1-180
-   *  EFR32XG22: up to 6 dBm, raw values: 1-15
+   *  EFR32XG22: up to 6 dBm, raw values: 1-128
    */
-  RAIL_TX_POWER_MODE_2P4_HP,
+  RAIL_TX_POWER_MODE_2P4GIG_HP,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_HP */
+  RAIL_TX_POWER_MODE_2P4_HP = RAIL_TX_POWER_MODE_2P4GIG_HP,
 #if _SILICON_LABS_32B_SERIES_2_CONFIG != 2
   /**
    *  Mid-power 2.4GHz amplifier
    *  EFR32XG21: up to 10 dBm, raw values: 1-90
    *  EFR32XG22: N/A
    */
-  RAIL_TX_POWER_MODE_2P4_MP,
+  RAIL_TX_POWER_MODE_2P4GIG_MP,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_MP */
+  RAIL_TX_POWER_MODE_2P4_MP = RAIL_TX_POWER_MODE_2P4GIG_MP,
 #endif
   /**
    *  Low-power 2.4GHz amplifier
    *  EFR32XG21: up to 0 dBm, raw values: 1-64
-   *  EFR32XG22: up to 0 dBm, raw values: 1-8
+   *  EFR32XG22: up to 0 dBm, raw values: 1-16
    */
-  RAIL_TX_POWER_MODE_2P4_LP,
+  RAIL_TX_POWER_MODE_2P4GIG_LP,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_LP */
+  RAIL_TX_POWER_MODE_2P4_LP = RAIL_TX_POWER_MODE_2P4GIG_LP,
   /** Select the highest power PA available on the current chip. */
-  RAIL_TX_POWER_MODE_2P4_HIGHEST,
+  RAIL_TX_POWER_MODE_2P4GIG_HIGHEST,
+  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_HIGHEST */
+  RAIL_TX_POWER_MODE_2P4_HIGHEST = RAIL_TX_POWER_MODE_2P4GIG_HIGHEST,
 #if RAIL_FEAT_SUBGIG_RADIO
   /** High-power amplifier, up to 20 dBm, raw values: 0-180 */
   RAIL_TX_POWER_MODE_SUBGIG_HP,
@@ -548,9 +569,14 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
+#define RAIL_TX_POWER_MODE_2P4GIG_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HP)
+#define RAIL_TX_POWER_MODE_2P4GIG_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_MP)
+#define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
+#define RAIL_TX_POWER_MODE_2P4GIG_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HIGHEST)
 #define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
 #define RAIL_TX_POWER_MODE_2P4_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_MP)
 #define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
+#define RAIL_TX_POWER_MODE_2P4_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HIGHEST)
 #if RAIL_FEAT_SUBGIG_RADIO
 #define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
 #endif
@@ -751,6 +777,18 @@ typedef struct RAIL_AntennaConfig {
 #define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (23U)
 
 /** @} */  // end of group Rx_Channel_Hopping
+
+/// Fixed-width type indicating the needed alignment for RX and TX FIFOs. Note
+/// that docs.silabs.com will incorrectly indicate that this is always a
+/// uint8_t, but it does vary across RAIL platforms.
+#if _SILICON_LABS_32B_SERIES_2_CONFIG >= 2
+#define RAIL_FIFO_ALIGNMENT_TYPE uint32_t
+#else
+#define RAIL_FIFO_ALIGNMENT_TYPE uint8_t
+#endif
+
+/// Alignment that is needed for the RX and TX FIFOs.
+#define RAIL_FIFO_ALIGNMENT (sizeof(RAIL_FIFO_ALIGNMENT_TYPE))
 
 #ifdef __cplusplus
 }

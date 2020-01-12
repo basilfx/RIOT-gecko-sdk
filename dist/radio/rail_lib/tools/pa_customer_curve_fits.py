@@ -20,12 +20,25 @@
 #  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
 #  *****************************************************************************
 #  *
-#  * The licensor of this software is Silicon Laboratories Inc. Your use of this
-#  * software is governed by the terms of Silicon Labs Master Software License
-#  * Agreement (MSLA) available at
-#  * www.silabs.com/about-us/legal/master-software-license-agreement. This
-#  * software is distributed to you in Source Code format and is governed by the
-#  * sections of the MSLA applicable to Source Code.
+#  * SPDX-License-Identifier: Zlib
+#  *
+#  * The licensor of this software is Silicon Laboratories Inc.
+#  *
+#  * This software is provided 'as-is', without any express or implied
+#  * warranty. In no event will the authors be held liable for any damages
+#  * arising from the use of this software.
+#  *
+#  * Permission is granted to anyone to use this software for any purpose,
+#  * including commercial applications, and to alter it and redistribute it
+#  * freely, subject to the following restrictions:
+#  *
+#  * 1. The origin of this software must not be misrepresented; you must not
+#  *    claim that you wrote the original software. If you use this software
+#  *    in a product, an acknowledgment in the product documentation would be
+#  *    appreciated but is not required.
+#  * 2. Altered source versions must be plainly marked as such, and must not be
+#  *    misrepresented as being the original software.
+#  * 3. This notice may not be removed or altered from any source distribution.
 #  *
 #  ****************************************************************************/
 
@@ -181,12 +194,20 @@ class CurveSegment():
 def CalcPowerPolys(yAxisValues, powers, increment):
   polylist = []
   pwr = API_MAX_POWER
-  for x in range(0, 8):
-    minYAxisValue, maxYAxisValue, polycoeff = FitAndPlotPower(powers, yAxisValues, pwr - increment, pwr)
+  numberOfSegments = 8
+  for x in range(0, numberOfSegments):
+    lowerBound = pwr - increment
+    if x == (numberOfSegments - 1):
+      # Large negative number, want to avoid float('-inf') due to arithmetic in
+      # FitAndPlotPower
+      lowerBound = -99999
+    minYAxisValue, maxYAxisValue, polycoeff = FitAndPlotPower(powers, yAxisValues, lowerBound, pwr)
+
     pwr -= increment
     polylist.append(int(minYAxisValue))
     polylist.append(int(maxYAxisValue))
     polylist.append(polycoeff)
+
     if pwr < API_MIN_POWER:
       break
   # Uncomment the following line to see a mapping from dBm to power levels visual inspection

@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Incremental Analog to Digital Converter (IADC) peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -81,427 +80,428 @@ typedef enum {
 /** IADC negative input selection. */
 typedef enum {
   /** Ground  */
-  iadcNegInputGnd     = _IADC_SCAN_PORTNEG_GND << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT),
+  iadcNegInputGnd     = (_IADC_SCAN_PORTNEG_GND << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT))
+                        | 1,
 
-    /** Negative reference pin 0  */
-    iadcNegInputNegRef  = _IADC_SCAN_PORTNEG_PADREFNEG << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT),
+  /** Negative reference pin 0  */
+  iadcNegInputNegRef  = (_IADC_SCAN_PORTNEG_PADREFNEG << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
 
-    /** GPIO port A pin 0 */
-    iadcNegInputPortAPin0  = _IADC_SCAN_PORTNEG_PORTA << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT),
+  /** GPIO port A pin 0 */
+  iadcNegInputPortAPin0  = (_IADC_SCAN_PORTNEG_PORTA << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
 
-    /** GPIO port A pin 1 */
-    iadcNegInputPortAPin1,
+  /** GPIO port A pin 1 */
+  iadcNegInputPortAPin1,
 
-    /** GPIO port A pin 2 */
-    iadcNegInputPortAPin2,
+  /** GPIO port A pin 2 */
+  iadcNegInputPortAPin2,
 
-    /** GPIO port A pin 3 */
-    iadcNegInputPortAPin3,
+  /** GPIO port A pin 3 */
+  iadcNegInputPortAPin3,
 
-    /** GPIO port A pin 4 */
-    iadcNegInputPortAPin4,
+  /** GPIO port A pin 4 */
+  iadcNegInputPortAPin4,
 
-    /** GPIO port A pin 5 */
-    iadcNegInputPortAPin5,
+  /** GPIO port A pin 5 */
+  iadcNegInputPortAPin5,
 
-    /** GPIO port A pin 6 */
-    iadcNegInputPortAPin6,
+  /** GPIO port A pin 6 */
+  iadcNegInputPortAPin6,
 
-    /** GPIO port A pin 7 */
-    iadcNegInputPortAPin7,
+  /** GPIO port A pin 7 */
+  iadcNegInputPortAPin7,
 
-    /** GPIO port A pin 8 */
-    iadcNegInputPortAPin8,
+  /** GPIO port A pin 8 */
+  iadcNegInputPortAPin8,
 
-    /** GPIO port A pin 9 */
-    iadcNegInputPortAPin9,
+  /** GPIO port A pin 9 */
+  iadcNegInputPortAPin9,
 
-    /** GPIO port A pin 10 */
-    iadcNegInputPortAPin10,
+  /** GPIO port A pin 10 */
+  iadcNegInputPortAPin10,
 
-    /** GPIO port A pin 11 */
-    iadcNegInputPortAPin11,
+  /** GPIO port A pin 11 */
+  iadcNegInputPortAPin11,
 
-    /** GPIO port A pin 12 */
-    iadcNegInputPortAPin12,
+  /** GPIO port A pin 12 */
+  iadcNegInputPortAPin12,
 
-    /** GPIO port A pin 13 */
-    iadcNegInputPortAPin13,
+  /** GPIO port A pin 13 */
+  iadcNegInputPortAPin13,
 
-    /** GPIO port A pin 14 */
-    iadcNegInputPortAPin14,
+  /** GPIO port A pin 14 */
+  iadcNegInputPortAPin14,
 
-    /** GPIO port A pin 15 */
-    iadcNegInputPortAPin15,
+  /** GPIO port A pin 15 */
+  iadcNegInputPortAPin15,
 
-    /** GPIO port B pin 0 */
-    iadcNegInputPortBPin0,
+  /** GPIO port B pin 0 */
+  iadcNegInputPortBPin0,
 
-    /** GPIO port B pin 1 */
-    iadcNegInputPortBPin1,
+  /** GPIO port B pin 1 */
+  iadcNegInputPortBPin1,
 
-    /** GPIO port B pin 2 */
-    iadcNegInputPortBPin2,
+  /** GPIO port B pin 2 */
+  iadcNegInputPortBPin2,
 
-    /** GPIO port B pin 3 */
-    iadcNegInputPortBPin3,
+  /** GPIO port B pin 3 */
+  iadcNegInputPortBPin3,
 
-    /** GPIO port B pin 4 */
-    iadcNegInputPortBPin4,
+  /** GPIO port B pin 4 */
+  iadcNegInputPortBPin4,
 
-    /** GPIO port B pin 5 */
-    iadcNegInputPortBPin5,
+  /** GPIO port B pin 5 */
+  iadcNegInputPortBPin5,
 
-    /** GPIO port B pin 6 */
-    iadcNegInputPortBPin6,
+  /** GPIO port B pin 6 */
+  iadcNegInputPortBPin6,
 
-    /** GPIO port B pin 7 */
-    iadcNegInputPortBPin7,
+  /** GPIO port B pin 7 */
+  iadcNegInputPortBPin7,
 
-    /** GPIO port B pin 8 */
-    iadcNegInputPortBPin8,
+  /** GPIO port B pin 8 */
+  iadcNegInputPortBPin8,
 
-    /** GPIO port B pin 9 */
-    iadcNegInputPortBPin9,
+  /** GPIO port B pin 9 */
+  iadcNegInputPortBPin9,
 
-    /** GPIO port B pin 10 */
-    iadcNegInputPortBPin10,
+  /** GPIO port B pin 10 */
+  iadcNegInputPortBPin10,
 
-    /** GPIO port B pin 11 */
-    iadcNegInputPortBPin11,
+  /** GPIO port B pin 11 */
+  iadcNegInputPortBPin11,
 
-    /** GPIO port B pin 12 */
-    iadcNegInputPortBPin12,
+  /** GPIO port B pin 12 */
+  iadcNegInputPortBPin12,
 
-    /** GPIO port B pin 13 */
-    iadcNegInputPortBPin13,
+  /** GPIO port B pin 13 */
+  iadcNegInputPortBPin13,
 
-    /** GPIO port B pin 14 */
-    iadcNegInputPortBPin14,
+  /** GPIO port B pin 14 */
+  iadcNegInputPortBPin14,
 
-    /** GPIO port B pin 15 */
-    iadcNegInputPortBPin15,
+  /** GPIO port B pin 15 */
+  iadcNegInputPortBPin15,
 
-    /** GPIO port C pin 0 */
-    iadcNegInputPortCPin0,
+  /** GPIO port C pin 0 */
+  iadcNegInputPortCPin0,
 
-    /** GPIO port C pin 1 */
-    iadcNegInputPortCPin1,
+  /** GPIO port C pin 1 */
+  iadcNegInputPortCPin1,
 
-    /** GPIO port C pin 2 */
-    iadcNegInputPortCPin2,
+  /** GPIO port C pin 2 */
+  iadcNegInputPortCPin2,
 
-    /** GPIO port C pin 3 */
-    iadcNegInputPortCPin3,
+  /** GPIO port C pin 3 */
+  iadcNegInputPortCPin3,
 
-    /** GPIO port C pin 4 */
-    iadcNegInputPortCPin4,
+  /** GPIO port C pin 4 */
+  iadcNegInputPortCPin4,
 
-    /** GPIO port C pin 5 */
-    iadcNegInputPortCPin5,
+  /** GPIO port C pin 5 */
+  iadcNegInputPortCPin5,
 
-    /** GPIO port C pin 6 */
-    iadcNegInputPortCPin6,
+  /** GPIO port C pin 6 */
+  iadcNegInputPortCPin6,
 
-    /** GPIO port C pin 7 */
-    iadcNegInputPortCPin7,
+  /** GPIO port C pin 7 */
+  iadcNegInputPortCPin7,
 
-    /** GPIO port C pin 8 */
-    iadcNegInputPortCPin8,
+  /** GPIO port C pin 8 */
+  iadcNegInputPortCPin8,
 
-    /** GPIO port C pin 9 */
-    iadcNegInputPortCPin9,
+  /** GPIO port C pin 9 */
+  iadcNegInputPortCPin9,
 
-    /** GPIO port C pin 10 */
-    iadcNegInputPortCPin10,
+  /** GPIO port C pin 10 */
+  iadcNegInputPortCPin10,
 
-    /** GPIO port C pin 11 */
-    iadcNegInputPortCPin11,
+  /** GPIO port C pin 11 */
+  iadcNegInputPortCPin11,
 
-    /** GPIO port C pin 12 */
-    iadcNegInputPortCPin12,
+  /** GPIO port C pin 12 */
+  iadcNegInputPortCPin12,
 
-    /** GPIO port C pin 13 */
-    iadcNegInputPortCPin13,
+  /** GPIO port C pin 13 */
+  iadcNegInputPortCPin13,
 
-    /** GPIO port C pin 14 */
-    iadcNegInputPortCPin14,
+  /** GPIO port C pin 14 */
+  iadcNegInputPortCPin14,
 
-    /** GPIO port C pin 15 */
-    iadcNegInputPortCPin15,
+  /** GPIO port C pin 15 */
+  iadcNegInputPortCPin15,
 
-    /** GPIO port D pin 0 */
-    iadcNegInputPortDPin0,
+  /** GPIO port D pin 0 */
+  iadcNegInputPortDPin0,
 
-    /** GPIO port D pin 1 */
-    iadcNegInputPortDPin1,
+  /** GPIO port D pin 1 */
+  iadcNegInputPortDPin1,
 
-    /** GPIO port D pin 2 */
-    iadcNegInputPortDPin2,
+  /** GPIO port D pin 2 */
+  iadcNegInputPortDPin2,
 
-    /** GPIO port D pin 3 */
-    iadcNegInputPortDPin3,
+  /** GPIO port D pin 3 */
+  iadcNegInputPortDPin3,
 
-    /** GPIO port D pin 4 */
-    iadcNegInputPortDPin4,
+  /** GPIO port D pin 4 */
+  iadcNegInputPortDPin4,
 
-    /** GPIO port D pin 5 */
-    iadcNegInputPortDPin5,
+  /** GPIO port D pin 5 */
+  iadcNegInputPortDPin5,
 
-    /** GPIO port D pin 6 */
-    iadcNegInputPortDPin6,
+  /** GPIO port D pin 6 */
+  iadcNegInputPortDPin6,
 
-    /** GPIO port D pin 7 */
-    iadcNegInputPortDPin7,
+  /** GPIO port D pin 7 */
+  iadcNegInputPortDPin7,
 
-    /** GPIO port D pin 8 */
-    iadcNegInputPortDPin8,
+  /** GPIO port D pin 8 */
+  iadcNegInputPortDPin8,
 
-    /** GPIO port D pin 9 */
-    iadcNegInputPortDPin9,
+  /** GPIO port D pin 9 */
+  iadcNegInputPortDPin9,
 
-    /** GPIO port D pin 10 */
-    iadcNegInputPortDPin10,
+  /** GPIO port D pin 10 */
+  iadcNegInputPortDPin10,
 
-    /** GPIO port D pin 11 */
-    iadcNegInputPortDPin11,
+  /** GPIO port D pin 11 */
+  iadcNegInputPortDPin11,
 
-    /** GPIO port D pin 12 */
-    iadcNegInputPortDPin12,
+  /** GPIO port D pin 12 */
+  iadcNegInputPortDPin12,
 
-    /** GPIO port D pin 13 */
-    iadcNegInputPortDPin13,
+  /** GPIO port D pin 13 */
+  iadcNegInputPortDPin13,
 
-    /** GPIO port D pin 14 */
-    iadcNegInputPortDPin14,
+  /** GPIO port D pin 14 */
+  iadcNegInputPortDPin14,
 
-    /** GPIO port D pin 15 */
-    iadcNegInputPortDPin15
+  /** GPIO port D pin 15 */
+  iadcNegInputPortDPin15
 } IADC_NegInput_t;
 
 /** IADC positive port selection. */
 typedef enum {
   /** Ground  */
-  iadcPosInputGnd     = _IADC_SCAN_PORTPOS_GND << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT),
+  iadcPosInputGnd     = (_IADC_SCAN_PORTPOS_GND << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
 
-    /** Avdd  */
-    iadcPosInputAvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Avdd  */
+  iadcPosInputAvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 0,
 
-    /** Vddio  */
-    iadcPosInputVddio   = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Vddio  */
+  iadcPosInputVddio   = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 1,
 
-    /** Vss  */
-    iadcPosInputVss     = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Vss  */
+  iadcPosInputVss     = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 2,
 
-    /** Dvdd  */
-    iadcPosInputDvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Dvdd  */
+  iadcPosInputDvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 4,
 
-    /** Vddx  */
-    iadcPosInputVddx    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Vddx  */
+  iadcPosInputVddx    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 5,
 
-    /** Vddlv  */
-    iadcPosInputVddlv   = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+  /** Vddlv  */
+  iadcPosInputVddlv   = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
                         | 7,
 
-    /** Positive reference pin 0  */
-    iadcPosInputPosRef  = _IADC_SCAN_PORTPOS_PADREFPOS << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT),
+  /** Positive reference pin 0  */
+  iadcPosInputPosRef  = (_IADC_SCAN_PORTPOS_PADREFPOS << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
 
-    /** GPIO port A pin 0 */
-    iadcPosInputPortAPin0  = _IADC_SCAN_PORTPOS_PORTA << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT),
+  /** GPIO port A pin 0 */
+  iadcPosInputPortAPin0  = (_IADC_SCAN_PORTPOS_PORTA << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
 
-    /** GPIO port A pin 1 */
-    iadcPosInputPortAPin1,
+  /** GPIO port A pin 1 */
+  iadcPosInputPortAPin1,
 
-    /** GPIO port A pin 2 */
-    iadcPosInputPortAPin2,
+  /** GPIO port A pin 2 */
+  iadcPosInputPortAPin2,
 
-    /** GPIO port A pin 3 */
-    iadcPosInputPortAPin3,
+  /** GPIO port A pin 3 */
+  iadcPosInputPortAPin3,
 
-    /** GPIO port A pin 4 */
-    iadcPosInputPortAPin4,
+  /** GPIO port A pin 4 */
+  iadcPosInputPortAPin4,
 
-    /** GPIO port A pin 5 */
-    iadcPosInputPortAPin5,
+  /** GPIO port A pin 5 */
+  iadcPosInputPortAPin5,
 
-    /** GPIO port A pin 6 */
-    iadcPosInputPortAPin6,
+  /** GPIO port A pin 6 */
+  iadcPosInputPortAPin6,
 
-    /** GPIO port A pin 7 */
-    iadcPosInputPortAPin7,
+  /** GPIO port A pin 7 */
+  iadcPosInputPortAPin7,
 
-    /** GPIO port A pin 8 */
-    iadcPosInputPortAPin8,
+  /** GPIO port A pin 8 */
+  iadcPosInputPortAPin8,
 
-    /** GPIO port A pin 9 */
-    iadcPosInputPortAPin9,
+  /** GPIO port A pin 9 */
+  iadcPosInputPortAPin9,
 
-    /** GPIO port A pin 10 */
-    iadcPosInputPortAPin10,
+  /** GPIO port A pin 10 */
+  iadcPosInputPortAPin10,
 
-    /** GPIO port A pin 11 */
-    iadcPosInputPortAPin11,
+  /** GPIO port A pin 11 */
+  iadcPosInputPortAPin11,
 
-    /** GPIO port A pin 12 */
-    iadcPosInputPortAPin12,
+  /** GPIO port A pin 12 */
+  iadcPosInputPortAPin12,
 
-    /** GPIO port A pin 13 */
-    iadcPosInputPortAPin13,
+  /** GPIO port A pin 13 */
+  iadcPosInputPortAPin13,
 
-    /** GPIO port A pin 14 */
-    iadcPosInputPortAPin14,
+  /** GPIO port A pin 14 */
+  iadcPosInputPortAPin14,
 
-    /** GPIO port A pin 15 */
-    iadcPosInputPortAPin15,
+  /** GPIO port A pin 15 */
+  iadcPosInputPortAPin15,
 
-    /** GPIO port B pin 0 */
-    iadcPosInputPortBPin0,
+  /** GPIO port B pin 0 */
+  iadcPosInputPortBPin0,
 
-    /** GPIO port B pin 1 */
-    iadcPosInputPortBPin1,
+  /** GPIO port B pin 1 */
+  iadcPosInputPortBPin1,
 
-    /** GPIO port B pin 2 */
-    iadcPosInputPortBPin2,
+  /** GPIO port B pin 2 */
+  iadcPosInputPortBPin2,
 
-    /** GPIO port B pin 3 */
-    iadcPosInputPortBPin3,
+  /** GPIO port B pin 3 */
+  iadcPosInputPortBPin3,
 
-    /** GPIO port B pin 4 */
-    iadcPosInputPortBPin4,
+  /** GPIO port B pin 4 */
+  iadcPosInputPortBPin4,
 
-    /** GPIO port B pin 5 */
-    iadcPosInputPortBPin5,
+  /** GPIO port B pin 5 */
+  iadcPosInputPortBPin5,
 
-    /** GPIO port B pin 6 */
-    iadcPosInputPortBPin6,
+  /** GPIO port B pin 6 */
+  iadcPosInputPortBPin6,
 
-    /** GPIO port B pin 7 */
-    iadcPosInputPortBPin7,
+  /** GPIO port B pin 7 */
+  iadcPosInputPortBPin7,
 
-    /** GPIO port B pin 8 */
-    iadcPosInputPortBPin8,
+  /** GPIO port B pin 8 */
+  iadcPosInputPortBPin8,
 
-    /** GPIO port B pin 9 */
-    iadcPosInputPortBPin9,
+  /** GPIO port B pin 9 */
+  iadcPosInputPortBPin9,
 
-    /** GPIO port B pin 10 */
-    iadcPosInputPortBPin10,
+  /** GPIO port B pin 10 */
+  iadcPosInputPortBPin10,
 
-    /** GPIO port B pin 11 */
-    iadcPosInputPortBPin11,
+  /** GPIO port B pin 11 */
+  iadcPosInputPortBPin11,
 
-    /** GPIO port B pin 12 */
-    iadcPosInputPortBPin12,
+  /** GPIO port B pin 12 */
+  iadcPosInputPortBPin12,
 
-    /** GPIO port B pin 13 */
-    iadcPosInputPortBPin13,
+  /** GPIO port B pin 13 */
+  iadcPosInputPortBPin13,
 
-    /** GPIO port B pin 14 */
-    iadcPosInputPortBPin14,
+  /** GPIO port B pin 14 */
+  iadcPosInputPortBPin14,
 
-    /** GPIO port B pin 15 */
-    iadcPosInputPortBPin15,
+  /** GPIO port B pin 15 */
+  iadcPosInputPortBPin15,
 
-    /** GPIO port C pin 0 */
-    iadcPosInputPortCPin0,
+  /** GPIO port C pin 0 */
+  iadcPosInputPortCPin0,
 
-    /** GPIO port C pin 1 */
-    iadcPosInputPortCPin1,
+  /** GPIO port C pin 1 */
+  iadcPosInputPortCPin1,
 
-    /** GPIO port C pin 2 */
-    iadcPosInputPortCPin2,
+  /** GPIO port C pin 2 */
+  iadcPosInputPortCPin2,
 
-    /** GPIO port C pin 3 */
-    iadcPosInputPortCPin3,
+  /** GPIO port C pin 3 */
+  iadcPosInputPortCPin3,
 
-    /** GPIO port C pin 4 */
-    iadcPosInputPortCPin4,
+  /** GPIO port C pin 4 */
+  iadcPosInputPortCPin4,
 
-    /** GPIO port C pin 5 */
-    iadcPosInputPortCPin5,
+  /** GPIO port C pin 5 */
+  iadcPosInputPortCPin5,
 
-    /** GPIO port C pin 6 */
-    iadcPosInputPortCPin6,
+  /** GPIO port C pin 6 */
+  iadcPosInputPortCPin6,
 
-    /** GPIO port C pin 7 */
-    iadcPosInputPortCPin7,
+  /** GPIO port C pin 7 */
+  iadcPosInputPortCPin7,
 
-    /** GPIO port C pin 8 */
-    iadcPosInputPortCPin8,
+  /** GPIO port C pin 8 */
+  iadcPosInputPortCPin8,
 
-    /** GPIO port C pin 9 */
-    iadcPosInputPortCPin9,
+  /** GPIO port C pin 9 */
+  iadcPosInputPortCPin9,
 
-    /** GPIO port C pin 10 */
-    iadcPosInputPortCPin10,
+  /** GPIO port C pin 10 */
+  iadcPosInputPortCPin10,
 
-    /** GPIO port C pin 11 */
-    iadcPosInputPortCPin11,
+  /** GPIO port C pin 11 */
+  iadcPosInputPortCPin11,
 
-    /** GPIO port C pin 12 */
-    iadcPosInputPortCPin12,
+  /** GPIO port C pin 12 */
+  iadcPosInputPortCPin12,
 
-    /** GPIO port C pin 13 */
-    iadcPosInputPortCPin13,
+  /** GPIO port C pin 13 */
+  iadcPosInputPortCPin13,
 
-    /** GPIO port C pin 14 */
-    iadcPosInputPortCPin14,
+  /** GPIO port C pin 14 */
+  iadcPosInputPortCPin14,
 
-    /** GPIO port C pin 15 */
-    iadcPosInputPortCPin15,
+  /** GPIO port C pin 15 */
+  iadcPosInputPortCPin15,
 
-    /** GPIO port D pin 0 */
-    iadcPosInputPortDPin0,
+  /** GPIO port D pin 0 */
+  iadcPosInputPortDPin0,
 
-    /** GPIO port D pin 1 */
-    iadcPosInputPortDPin1,
+  /** GPIO port D pin 1 */
+  iadcPosInputPortDPin1,
 
-    /** GPIO port D pin 2 */
-    iadcPosInputPortDPin2,
+  /** GPIO port D pin 2 */
+  iadcPosInputPortDPin2,
 
-    /** GPIO port D pin 3 */
-    iadcPosInputPortDPin3,
+  /** GPIO port D pin 3 */
+  iadcPosInputPortDPin3,
 
-    /** GPIO port D pin 4 */
-    iadcPosInputPortDPin4,
+  /** GPIO port D pin 4 */
+  iadcPosInputPortDPin4,
 
-    /** GPIO port D pin 5 */
-    iadcPosInputPortDPin5,
+  /** GPIO port D pin 5 */
+  iadcPosInputPortDPin5,
 
-    /** GPIO port D pin 6 */
-    iadcPosInputPortDPin6,
+  /** GPIO port D pin 6 */
+  iadcPosInputPortDPin6,
 
-    /** GPIO port D pin 7 */
-    iadcPosInputPortDPin7,
+  /** GPIO port D pin 7 */
+  iadcPosInputPortDPin7,
 
-    /** GPIO port D pin 8 */
-    iadcPosInputPortDPin8,
+  /** GPIO port D pin 8 */
+  iadcPosInputPortDPin8,
 
-    /** GPIO port D pin 9 */
-    iadcPosInputPortDPin9,
+  /** GPIO port D pin 9 */
+  iadcPosInputPortDPin9,
 
-    /** GPIO port D pin 10 */
-    iadcPosInputPortDPin10,
+  /** GPIO port D pin 10 */
+  iadcPosInputPortDPin10,
 
-    /** GPIO port D pin 11 */
-    iadcPosInputPortDPin11,
+  /** GPIO port D pin 11 */
+  iadcPosInputPortDPin11,
 
-    /** GPIO port D pin 12 */
-    iadcPosInputPortDPin12,
+  /** GPIO port D pin 12 */
+  iadcPosInputPortDPin12,
 
-    /** GPIO port D pin 13 */
-    iadcPosInputPortDPin13,
+  /** GPIO port D pin 13 */
+  iadcPosInputPortDPin13,
 
-    /** GPIO port D pin 14 */
-    iadcPosInputPortDPin14,
+  /** GPIO port D pin 14 */
+  iadcPosInputPortDPin14,
 
-    /** GPIO port D pin 15 */
-    iadcPosInputPortDPin15
+  /** GPIO port D pin 15 */
+  iadcPosInputPortDPin15
 } IADC_PosInput_t;
 
 /** IADC Commands. */

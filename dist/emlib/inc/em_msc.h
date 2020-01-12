@@ -1,7 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Flash Controller (MSC) Peripheral API
- * @version 5.8.3
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -73,22 +72,32 @@ extern "C" {
  *       benchmarking is supported by most families. See @ref MSC_StartCacheMeasurement()
  *       and @ref MSC_GetCacheMeasurement() for more details.
  *
- * Support for Flash write and erase runs from RAM by default. This code may be
- * allocated to Flash by defining @ref EM_MSC_RUN_FROM_FLASH.
+ * @note
+ *   The flash write and erase runs from RAM on the EFM32G devices. On all other
+ *   devices the flash write and erase functions run from flash.
  *
  * @note
  *   Flash erase may add ms of delay to interrupt latency if executing from Flash.
  *
  * Flash write and erase operations are supported by @ref MSC_WriteWord(),
- * @ref MSC_WriteWordFast(), @ref MSC_ErasePage(), and @ref MSC_MassErase().
- * Fast write is not supported for EFM32G and mass erase is supported for MCU and
- * SoC families with larger Flash sizes.
+ * @ref MSC_ErasePage(), and @ref MSC_MassErase().
+ * Mass erase is supported for MCU and SoC families with larger Flash sizes.
  *
  * @note
  *  @ref MSC_Init() must be called prior to any Flash write or erase operation.
  *
  *  The following steps are necessary to perform a page erase and write:
  *  @include em_msc_erase_write.c
+ *
+ * @deprecated
+ *   The configuration called EM_MSC_RUN_FROM_FLASH is deprecated. This was
+ *   previously used for allocating the flash write functions in either flash
+ *   or RAM. Flash write functions are now placed in flash on all devices
+ *   except the EFM32G automatically.
+ *
+ * @deprecated
+ *   The function called @ref MSC_WriteWordFast() is deprecated.
+ *
  * @{
  ******************************************************************************/
 
@@ -108,21 +117,17 @@ extern "C" {
  */
 #define MSC_PROGRAM_TIMEOUT    10000000ul
 
-/**
- * @brief
- *    By compiling with define EM_MSC_RUN_FROM_FLASH, functions
- *    performing erase or write operations will remain in and execute from Flash.
- *    This is useful for targets that don't want to allocate RAM space to
- *    hold the flash functions.  Without this define, code for Flash operations
- *    will be copied into RAM at startup.
- *
- * @note
- *    This define is not present by default. The MSC controller API
- *    will run from RAM by default.
- */
-#if defined(DOXY_DOC_ONLY)
-#define EM_MSC_RUN_FROM_FLASH
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+#if defined(_EFM32_GECKO_FAMILY) || defined(_SILICON_LABS_32B_SERIES_2)
+#define MSC_RAMFUNC_DECLARATOR          SL_RAMFUNC_DECLARATOR
+#define MSC_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DEFINITION_BEGIN
+#define MSC_RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END
+#else
+#define MSC_RAMFUNC_DECLARATOR
+#define MSC_RAMFUNC_DEFINITION_BEGIN
+#define MSC_RAMFUNC_DEFINITION_END
 #endif
+/** @endcond */
 
 /*******************************************************************************
  *************************   TYPEDEFS   ****************************************
@@ -523,38 +528,23 @@ void MSC_ExecConfigSet(MSC_ExecConfig_TypeDef *execConfig);
 void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig);
 #endif
 
-#if defined(EM_MSC_RUN_FROM_FLASH)
-/** @brief Expands to @ref SL_RAMFUNC_DECLARATOR if @ref EM_MSC_RUN_FROM_FLASH is undefined and to nothing if @ref EM_MSC_RUN_FROM_FLASH is defined. */
-#define MSC_RAMFUNC_DECLARATOR
-/** @brief Expands to @ref SL_RAMFUNC_DEFINITION_BEGIN if @ref EM_MSC_RUN_FROM_FLASH is undefined and to nothing if @ref EM_MSC_RUN_FROM_FLASH is defined. */
-#define MSC_RAMFUNC_DEFINITION_BEGIN
-/** @brief Expands to @ref SL_RAMFUNC_DEFINITION_END if @ref EM_MSC_RUN_FROM_FLASH is undefined and to nothing if @ref EM_MSC_RUN_FROM_FLASH is defined. */
-#define MSC_RAMFUNC_DEFINITION_END
-#else
-#define MSC_RAMFUNC_DECLARATOR          SL_RAMFUNC_DECLARATOR
-#define MSC_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DEFINITION_BEGIN
-#define MSC_RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END
-#endif
-
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_WriteWord(uint32_t *address,
               void const *data,
               uint32_t numBytes);
 
-#if !defined(_EFM32_GECKO_FAMILY) && !defined(_SILICON_LABS_32B_SERIES_2)
-#if !defined (EM_MSC_RUN_FROM_FLASH) || (_SILICON_LABS_GECKO_INTERNAL_SDID < 84)
+/* Note that this function is deprecated because we no longer support
+ * placing msc code in ram. */
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_WriteWordFast(uint32_t *address,
                   void const *data,
                   uint32_t numBytes);
-#endif
-#endif
 
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_ErasePage(uint32_t *startAddress);
 
-#if defined(_MSC_MASSLOCK_MASK)
-MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
+#if defined(MSC_WRITECMD_ERASEMAIN0)
+SL_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_MassErase(void);
 #endif
 

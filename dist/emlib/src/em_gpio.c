@@ -260,7 +260,8 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
 
 /***************************************************************************//**
  * @brief
- *   Set the mode for a GPIO pin.
+ *   Set the mode for a GPIO pin, with an additional option to prevent changing
+ *   the pin state.
  *
  * @param[in] port
  *   The GPIO port to access.
@@ -274,17 +275,21 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
  * @param[in] out
  *   A value to set for the pin in the DOUT register. The DOUT setting is important for
  *   some input mode configurations to determine the pull-up/down direction.
+ *
+ * @param[in] changeState
+ *   If true, pin state is set or cleared.
  ******************************************************************************/
-void GPIO_PinModeSet(GPIO_Port_TypeDef port,
-                     unsigned int pin,
-                     GPIO_Mode_TypeDef mode,
-                     unsigned int out)
+void GPIO_PinModeSetExt(GPIO_Port_TypeDef port,
+                        unsigned int pin,
+                        GPIO_Mode_TypeDef mode,
+                        unsigned int out,
+                        bool changeState)
 {
   EFM_ASSERT(GPIO_PORT_PIN_VALID(port, pin));
 
   /* If disabling a pin, do not modify DOUT to reduce the chance of */
   /* a glitch/spike (may not be sufficient precaution in all use cases). */
-  if (mode != gpioModeDisabled) {
+  if (changeState && mode != gpioModeDisabled) {
     if (out) {
       GPIO_PinOutSet(port, pin);
     } else {
@@ -302,7 +307,7 @@ void GPIO_PinModeSet(GPIO_Port_TypeDef port,
                           | (mode << ((pin - 8) * 4));
   }
 
-  if (mode == gpioModeDisabled) {
+  if (changeState && mode == gpioModeDisabled) {
     if (out) {
       GPIO_PinOutSet(port, pin);
     } else {
@@ -372,7 +377,7 @@ void GPIO_EM4EnablePinWakeup(uint32_t pinmask, uint32_t polaritymask)
 
 #if defined(_GPIO_CMD_EM4WUCLR_MASK)
   GPIO->CMD = GPIO_CMD_EM4WUCLR;            /* Clear the wake-up logic. */
-#elif defined(_GPIO_IF_EM4WU_MASK)
+#else
   GPIO_IntClear(pinmask);
 #endif
 }

@@ -171,6 +171,29 @@ RAIL_ENUM(RAIL_BLE_Phy_t) {
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
 /**
+ *
+ * The maximum number of GPIO pins used for AoX Antenna switching.
+ *
+ * If the user configures more pins using
+ * \ref RAIL_BLE_ConfigAoxAntenna than allowed
+ * \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT, then
+ * \ref RAIL_STATUS_INVALID_PARAMETER status will be returned.
+ *
+ * \ref RAIL_STATUS_INVALID_CALL is returned if :
+ * \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT is set to 0 or
+ * The user configures no pins.
+ *
+ * The maximum value \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT can take depends on
+ * number of Antenna route pins , a chip provides.
+ * For EFR32XG22, the maximum value of \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT is 6.
+ * If the user configures fewer pins than \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT,
+ * then only number of pins asked by user will be configured with
+ * \ref RAIL_STATUS_NO_ERROR.
+ *
+ */
+#define RAIL_BLE_AOX_ANTENNA_PIN_COUNT (6U)
+
+/**
  * @struct RAIL_BLE_State_t
  * @brief A state structure for BLE.
  *
@@ -368,49 +391,43 @@ RAIL_Status_t RAIL_BLE_PhySwitchToRx(RAIL_Handle_t railHandle,
  * @brief Angle of Arrival/Departure options bit fields
  */
 RAIL_ENUM_GENERIC(RAIL_BLE_AoxOptions_t, uint16_t) {
-  /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_DO_SWITCH bit */
-  RAIL_BLE_AOX_OPTIONS_DO_SWITCH_SHIFT = 0,
-  /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_RX_ENABLED bit */
-  RAIL_BLE_AOX_OPTIONS_RX_ENABLED_SHIFT = 1,
   /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE bit */
-  RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE_SHIFT = 2,
-  /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_TX_ENABLED bit */
-  RAIL_BLE_AOX_OPTIONS_TX_ENABLED_SHIFT = 3,
+  RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE_SHIFT = 0,
   /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_CONNLESS_SHIFT bit */
-  RAIL_BLE_AOX_OPTIONS_CONNLESS_SHIFT = 10,
+  RAIL_BLE_AOX_OPTIONS_CONNLESS_SHIFT = 1,
   /** Shift position of \ref RAIL_BLE_AOX_OPTIONS_CONN_SHIFT bit */
-  RAIL_BLE_AOX_OPTIONS_CONN_SHIFT = 13,
+  RAIL_BLE_AOX_OPTIONS_CONN_SHIFT = 2,
 };
+
+/**
+ * Deprecated AOX options
+ */
+#define RAIL_BLE_AOX_OPTIONS_DO_SWITCH    (0U)
+/**
+ * Deprecated AOX options
+ */
+#define RAIL_BLE_AOX_OPTIONS_TX_ENABLED   (0U)
+/**
+ * Deprecated AOX options
+ */
+#define RAIL_BLE_AOX_OPTIONS_RX_ENABLED   (0U)
 
 /**
  * Sets one of the two AoX sampling/switching modes: 1 us or 2 us window.
  */
 #define RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE  (1U << RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE_SHIFT)
 /**
- * Enables AoX Rx packets. When enabled radio will either receive AoX packet if
- * CTE-present bit in the packet is set or normal packet if this bit isn't set.
- */
-#define RAIL_BLE_AOX_OPTIONS_RX_ENABLED   (1U << RAIL_BLE_AOX_OPTIONS_RX_ENABLED_SHIFT)
-/**
- * Enables antennae switching during CTE. If disabled antenna 0 will be active.
- * If enabled antennae will switch from 0 to N, wrapping back to 0.
- */
-#define RAIL_BLE_AOX_OPTIONS_DO_SWITCH    (1U << RAIL_BLE_AOX_OPTIONS_DO_SWITCH_SHIFT)
-/**
- * Enables AoX Tx packets. When set radio will transmit AoX packet, to
- * transmit normal (non-AoX) packet clear this bitfield.
- */
-#define RAIL_BLE_AOX_OPTIONS_TX_ENABLED   (1U << RAIL_BLE_AOX_OPTIONS_TX_ENABLED_SHIFT)
-/**
- * Enables connectionless AoX Rx packets. This requires \ref
- * RAIL_BLE_AOX_OPTIONS_RX_ENABLED to be set.
+ * Enables connectionless AoX Rx packets.
  */
 #define RAIL_BLE_AOX_OPTIONS_CONNLESS     (1U << RAIL_BLE_AOX_OPTIONS_CONNLESS_SHIFT)
 /**
- * Enables connection based AoX Rx packets. This requires \ref
- * RAIL_BLE_AOX_OPTIONS_RX_ENABLED to be set.
+ * Enables connection based AoX Rx packets.
  */
 #define RAIL_BLE_AOX_OPTIONS_CONN         (1U << RAIL_BLE_AOX_OPTIONS_CONN_SHIFT)
+/**
+ * Enables connection based or connectionless AoX Rx packets.
+ */
+#define RAIL_BLE_AOX_OPTIONS_ENABLED      (RAIL_BLE_AOX_OPTIONS_CONN | RAIL_BLE_AOX_OPTIONS_CONNLESS)
 
 /**
  * @struct RAIL_BLE_AoxConfig_t
@@ -441,6 +458,38 @@ typedef struct RAIL_BLE_AoxConfig {
    */
   uint8_t antArraySize;
 } RAIL_BLE_AoxConfig_t;
+
+/**
+ * @struct RAIL_BLE_AoxAntennaPortPins_t
+ * @brief Contains elements of \ref RAIL_BLE_AoxAntennaConfig_t struct.
+ */
+typedef struct RAIL_BLE_AoxAntennaPortPins {
+  /**
+   * The port which is used for AoX antenna switching
+   */
+  uint8_t antPort;
+  /**
+   * The pin which is used for AoX antenna switching
+   */
+  uint8_t antPin;
+} RAIL_BLE_AoxAntennaPortPins_t;
+
+/**
+ * @struct RAIL_BLE_AoxAntennaConfig_t
+ * @brief Contains arguments for \ref RAIL_BLE_ConfigAoxAntenna function for
+ * EFR32XG22.
+ */
+typedef struct RAIL_BLE_AoxAntennaConfig {
+  /**
+   * A pointer to an array containing struct of port and pin used for
+   * AoX antenna switching
+   */
+  RAIL_BLE_AoxAntennaPortPins_t *antPortPin;
+  /**
+   * Number of antenna pins to be configured.
+   */
+  uint8_t antCount;
+} RAIL_BLE_AoxAntennaConfig_t;
 
 /**
  * Locks/unlocks the CTE buffer from the application's perspective. The radio
@@ -482,10 +531,8 @@ uint32_t RAIL_BLE_GetCteSampleRate(RAIL_Handle_t railHandle);
  * they have 3 header bytes instead of 2 and they have CTE appended after the
  * payload's CRC. 3rd byte or CTE info contains CTE length. Connectionless AoX
  * packets have 2 header bytes and CTE info is part of the payload. AoX is
- * supported on EFR32XG12/13/14 only on legacy 1Mbps BLE PHY. Note that
- * \ref RAIL_TX_OPTION_REMOVE_CRC_SHIFT option in \ref RAIL_TxOptions_t will
- * not work when \ref RAIL_BLE_AOX_OPTIONS_TX_ENABLED is enabled. Also
- * note that calling \ref RAIL_GetRadioEntropy during AoX reception may break
+ * supported on EFR32XG12/13/14 only on legacy 1Mbps BLE PHY.
+ * Note that calling \ref RAIL_GetRadioEntropy during AoX reception may break
  * receiving packets.
  *
  * @param[in] railHandle A RAIL instance handle.
@@ -494,6 +541,40 @@ uint32_t RAIL_BLE_GetCteSampleRate(RAIL_Handle_t railHandle);
  */
 RAIL_Status_t RAIL_BLE_ConfigAox(RAIL_Handle_t railHandle,
                                  const RAIL_BLE_AoxConfig_t *aoxConfig);
+/**
+ * Perform one time initialization of AoX registers.
+ * This function must be called before \ref RAIL_BLE_ConfigAox
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return RAIL_Status_t indicating success or failure of the call.
+ */
+RAIL_Status_t RAIL_BLE_InitCte(RAIL_Handle_t railHandle);
+
+/**
+ * Perform initialization of AoX antenna GPIO pins.
+ * This function must be called before \ref RAIL_BLE_ConfigAox and
+ * \ref RAIL_BLE_InitCte, else a \ref RAIL_STATUS_INVALID_CALL is returned.
+ *
+ * If \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT is set to 0 or antCount in
+ * \ref RAIL_BLE_AoxAntennaConfig_t is 0, then \ref RAIL_STATUS_INVALID_CALL is
+ * returned.
+ *
+ * If user configures more pins i.e; antCount in
+ * \ref RAIL_BLE_AoxAntennaConfig_t than allowed
+ * \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT, then the API returns
+ * \ref RAIL_STATUS_INVALID_PARAMETER.
+ *
+ * If user configures lesser than or equal to number of pins allowed by
+ * \ref RAIL_BLE_AOX_ANTENNA_PIN_COUNT, then the requested number of pins
+ * are configured and \ref RAIL_STATUS_NO_ERROR is returned.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] antennaConfig structure to hold the set of ports and pins to
+ * configure Antenna pins for AoX Antenna switching.
+ * @return RAIL_Status_t indicating success or failure of the call.
+ */
+RAIL_Status_t RAIL_BLE_ConfigAoxAntenna(RAIL_Handle_t railHandle,
+                                        RAIL_BLE_AoxAntennaConfig_t *antennaConfig);
 
 /** @} */  // end of group AoX
 

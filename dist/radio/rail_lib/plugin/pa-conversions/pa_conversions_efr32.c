@@ -43,6 +43,12 @@
 
 static RAIL_TxPowerCurvesConfigAlt_t powerCurvesState;
 
+#if defined(_SILICON_LABS_32B_SERIES_1) || defined(_SILICON_LAS_32B_SERIES_2_CONFIG_1)
+  #define PA_CONVERSION_MINIMUM_PWRLVL 1
+#else
+  #define PA_CONVERSION_MINIMUM_PWRLVL 0
+#endif
+
 // This macro is defined when Silicon Labs builds this into the library as WEAK
 // to ensure it can be overriden by customer versions of these functions. It
 // should *not* be defined in a customer build.
@@ -157,6 +163,7 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
 {
   uint32_t powerLevel;
   int16_t powerIndex;
+  uint32_t minPowerLevel;
 
   (void)railHandle;
   // This function is called internally from the RAIL library,
@@ -181,17 +188,18 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
   }
 
   RAIL_PaDescriptor_t const *modeInfo = &powerCurvesState.curves[mode];
+  minPowerLevel = SL_MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
 
   // If we're in low power mode, just use the simple lookup table
   if (modeInfo->algorithm == RAIL_PA_ALGORITHM_MAPPING_TABLE) {
     // Loop through the lookup table to find the closest power level
     // without going over.
-    for (powerIndex = (int16_t)(modeInfo->max - 1U);
+    for (powerIndex = (int16_t)(modeInfo->max - minPowerLevel);
          (powerIndex != 0) && (power < modeInfo->conversion.mappingTable[powerIndex]);
          powerIndex--) {
       // Searching...
     }
-    return powerIndex + 1;
+    return powerIndex + minPowerLevel;
   }
 
   // Here we know we're using the piecewise linear conversion
@@ -247,14 +255,11 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
     powerLevel = paParams->powerParams[powerIndex - 1].maxPowerLevel;
   }
 
-  // Although 0 is a legitimate power on non-2.4 LP PA's and can be set via
-  // "RAIL_SetTxPower(railHandle, 0)" it is MUCH lower than power
-  // level 1 (approximately -50 dBm). Including it in the piecewise
-  // linear fit would skew the curve substantially, so we exclude it
-  // from the conversion.
-  if (powerLevel == 0U) {
-    powerLevel = 1;
+  // If we go below the minimum we want included in the curve fit, force it.
+  if (powerLevel < minPowerLevel) {
+    powerLevel = minPowerLevel;
   }
+
   return powerLevel;
 }
 
@@ -281,12 +286,11 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     }
 
     // We 1-index low power PA power levels, but of course arrays are 0 indexed
-    if (powerLevel != 0U) {
-      powerLevel--;
-    }
+    powerLevel -= SL_MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
 
     return modeInfo->conversion.mappingTable[powerLevel];
   } else {
+#if defined(_SILICON_LABS_32B_SERIES_1) || defined(_SILICON_LAS_32B_SERIES_2_CONFIG_1)
     // Although 0 is a legitimate power on non-2.4 LP PA's and can be set via
     // "RAIL_SetTxPower(railHandle, 0)" it is MUCH lower than power
     // level 1 (approximately -50 dBm). Including it in the piecewise
@@ -295,6 +299,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     if (powerLevel == 0U) {
       return -500;
     }
+#endif
 
     int32_t power;
 
@@ -313,7 +318,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
     // Hard code the extremes (i.e. don't use the curve fit) in order
     // to make it clear that we are reaching the extent of the chip's
     // capabilities
-    if (powerLevel <= 1U) {
+    if (powerLevel <= powerCurve->minPower) {
       return powerCurve->minPower;
     } else if (powerLevel >= modeInfo->max) {
       return powerCurve->maxPower;

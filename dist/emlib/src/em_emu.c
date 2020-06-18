@@ -38,6 +38,7 @@
 #include "em_common.h"
 #include "em_core.h"
 #include "em_system.h"
+#include "em_ramfunc.h"
 
 /***************************************************************************//**
  * @addtogroup emlib
@@ -105,15 +106,10 @@
 #endif
 #endif
 
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
-#include "em_ramfunc.h"
-#endif
-
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_74) \
   || (defined(_SILICON_LABS_32B_SERIES_0)         \
   && (defined(_EFM32_HAPPY_FAMILY) || defined(_EFM32_ZERO_FAMILY)))
 // Fix for errata EMU_E110 - Potential Hard Fault when Exiting EM2.
-#include "em_ramfunc.h"
 #define ERRATA_FIX_EMU_E110_ENABLE
 #endif
 
@@ -151,6 +147,16 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_100) \
   || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_103)
 #define ERRATA_FIX_EM4S_DELAY_ENTRY
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_1)              \
+  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)  \
+  && !defined(ERRATA_FIX_EMU_E220_DECBOD_IGNORE)
+/* EMU_E220 DECBOD Errata fix. DECBOD Reset can occur
+ * during voltage scaling after EM2/3 wakeup. */
+#define ERRATA_FIX_EMU_E220_DECBOD_ENABLE
+#define EMU_PORBOD                   (*(volatile uint32_t *) (EMU_BASE + 0x14C))
+#define EMU_PORBOD_GMC_CALIB_DISABLE (0x1UL << 31)
 #endif
 
 /* Used to figure out if a memory address is inside or outside of a RAM block.
@@ -288,6 +294,21 @@ static void __attribute__ ((noinline)) ramWFI(void)
   __WFI();                      // Enter EM2 or EM3
   *(volatile uint32_t*)4;       // Clear faulty read data after wakeup
 #endif
+}
+SL_RAMFUNC_DEFINITION_END
+#endif
+
+#if defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
+SL_RAMFUNC_DECLARATOR static void __attribute__ ((noinline)) ramWFI(void);
+SL_RAMFUNC_DEFINITION_BEGIN
+static void __attribute__ ((noinline)) ramWFI(void)
+{
+  /* Second part of EMU_E220 DECBOD Errata fix. Calibration needs to be disabled
+   * quickly when coming out of EM2/EM3. Ram execution is needed to meet timing.
+   * Calibration is re-enabled after voltage scaling completes. */
+  uint32_t temp = EMU_PORBOD | EMU_PORBOD_GMC_CALIB_DISABLE;
+  __WFI();
+  EMU_PORBOD = temp;
 }
 SL_RAMFUNC_DEFINITION_END
 #endif
@@ -753,6 +774,13 @@ void EMU_EnterEM2(bool restore)
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205) \
   || defined(ERRATA_FIX_EMU_E110_ENABLE)
   CORE_CRITICAL_SECTION(ramWFI(); )
+#elif defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
+  // Apply errata fix if voltage scaling in EM2 is used.
+  if ((EMU->CTRL & EMU_CTRL_EM23VSCALEAUTOWSEN) != 0U) {
+    CORE_CRITICAL_SECTION(ramWFI(); )
+  } else {
+    __WFI();
+  }
 #else
   __WFI();
 #endif
@@ -781,6 +809,11 @@ void EMU_EnterEM2(bool restore)
   else {
     vScaleAfterWakeup();
   }
+#if defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
+  /* Third part of EMU_E220 DECBOD Errata fix. Calibration needs to be enabled
+   * after voltage scaling completes. */
+  EMU_PORBOD &= ~(EMU_PORBOD_GMC_CALIB_DISABLE);
+#endif
 #endif
 #endif
 
@@ -918,6 +951,13 @@ void EMU_EnterEM3(bool restore)
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205) \
   || defined(ERRATA_FIX_EMU_E110_ENABLE)
   CORE_CRITICAL_SECTION(ramWFI(); )
+#elif defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
+  // Apply errata fix if voltage scaling in EM2 is used.
+  if ((EMU->CTRL & EMU_CTRL_EM23VSCALEAUTOWSEN) != 0U) {
+    CORE_CRITICAL_SECTION(ramWFI(); )
+  } else {
+    __WFI();
+  }
 #else
   __WFI();
 #endif
@@ -946,6 +986,11 @@ void EMU_EnterEM3(bool restore)
   else {
     vScaleAfterWakeup();
   }
+#if defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
+  /* Third part of EMU_E220 DECBOD Errata fix. Calibration needs to be enabled
+   * after voltage scaling completes. */
+  EMU_PORBOD &= ~(EMU_PORBOD_GMC_CALIB_DISABLE);
+#endif
 #endif
 #endif
 
@@ -1042,7 +1087,9 @@ void EMU_EnterEM4(void)
 #endif
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
-  /* Switch from DCDC regulation mode to bypass mode before enterring EM4. */
+  /* Workaround for bug that may cause a Hard Fault on EM4 entry */
+  CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
+  /* Switch from DCDC regulation mode to bypass mode before entering EM4. */
   EMU_DCDCModeSet(emuDcdcMode_Bypass);
 #endif
 
@@ -3321,6 +3368,50 @@ void EMU_SetBiasMode(EMU_BiasMode_TypeDef mode)
   }
 }
 #endif
+
+#if defined(_EMU_TEMP_TEMP_MASK)
+
+// As we do not know what energy mode a temperature measurement was taken at,
+// we choose a constant for the TEMPCO calculation that is midway between the
+// EM0/EM1 constant and the EM2/EM3/EM4 constant.
+#define EMU_TEMPCO_CONST (0.273f)
+
+/***************************************************************************//**
+ * @brief
+ *   Get temperature in degrees Celcius
+ *
+ * @return
+ *   Temperature in degrees Celcius
+ ******************************************************************************/
+float EMU_TemperatureGet(void)
+{
+#if defined(_EMU_TEMP_TEMPLSB_MASK)
+  return ((float) ((EMU->TEMP & (_EMU_TEMP_TEMP_MASK | _EMU_TEMP_TEMPLSB_MASK) )
+                   >> _EMU_TEMP_TEMPLSB_SHIFT)
+          ) / 4.0f - EMU_TEMP_ZERO_C_IN_KELVIN;
+#else
+  uint32_t val1;
+  uint32_t val2;
+  float tempCo;
+  uint32_t diTemp, diEmu;
+
+  // Calculate calibration temp based on DI page values
+  diTemp = ((DEVINFO->CAL & _DEVINFO_CAL_TEMP_MASK) >> _DEVINFO_CAL_TEMP_SHIFT);
+  diEmu = ((DEVINFO->EMUTEMP & _DEVINFO_EMUTEMP_EMUTEMPROOM_MASK) >> _DEVINFO_EMUTEMP_EMUTEMPROOM_SHIFT);
+  tempCo = EMU_TEMPCO_CONST + (diEmu / 100.0f);
+
+  // Read temperature twice to ensure a stable value
+  do {
+    val1 = (EMU->TEMP & _EMU_TEMP_TEMP_MASK)
+           >> _EMU_TEMP_TEMP_SHIFT;
+    val2 = (EMU->TEMP & _EMU_TEMP_TEMP_MASK)
+           >> _EMU_TEMP_TEMP_SHIFT;
+  } while (val1 != val2);
+
+  return diTemp + tempCo * ((int) diEmu - (int) val1);
+#endif
+}
+#endif //defined(_EMU_TEMP_TEMP_MASK)
 
 /** @} (end addtogroup EMU) */
 /** @} (end addtogroup emlib) */

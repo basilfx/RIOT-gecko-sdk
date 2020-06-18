@@ -252,9 +252,6 @@ void ACMP_CapsenseChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef channel)
 #if defined(_ACMP_INPUTSEL_POSSEL_CH7)
   /* Make sure that only external channels are used. */
   EFM_ASSERT(channel <= _ACMP_INPUTSEL_POSSEL_CH7);
-#elif defined(_ACMP_INPUTSEL_POSSEL_BUS4XCH31)
-  /* Make sure that only external channels are used. */
-  EFM_ASSERT(channel <= _ACMP_INPUTSEL_POSSEL_BUS4XCH31);
 #elif defined(_ACMP_INPUTCTRL_POSSEL_PD15)
   EFM_ASSERT(channel != _ACMP_INPUTCTRL_NEGSEL_CAPSENSE);
   EFM_ASSERT(_ACMP_INPUTCTRL_POSSEL_PA0 <= channel);

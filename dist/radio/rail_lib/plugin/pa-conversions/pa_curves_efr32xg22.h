@@ -42,39 +42,38 @@ extern "C" {
 #define RAIL_PA_CURVES_LP_VALUES (32U)
 
 #define RAIL_PA_CURVES_2P4_HP_VBAT_MAX_POWER      60
-#define RAIL_PA_CURVES_2P4_HP_VBAT_MIN_POWER      -260
+#define RAIL_PA_CURVES_2P4_HP_VBAT_MIN_POWER      -275
 #define RAIL_PA_CURVES_2P4_HP_VBAT_CURVES \
   { { -1, 0, 0 },                         \
     { -1, 0, 0 },                         \
-    { 128, 9949, -597865 },               \
-    { 95, 2378, -68992 },                 \
-    { 34, 420, 15477 },                   \
-    { 16, 171, 15929 },                   \
-    { 9, 86, 12482 },                     \
-    { 5, 48, 9273 } }
+    { 127, 4389, -254275 },               \
+    { 72, 1445, -34632 },                 \
+    { 28, 317, 14821 },                   \
+    { 15, 147, 14772 },                   \
+    { 8, 79, 11757 },                     \
+    { 4, 25, 6614 } }
 
 #define RAIL_PA_CURVES_2P4_LP_VBAT_MAX_POWER      0
-#define RAIL_PA_CURVES_2P4_LP_VBAT_MIN_POWER      -260
+#define RAIL_PA_CURVES_2P4_LP_VBAT_MIN_POWER      -163
 #define RAIL_PA_CURVES_2P4_LP_VBAT_CURVES \
   {                                       \
-    -163, /*! Power Level 1 */            \
-    -110, /*! Power Level 2 */            \
-    -80,  /*! Power Level 3 */            \
-    -59,  /*! Power Level 4 */            \
-    -44,  /*! Power Level 5 */            \
-    -33,  /*! Power Level 6 */            \
-    -25,  /*! Power Level 7 */            \
-    -18,  /*! Power Level 8 */            \
-    -12,  /*! Power Level 9 */            \
-    -8,   /*! Power Level 10 */           \
-    -4,   /*! Power Level 11 */           \
-    -1,   /*! Power Level 12 */           \
-    2,    /*! Power Level 13 */           \
-    4,    /*! Power Level 14 */           \
-    6,    /*! Power Level 15 */           \
-    6,    /*! Power Level 16 */           \
+    -287, /*! Power Level 0 */            \
+    -167, /*! Power Level 1 */            \
+    -113, /*! Power Level 2 */            \
+    -83,  /*! Power Level 3 */            \
+    -63,  /*! Power Level 4 */            \
+    -48,  /*! Power Level 5 */            \
+    -36,  /*! Power Level 6 */            \
+    -28,  /*! Power Level 7 */            \
+    -21,  /*! Power Level 8 */            \
+    -14,  /*! Power Level 9 */            \
+    -10,  /*! Power Level 10 */           \
+    -6,   /*! Power Level 11 */           \
+    -3,   /*! Power Level 12 */           \
+    0,    /*! Power Level 13 */           \
+    3,    /*! Power Level 14 */           \
+    5,    /*! Power Level 15 */           \
   }
-
 // *INDENT-OFF*
 // Macro to declare the variables needed to initialize RAIL_TxPowerCurvesConfig_t for use in
 // RAIL_InitTxPowerCurves, assuming battery powered operation

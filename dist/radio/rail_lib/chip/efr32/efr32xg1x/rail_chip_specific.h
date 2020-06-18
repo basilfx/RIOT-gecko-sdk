@@ -41,6 +41,7 @@
 #include "em_device.h"
 
 #include "rail_types.h"
+#include "rail_features.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,35 +55,35 @@ extern "C" {
  * @def TRANSITION_TIME_US
  * @brief Time it takes to take care of protocol switching.
  */
-#define TRANSITION_TIME_US 435
+#define TRANSITION_TIME_US 455
 
 /**
  * @def EFR32XG1_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state for the EFR32XG1 series.
  */
-#define EFR32XG1_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG1_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 /**
  * @def EFR32XG12_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state for the EFR32XG12 series.
  */
-#define EFR32XG12_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG12_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 /**
  * @def EFR32XG13_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state for the EFR32XG13 series.
  */
-#define EFR32XG13_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG13_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 /**
  * @def EFR32XG14_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state for the EFR32XG14 series.
  */
-#define EFR32XG14_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG14_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 #if (_SILICON_LABS_32B_SERIES_1_CONFIG == 1)
 #define RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE EFR32XG1_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
@@ -178,16 +179,18 @@ typedef struct RAIL_Config {
    *
    * @param[in] railHandle A handle for a RAIL instance.
    * @param[in] events A bit mask of RAIL events.
-   * @return void.
    *
    * See the \ref RAIL_Events_t documentation for the list of RAIL events.
    */
   void (*eventsCallback)(RAIL_Handle_t railHandle, RAIL_Events_t events);
   /**
-   * A pointer to a protocol-specific state structure allocated in global
-   * read-write memory and initialized to all zeros.
-   * For the BLE protocol, it should point to a RAIL_BLE_State_t
-   * structure. For IEEE802154, it should be NULL.
+   * Pointer to a structure to hold state information required by the \ref
+   * Protocol_Specific APIs. If needed, this structure must be allocated in
+   * global read-write memory and initialized to all zeros.
+   *
+   * Currently, this is only required when using the \ref BLE APIs and should be
+   * set to point to a \ref RAIL_BLE_State_t structure. When using \ref
+   * IEEE802_15_4 or \ref Z_Wave this should be set to NULL.
    */
   void *protocol;
   /**
@@ -418,10 +421,20 @@ typedef struct RAIL_CalValues {
 typedef int16_t RAIL_FrequencyOffset_t;
 
 /**
+ * The maximum frequency offset value supported by this radio.
+ */
+#define RAIL_FREQUENCY_OFFSET_MAX ((RAIL_FrequencyOffset_t) 0x3FFF)
+
+/**
+ * The minimum frequency offset value supported by this radio.
+ */
+#define RAIL_FREQUENCY_OFFSET_MIN ((RAIL_FrequencyOffset_t) -RAIL_FREQUENCY_OFFSET_MAX)
+
+/**
  * Specify an invalid frequency offset value. This will be returned if you
  * call \ref RAIL_GetRxFreqOffset() at an invalid time.
  */
-#define RAIL_FREQUENCY_OFFSET_INVALID ((int16_t)0xFFFF)
+#define RAIL_FREQUENCY_OFFSET_INVALID ((RAIL_FrequencyOffset_t) 0x8000)
 
 /** @} */ // end of group Diagnostic_EFR32
 
@@ -550,11 +563,11 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
  * A list of the names for the TX power modes on the EFR32 series 1 parts. This
  * macro is useful for test applications and debugging output.
  */
-#define RAIL_TX_POWER_MODE_NAMES { \
-    "RAIL_TX_POWER_MODE_2P4_HP",   \
-    "RAIL_TX_POWER_MODE_2P4_LP",   \
-    "RAIL_TX_POWER_MODE_SUBGIG",   \
-    "RAIL_TX_POWER_MODE_NONE"      \
+#define RAIL_TX_POWER_MODE_NAMES {  \
+    "RAIL_TX_POWER_MODE_2P4GIG_HP", \
+    "RAIL_TX_POWER_MODE_2P4GIG_LP", \
+    "RAIL_TX_POWER_MODE_SUBGIG",    \
+    "RAIL_TX_POWER_MODE_NONE"       \
 }
 
 /**

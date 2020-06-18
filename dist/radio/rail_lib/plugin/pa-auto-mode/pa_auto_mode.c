@@ -78,7 +78,7 @@ RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 2
 RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
   {
-    .min = -163,
+    .min = -167,
     .max = 0,
     .mode = RAIL_TX_POWER_MODE_2P4_LP,
     .band = RAIL_PA_BAND_2P4GIG

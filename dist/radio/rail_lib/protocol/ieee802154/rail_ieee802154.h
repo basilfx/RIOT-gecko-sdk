@@ -556,7 +556,7 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
  *   RAIL_IEEE802154_E_OPTION_ENH_ACK on platforms that support
  *   that feature.
  *
- * @note This feature does not automatically enable receiving MULTIPURPOSE
+ * @note This feature does not automatically enable receiving Multipurpose
  *   frames; that can be enabled via RAIL_IEEE802154_AcceptFrames()'s
  *   \ref RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES.
  */
@@ -705,7 +705,7 @@ RAIL_Status_t RAIL_IEEE802154_ConfigGOptions(RAIL_Handle_t railHandle,
 /// When receiving packets, accept 802.15.4 COMMAND frame types.
 #define RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES      (0x08)
 // Reserved for possible future use:               (0x10)
-/// When receiving packets, accept 802.15.4-2015 MULTIPURPOSE frame types.
+/// When receiving packets, accept 802.15.4-2015 Multipurpose frame types.
 /// (Not supported on EFR32XG1.)
 #define RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES (0x20)
 
@@ -726,7 +726,7 @@ RAIL_Status_t RAIL_IEEE802154_ConfigGOptions(RAIL_Handle_t railHandle,
  * This function will fail if 802.15.4 hardware acceleration is not currently
  * enabled or framesMask requests an unsupported frame type.
  * This setting may be changed at any time when 802.15.4 hardware
- * acceleration is enabled. Only Beacon, Data, ACK, Command, and MultiPurpose
+ * acceleration is enabled. Only Beacon, Data, ACK, Command, and Multipurpose
  * (except on EFR32XG1) frames may be received.
  * The RAIL_IEEE802154_ACCEPT_XXX_FRAMES defines may be combined to create a
  * bitmask to pass into this function.
@@ -752,13 +752,13 @@ RAIL_Status_t RAIL_IEEE802154_AcceptFrames(RAIL_Handle_t railHandle,
  * Normally RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND is triggered after
  * receiving the entire MAC header for a MAC command and the MAC
  * command byte indicating the packet is a data request. Enabling this
- * feature causes this event to be triggered earlier, right after
- * receiving the source address information in the MAC header, allowing
- * for more time to perform the lookup and call RAIL_SetFramePending()
+ * feature causes this event to be triggered earlier, right after receiving
+ * the source address information in the MAC header, allowing for more time
+ * to perform the lookup and call \ref RAIL_IEEE802154_SetFramePending()
  * to set Frame Pending in the outgoing ACK for the incoming frame.
  * This feature is also necessary for handling 802.15.4 MAC-encrypted
  * frames where the MAC Command byte is encrypted (MAC Frame Version 2) --
- * see RAIL_IEEE802154_Enable154E().
+ * see \ref RAIL_IEEE802154_ConfigEOptions().
  *
  * This function will fail if 802.15.4 hardware acceleration is not
  * currently enabled, or on platforms that do not support this feature.
@@ -846,6 +846,36 @@ RAIL_Status_t RAIL_IEEE802154_GetAddress(RAIL_Handle_t railHandle,
 RAIL_Status_t RAIL_IEEE802154_WriteEnhAck(RAIL_Handle_t railHandle,
                                           const uint8_t *ackData,
                                           uint8_t ackDataLen);
+
+/**
+ * Convert RSSI into 802.15.4 Link Quality Indication (LQI) metric
+ * compatible with the Silicon Labs Zigbee stack.
+ *
+ * @param[in] origLqi The original LQI, for example from
+ *   \ref RAIL_RxPacketDetails_t::lqi.
+ *   This parameter is not currently used but may be used in the future.
+ * @param[in] rssiDbm The RSSI in dBm, for example from
+ *   \ref RAIL_RxPacketDetails_t::rssi.
+ * @return An LQI value (range 0..255 but not all intermediate values are
+ *   possible) based on the rssiDbm and the chip's RSSI sensitivity range.
+ *
+ * This function is compatible with \ref RAIL_ConvertLqiCallback_t and
+ * is suitable to pass to \ref RAIL_ConvertLqi().
+ */
+uint8_t RAIL_IEEE802154_ConvertRssiToLqi(uint8_t origLqi, int8_t rssiDbm);
+
+/**
+ * Convert RSSI into 802.15.4 Energy Detection (ED) metric
+ * compatible with the Silicon Labs Zigbee stack.
+ *
+ * @param[in] rssiDbm The RSSI in dBm, for example from
+ *   \ref RAIL_RxPacketDetails_t::rssi.
+ * @return An Energy Detect value (range 0..255 but not all intermediate
+ *   values are possible) based on the rssiDbm and the chip's RSSI
+ *   sensitivity range.
+ */
+uint8_t RAIL_IEEE802154_ConvertRssiToEd(int8_t rssiDbm);
+
 /** @} */ // end of IEEE802.15.4
 
 #ifdef __cplusplus

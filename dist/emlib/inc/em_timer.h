@@ -583,6 +583,52 @@ __STATIC_INLINE bool TIMER_Valid(const TIMER_TypeDef *ref)
 
 /***************************************************************************//**
  * @brief
+ *   Check if TIMER is valid and supports Dead Timer Insertion (DTI).
+ *
+ * @param[in] ref
+ *   Pointer to TIMER peripheral register block.
+ *
+ * @return
+ *   True if ref points to a valid timer that supports DTI, false otherwise.
+ ******************************************************************************/
+__STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
+{
+  (void) ref;
+
+  return 0
+#if defined(TIMER0_DTI)
+#if (TIMER0_DTI == 1)
+         || (ref == TIMER0)
+#endif
+#elif defined(_TIMER_DTCTRL_MASK)
+         || (ref == TIMER0)
+#endif
+#if defined(TIMER1_DTI) && (TIMER1_DTI == 1)
+         || (ref == TIMER1)
+#endif
+#if defined(TIMER2_DTI) && (TIMER2_DTI == 1)
+         || (ref == TIMER2)
+#endif
+#if defined(TIMER3_DTI) && (TIMER3_DTI == 1)
+         || (ref == TIMER3)
+#endif
+#if defined(TIMER4_DTI) && (TIMER4_DTI == 1)
+         || (ref == TIMER4)
+#endif
+#if defined(TIMER5_DTI) && (TIMER5_DTI == 1)
+         || (ref == TIMER5)
+#endif
+#if defined(TIMER6_DTI) && (TIMER6_DTI == 1)
+         || (ref == TIMER6)
+#endif
+#if defined(WTIMER0)
+         || (ref == WTIMER0)
+#endif
+  ;
+}
+
+/***************************************************************************//**
+ * @brief
  *   Get the Max count of the timer.
  *
  * @param[in] timer
@@ -818,7 +864,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
   }
   timer->EN_SET = timerEn;
 #else
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 
   if (enable) {
     timer->DTCTRL |= TIMER_DTCTRL_DTEN;
@@ -844,7 +890,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
  ******************************************************************************/
 __STATIC_INLINE uint32_t TIMER_GetDTIFault(TIMER_TypeDef *timer)
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
   return timer->DTFAULT;
 }
 
@@ -862,7 +908,7 @@ __STATIC_INLINE uint32_t TIMER_GetDTIFault(TIMER_TypeDef *timer)
 __STATIC_INLINE void TIMER_ClearDTIFault(TIMER_TypeDef *timer, uint32_t flags)
 
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 #if defined (TIMER_EN_EN)
   EFM_ASSERT(timer->EN & TIMER_EN_EN);
 #endif

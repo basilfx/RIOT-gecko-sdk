@@ -139,9 +139,6 @@ typedef enum {
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32FG1V)
   systemPartFamilyFlex1V   = _DEVINFO_PART_DEVICE_FAMILY_EFR32FG1V,       /**< EFR32 Flex Gecko Series 1 Configuration 1 Value Device Family. */
 #endif
-#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32MG2P)
-  systemPartFamilyMighty2P = _DEVINFO_PART_DEVICE_FAMILY_EFR32MG2P,       /**< EFR32 Mighty Gecko Series 1 Configuration 2 Premium Device Family. */
-#endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32MG12P)
   systemPartFamilyMighty12P = _DEVINFO_PART_DEVICE_FAMILY_EFR32MG12P,     /**< EFR32 Mighty Gecko Series 1 Configuration 2 Premium Device Family. */
 #endif

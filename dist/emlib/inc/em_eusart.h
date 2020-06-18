@@ -44,9 +44,6 @@ typedef enum {
   /// Disable the peripheral.
   eusartDisable = 0x0,
 
-  /// Enable the peripheral, both transmitter and receiver are disabled.
-  eusartEnable = (EUSART_CMD_RXDIS | EUSART_CMD_TXDIS),
-
   /// Enable receiver only, transmitter disabled.
   eusartEnableRx = (EUSART_CMD_RXEN | EUSART_CMD_TXDIS),
 
@@ -54,7 +51,7 @@ typedef enum {
   eusartEnableTx = (EUSART_CMD_TXEN | EUSART_CMD_RXDIS),
 
   /// Enable both receiver and transmitter.
-  eusartEnableRxTx = (EUSART_CMD_RXEN | EUSART_CMD_TXEN)
+  eusartEnable = (EUSART_CMD_RXEN | EUSART_CMD_TXEN)
 } EUSART_Enable_TypeDef;
 
 /// Data bit selection.
@@ -283,7 +280,7 @@ typedef struct {
 /// Default configuration for EUSART initialization structure in UART mode with high-frequency clock.
 #define EUSART_UART_INIT_DEFAULT_HF                                                                   \
   {                                                                                                   \
-    eusartEnableRxTx,          /* Enable RX/TX when initialization completed. */                      \
+    eusartEnable,              /* Enable RX/TX when initialization completed. */                      \
     0,                         /* Use current configured reference clock for configuring baud rate.*/ \
     115200,                    /* 115200 bits/s. */                                                   \
     eusartOVS16,               /* Oversampling x16. */                                                \
@@ -319,7 +316,7 @@ typedef struct {
 /// Default configuration for EUSART initialization structure in UART mode with low-frequency clock.
 #define EUSART_UART_INIT_DEFAULT_LF                                                                    \
   {                                                                                                    \
-    eusartEnableRxTx,           /* Enable RX/TX when initialization completed. */                      \
+    eusartEnable,               /* Enable RX/TX when initialization completed. */                      \
     0,                          /* Use current configured reference clock for configuring baud rate.*/ \
     9600,                       /* 9600 bits/s. */                                                     \
     eusartOVS0,                 /* Oversampling disabled. */                                           \

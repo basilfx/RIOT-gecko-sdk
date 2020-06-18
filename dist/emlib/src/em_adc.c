@@ -808,9 +808,9 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
 #endif
 
   /* Assert for any APORT bus conflicts programming errors. */
-#if defined(_ADC_BUSCONFLICT_MASK)
-  tmp = adc->BUSREQ;
-  EFM_ASSERT(!(tmp & adc->BUSCONFLICT));
+#if defined(_ADC_APORTCONFLICT_MASK)
+  tmp = adc->APORTREQ;
+  EFM_ASSERT(!(tmp & adc->APORTCONFLICT));
   EFM_ASSERT(!(adc->STATUS & _ADC_STATUS_PROGERR_MASK));
 #endif
 }
@@ -949,9 +949,9 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
 #endif
 
   /* Assert for any APORT bus conflicts programming errors. */
-#if defined(_ADC_BUSCONFLICT_MASK)
-  tmp = adc->BUSREQ;
-  EFM_ASSERT(!(tmp & adc->BUSCONFLICT));
+#if defined(_ADC_APORTCONFLICT_MASK)
+  tmp = adc->APORTREQ;
+  EFM_ASSERT(!(tmp & adc->APORTCONFLICT));
   EFM_ASSERT(!(adc->STATUS & _ADC_STATUS_PROGERR_MASK));
 #endif
 }

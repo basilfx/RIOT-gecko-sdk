@@ -104,6 +104,10 @@ extern "C" {
 #define VSCALE_EM01_LOW_POWER           1
 #define VSCALE_EM01_HIGH_PERFORMANCE    0
 
+#if defined(LFRCO_PRECISION_MODE) && LFRCO_PRECISION_MODE
+#define PLFRCO_PRESENT
+#endif
+
 /** @endcond */
 
 /*******************************************************************************
@@ -655,6 +659,22 @@ typedef struct {
   }
 
 /**
+ * DPLL initialization values for 76,800,000 Hz using HFXO as reference
+ * clock, M = 1919, N = 3839
+ */
+#define CMU_DPLL_HFXO_TO_76_8MHZ                                           \
+  {                                                                        \
+    76800000,                     /* Target frequency.                  */ \
+    3839,                         /* Factor N.                          */ \
+    1919,                         /* Factor M.                          */ \
+    cmuSelect_HFXO,               /* Select HFXO as reference clock.    */ \
+    cmuDPLLEdgeSel_Fall,          /* Select falling edge of ref clock.  */ \
+    cmuDPLLLockMode_Freq,         /* Use frequency lock mode.           */ \
+    true,                         /* Enable automatic lock recovery.    */ \
+    false                         /* Don't enable dither function.      */ \
+  }
+
+/**
  * DPLL initialization values for 80,000,000 Hz using HFXO as reference
  * clock, M = 1919, N = 3999.
  */
@@ -713,7 +733,6 @@ void                       CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq);
 bool                       CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init);
 void                       CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit);
 void                       CMU_LFXOInit(const CMU_LFXOInit_TypeDef *lfxoInit);
-void                       CMU_LFRCOSetPrecision(CMU_Precision_TypeDef precision);
 uint32_t                   CMU_OscillatorTuningGet(CMU_Osc_TypeDef osc);
 void                       CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc,
                                                    uint32_t val);
@@ -726,6 +745,10 @@ void                       CMU_ClockEnable(CMU_Clock_TypeDef clock, bool enable)
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 CMU_HFRCOEM23Freq_TypeDef  CMU_HFRCOEM23BandGet(void);
 void                       CMU_HFRCOEM23BandSet(CMU_HFRCOEM23Freq_TypeDef freq);
+#endif
+
+#if defined(PLFRCO_PRESENT)
+void                       CMU_LFRCOSetPrecision(CMU_Precision_TypeDef precision);
 #endif
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
@@ -1003,6 +1026,7 @@ __STATIC_INLINE void CMU_WdogUnlock(void)
 #define CMU_LFEPRESC0_REG         10
 #define CMU_ADCASYNCDIV_REG       11
 #define CMU_HFBUSPRESC_REG        12
+#define CMU_HFCORECLKLEDIV_REG    13
 
 #define CMU_PRESC_REG_POS          4U
 #define CMU_DIV_REG_POS            CMU_PRESC_REG_POS
@@ -1067,6 +1091,7 @@ __STATIC_INLINE void CMU_WdogUnlock(void)
 #define CMU_QSPI0REF_CLK_BRANCH    28
 #define CMU_USBR_CLK_BRANCH        29
 #define CMU_PDMREF_CLK_BRANCH      30
+#define CMU_HFLE_CLK_BRANCH        31
 
 #define CMU_CLK_BRANCH_POS         17U
 #define CMU_CLK_BRANCH_MASK        0x1fU
@@ -1349,7 +1374,7 @@ typedef enum {
                   | (CMU_NOSEL_REG << CMU_SEL_REG_POS)
                   | (CMU_HFBUSCLKEN0_EN_REG << CMU_EN_REG_POS)
                   | (_CMU_HFBUSCLKEN0_LDMA_SHIFT << CMU_EN_BIT_POS)
-                  | (CMU_HFBUS_CLK_BRANCH << CMU_CLK_BRANCH_POS),
+                  | (CMU_HF_CLK_BRANCH << CMU_CLK_BRANCH_POS),
 #endif
 
 #if defined(CMU_HFBUSCLKEN0_QSPI0)
@@ -1379,12 +1404,12 @@ typedef enum {
                   | (CMU_HFBUS_CLK_BRANCH << CMU_CLK_BRANCH_POS),
 #endif
 
-  /** Low-energy clock divided down from HFBUSCLK */
-  cmuClock_HFLE = (CMU_NOPRESC_REG << CMU_PRESC_REG_POS)
+  /** Low-energy clock divided down from HFCLK */
+  cmuClock_HFLE = (CMU_HFCLKLEPRESC_REG << CMU_PRESC_REG_POS)
                   | (CMU_NOSEL_REG << CMU_SEL_REG_POS)
                   | (CMU_HFBUSCLKEN0_EN_REG << CMU_EN_REG_POS)
                   | (_CMU_HFBUSCLKEN0_LE_SHIFT << CMU_EN_BIT_POS)
-                  | (CMU_HFBUS_CLK_BRANCH << CMU_CLK_BRANCH_POS),
+                  | (CMU_HFLE_CLK_BRANCH << CMU_CLK_BRANCH_POS),
 
 #if defined(CMU_HFBUSCLKEN0_PRS)
   /** Peripheral reflex system clock */
@@ -1392,7 +1417,7 @@ typedef enum {
                  | (CMU_NOSEL_REG << CMU_SEL_REG_POS)
                  | (CMU_HFBUSCLKEN0_EN_REG << CMU_EN_REG_POS)
                  | (_CMU_HFBUSCLKEN0_PRS_SHIFT << CMU_EN_BIT_POS)
-                 | (CMU_HFBUS_CLK_BRANCH << CMU_CLK_BRANCH_POS),
+                 | (CMU_HF_CLK_BRANCH << CMU_CLK_BRANCH_POS),
 #endif
 #endif
 
@@ -1924,11 +1949,11 @@ typedef enum {
 
 #if defined(CMU_HFCORECLKEN0_LE)
   /** Low-energy clock divided down from HFCORECLK */
-  cmuClock_HFLE = (CMU_NODIV_REG << CMU_DIV_REG_POS)
+  cmuClock_HFLE = (CMU_HFCORECLKLEDIV_REG << CMU_DIV_REG_POS)
                   | (CMU_NOSEL_REG << CMU_SEL_REG_POS)
                   | (CMU_HFCORECLKEN0_EN_REG << CMU_EN_REG_POS)
                   | (_CMU_HFCORECLKEN0_LE_SHIFT << CMU_EN_BIT_POS)
-                  | (CMU_HFCORE_CLK_BRANCH << CMU_CLK_BRANCH_POS),
+                  | (CMU_HFLE_CLK_BRANCH << CMU_CLK_BRANCH_POS),
 #endif
 
 #if defined(CMU_HFCORECLKEN0_EBI)

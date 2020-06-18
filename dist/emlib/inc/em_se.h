@@ -177,8 +177,6 @@ extern "C" {
 #define SE_COMMAND_SET_UPGRADEFLAG_SE       0xFE030000UL
 #define SE_COMMAND_SET_UPGRADEFLAG_HOST     0xFE030001UL
 
-#define SE_COMMAND_INIT_OTP                 0xFF000001UL
-#define SE_COMMAND_INIT_PUBKEY              0xFF070001UL
 #define SE_COMMAND_READ_PUBKEY              0xFF080001UL
 #define SE_COMMAND_INIT_PUBKEY_SIGNATURE    0xFF090001UL
 #define SE_COMMAND_READ_PUBKEY_SIGNATURE    0xFF0A0001UL
@@ -218,9 +216,7 @@ extern "C" {
 #define SE_COMMAND_OPTION_CERT_BATCH        0x00000200UL
 #define SE_COMMAND_OPTION_CERT_FACTORY      0x00000300UL
 
-/** Pubkey types */
-#define SE_KEY_TYPE_BOOT                    0x00000100UL
-#define SE_KEY_TYPE_AUTH                    0x00000200UL
+/** Pubkey type */
 #define SE_KEY_TYPE_ROOT                    0x00000300UL
 
 /** Run the whole algorithm, all data present */
@@ -245,12 +241,25 @@ extern "C" {
 /** Magic paramater for deleting user data */
 #define SE_COMMAND_OPTION_ERASE_UD          0xDE1E7EADUL
 
-#endif // #if defined(SEMAILBOX_PRESENT)
+#elif defined(CRYPTOACC_PRESENT)
+/* Root Code Mailbox is invalid. */
+#define SE_RESPONSE_MAILBOX_INVALID         0x00FE0000UL
+/* Root Code Mailbox magic word */
+#define SE_RESPONSE_MAILBOX_VALID           0xE5ECC0DEUL
+#endif
 
 /* Response status codes for the Secure Element */
 #define SE_RESPONSE_MASK                    0x000F0000UL
 /** Command executed successfully or signature was successfully validated. */
 #define SE_RESPONSE_OK                      0x00000000UL
+
+/** Pubkey types */
+#define SE_KEY_TYPE_BOOT                    0x00000100UL
+#define SE_KEY_TYPE_AUTH                    0x00000200UL
+
+#define SE_COMMAND_INIT_OTP                 0xFF000001UL
+#define SE_COMMAND_INIT_PUBKEY              0xFF070001UL
+
 /**
  * Command was not recognized as a valid command, or is not allowed in the
  * current context.
@@ -274,14 +283,17 @@ extern "C" {
 #define SE_RESPONSE_CRYPTO_ERROR            0x00060000UL
 /** One of the passed parameters is deemed invalid (e.g. out of bounds). */
 #define SE_RESPONSE_INVALID_PARAMETER       0x00070000UL
+/** Failure while checking the host for secure boot */
+#define SE_RESPONSE_SECUREBOOT_ERROR        0x00090000UL
+/** Failure during selftest */
+#define SE_RESPONSE_SELFTEST_ERROR          0x000A0000UL
+/** Feature/item not initialized or not present */
+#define SE_RESPONSE_NOT_INITIALIZED         0x000B0000UL
 /* Abort status code is given when no operation is attempted. */
-#define SE_RESPONSE_ABORT                   0x00090000UL
-#if defined(CRYPTOACC_PRESENT) && !defined(SEMAILBOX_PRESENT)
-/* Root Code Mailbox is invalid. */
-#define SE_RESPONSE_MAILBOX_INVALID         0x000A0000UL
-/* Root Code Mailbox magic word */
-#define SE_RESPONSE_MAILBOX_VALID           0xE5ECC0DEUL
-#endif
+#define SE_RESPONSE_ABORT                   0x00FF0000UL
+
+/** Maximum amount of parameters supported by the hardware FIFO */
+#define SE_FIFO_MAX_PARAMETERS              13U
 
 #define SE_DATATRANSFER_STOP                0x00000001UL
 #define SE_DATATRANSFER_DISCARD             0x40000000UL
@@ -293,9 +305,6 @@ extern "C" {
 #ifndef SE_MAX_PARAMETERS
 #define SE_MAX_PARAMETERS                   4U
 #endif
-
-/** Maximum amount of parameters supported by the hardware FIFO */
-#define SE_FIFO_MAX_PARAMETERS              13U
 
 /* Sanity-check defines */
 #if SE_MAX_PARAMETERS > SE_FIFO_MAX_PARAMETERS
@@ -402,6 +411,13 @@ void SE_addParameter(SE_Command_t *command, uint32_t parameter);
 
 void SE_executeCommand(SE_Command_t *command);
 
+SE_Response_t SE_initOTP(SE_OTPInit_t *otp_init);
+
+SE_Response_t SE_initPubkey(uint32_t key_type,
+                            void* pubkey,
+                            uint32_t numBytes,
+                            bool signature);
+
 #if defined(SEMAILBOX_PRESENT)
 
 // User data commands
@@ -416,11 +432,6 @@ SE_Response_t SE_readPubkey(uint32_t key_type,
                             void* pubkey,
                             uint32_t numBytes,
                             bool signature);
-SE_Response_t SE_initPubkey(uint32_t key_type,
-                            void* pubkey,
-                            uint32_t numBytes,
-                            bool signature);
-SE_Response_t SE_initOTP(SE_OTPInit_t *otp_init);
 
 // Debug commands
 SE_Response_t SE_debugLockStatus(SE_DebugStatus_t *status);
@@ -434,7 +445,7 @@ SE_Response_t SE_deviceErase(void);
 SE_Response_t SE_getStatus(SE_Status_t *output);
 SE_Response_t SE_serialNumber(void *serial);
 
-#else
+#elif defined(CRYPTOACC_PRESENT)
 
 SE_Response_t SE_getVersion(uint32_t *version);
 SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus);

@@ -75,6 +75,22 @@ typedef enum {
 
   /** IADC results 12-bit left aligned  */
   iadcAlignLeft12 = _IADC_SCANFIFOCFG_ALIGNMENT_LEFT12,
+
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT16)
+  /** IADC results 16-bit right aligned  */
+  iadcAlignRight16 = _IADC_SCANFIFOCFG_ALIGNMENT_RIGHT16,
+
+  /** IADC results 16-bit left aligned  */
+  iadcAlignLeft16 = _IADC_SCANFIFOCFG_ALIGNMENT_LEFT16,
+#endif
+
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT20)
+  /** IADC results 20-bit right aligned  */
+  iadcAlignRight20 = _IADC_SCANFIFOCFG_ALIGNMENT_RIGHT20,
+
+  /** IADC results 20-bit left aligned  */
+  iadcAlignLeft20 = _IADC_SCANFIFOCFG_ALIGNMENT_LEFT20,
+#endif
 } IADC_Alignment_t;
 
 /** IADC negative input selection. */
@@ -621,6 +637,27 @@ typedef enum {
   iadcTriggerActionContinuous  = _IADC_TRIGGER_SCANTRIGACTION_CONTINUOUS,
 } IADC_TriggerAction_t;
 
+#if defined(_IADC_CFG_DIGAVG_MASK)
+/** IADC digital averaging function. */
+typedef enum {
+  /** Average over 1 sample (no averaging). */
+  iadcDigitalAverage1 = _IADC_CFG_DIGAVG_AVG1,
+
+  /** Average over 2 samples. */
+  iadcDigitalAverage2 = _IADC_CFG_DIGAVG_AVG2,
+
+  /** Average over 4 samples. */
+  iadcDigitalAverage4 = _IADC_CFG_DIGAVG_AVG4,
+
+  /** Average over 8 samples. */
+  iadcDigitalAverage8 = _IADC_CFG_DIGAVG_AVG8,
+
+  /** Average over 16 samples. */
+  iadcDigitalAverage16 = _IADC_CFG_DIGAVG_AVG16
+
+} IADC_DigitalAveraging_t;
+#endif
+
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
  ******************************************************************************/
@@ -666,8 +703,25 @@ typedef struct {
   IADC_CfgTwosComp_t         twosComplement;  /**< Two's complement reporting. */
   uint8_t                    adcClkPrescale;  /**< ADC_CLK divider (prescale+1). */
   uint32_t                   vRef;            /**< Vref magnitude expressed in millivolts. */
+#if defined(_IADC_CFG_DIGAVG_MASK)
+  IADC_DigitalAveraging_t    digAvg;          /**< Digital average mode. */
+#endif
 } IADC_Config_t;
 
+#if defined(_IADC_CFG_DIGAVG_MASK)
+/** Default IADC config structure. */
+#define IADC_CONFIG_DEFAULT                                               \
+  {                                                                       \
+    iadcCfgModeNormal,            /* Normal mode for IADC. */             \
+    iadcCfgOsrHighSpeed2x,        /* 2x high speed over sampling. */      \
+    iadcCfgAnalogGain1x,          /* 1x analog gain. */                   \
+    iadcCfgReferenceInt1V2,       /* Internal 1.2V band gap reference. */ \
+    iadcCfgTwosCompAuto,          /* Automatic Two's Complement. */       \
+    0,                            /* Max IADC analog clock rate. */       \
+    1210,                         /* Vref expressed in millivolts. */     \
+    iadcDigitalAverage1           /* No averaging. */                     \
+  }
+#else
 /** Default IADC config structure. */
 #define IADC_CONFIG_DEFAULT                                               \
   {                                                                       \
@@ -679,6 +733,7 @@ typedef struct {
     0,                            /* Max IADC analog clock rate. */       \
     1210                          /* Vref expressed in millivolts. */     \
   }
+#endif
 
 /** Structure for all IADC configs. */
 typedef struct {

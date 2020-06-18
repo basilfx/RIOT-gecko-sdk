@@ -111,13 +111,6 @@ extern "C" {
 #define SL_RAMFUNC_DISABLE
 #endif
 
-/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-/* Deprecated macro name  */
-#if defined(RAMFUNC_DISABLE)
-#define SL_RAMFUNC_DISABLE
-#endif
-/** @endcond */
-
 #if defined(SL_RAMFUNC_DISABLE)
 /** @brief Compiler ported function declarator for RAM code. */
 #define SL_RAMFUNC_DECLARATOR

@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Assign correct part number for include file
+ * @brief CMSIS and EMLIB versions
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -46,9 +46,26 @@ extern "C" {
  * @addtogroup VERSION
  * @brief Version API.
  * @details
- *  Macros specifying the emlib and CMSIS version.
+ *  Macros specifying the EMLIB and CMSIS version.
  * @{
  ******************************************************************************/
+
+/* *INDENT-OFF* */
+/** @deprecated Version number of EMLIB peripheral API. */
+#define _EMLIB_VERSION 5.9.4
+/* *INDENT-ON* */
+
+/** @deprecated Major version of EMLIB. This is the 32-bit MCU SDK version.
+    A new version system for EMLIB will be provided in a later release. */
+#define _EMLIB_VERSION_MAJOR 5
+
+/** @deprecated Minor version of EMLIB. This is the 32-bit MCU SDK version.
+    A new version system for EMLIB will be provided in a later release. */
+#define _EMLIB_VERSION_MINOR 9
+
+/** @deprecated Patch revision of EMLIB. This is the 32-bit MCU SDK version.
+    A new version system for EMLIB will be provided in a later release. */
+#define _EMLIB_VERSION_PATCH 5
 
 /* *INDENT-OFF* */
 /** Version number of targeted CMSIS package. */
@@ -72,3 +89,4 @@ extern "C" {
 #endif
 
 #endif /* EM_VERSION_H */
+

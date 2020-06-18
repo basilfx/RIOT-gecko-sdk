@@ -548,6 +548,13 @@ SL_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_MassErase(void);
 #endif
 
+#if (_SILICON_LABS_32B_SERIES > 0)
+MSC_Status_TypeDef MSC_WriteWordDma(int ch,
+                                    uint32_t *address,
+                                    const void *data,
+                                    uint32_t numBytes);
+#endif
+
 /** @} (end addtogroup MSC) */
 /** @} (end addtogroup emlib) */
 

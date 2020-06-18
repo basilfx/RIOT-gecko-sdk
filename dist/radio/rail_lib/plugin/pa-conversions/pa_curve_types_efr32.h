@@ -196,7 +196,11 @@ typedef struct RAIL_PaDescriptor {
 } RAIL_PaDescriptor_t;
 
 /// The number of PA's on this chip.
+#if _SILICON_LABS_32B_SERIES_2_CONFIG == 2
+#define RAIL_NUM_PA (2U)
+#else
 #define RAIL_NUM_PA (3U)
+#endif
 
 /**
  * @typedef RAIL_TxPowerCurvesConfigAlt_t

@@ -963,10 +963,36 @@ __STATIC_INLINE void GPIO_PinLock(GPIO_Port_TypeDef port, unsigned int pin)
 GPIO_Mode_TypeDef GPIO_PinModeGet(GPIO_Port_TypeDef port,
                                   unsigned int pin);
 
-void GPIO_PinModeSet(GPIO_Port_TypeDef port,
-                     unsigned int pin,
-                     GPIO_Mode_TypeDef mode,
-                     unsigned int out);
+void GPIO_PinModeSetExt(GPIO_Port_TypeDef port,
+                        unsigned int pin,
+                        GPIO_Mode_TypeDef mode,
+                        unsigned int out,
+                        bool changeState);
+
+/***************************************************************************//**
+ * @brief
+ *   Set the mode for a GPIO pin.
+ *
+ * @param[in] port
+ *   The GPIO port to access.
+ *
+ * @param[in] pin
+ *   The pin number in the port.
+ *
+ * @param[in] mode
+ *   The desired pin mode.
+ *
+ * @param[in] out
+ *   A value to set for the pin in the DOUT register. The DOUT setting is important for
+ *   some input mode configurations to determine the pull-up/down direction.
+ ******************************************************************************/
+__STATIC_INLINE void GPIO_PinModeSet(GPIO_Port_TypeDef port,
+                                     unsigned int pin,
+                                     GPIO_Mode_TypeDef mode,
+                                     unsigned int out)
+{
+  GPIO_PinModeSetExt(port, pin, mode, out, true);
+}
 
 /***************************************************************************//**
  * @brief

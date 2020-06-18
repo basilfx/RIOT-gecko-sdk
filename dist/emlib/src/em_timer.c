@@ -293,7 +293,7 @@ void TIMER_InitCC(TIMER_TypeDef *timer,
  ******************************************************************************/
 void TIMER_InitDTI(TIMER_TypeDef *timer, const TIMER_InitDTI_TypeDef *init)
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 
   /* Make sure the DTI unit is disabled while initializing. */
   TIMER_EnableDTI(timer, false);

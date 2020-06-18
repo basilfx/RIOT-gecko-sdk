@@ -102,7 +102,10 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_CACHE_CONFIG_FAILED = 54,
   RAIL_ASSERT_NULL_TRANSITIONS = 55,
   RAIL_ASSERT_BAD_LDMA_TRANSFER = 56,
-  RAIL_ASSERT_BUS_ERROR = 57,
+  RAIL_ASSERT_INVALID_RTCC_SYNC_VALUES = 57,
+  RAIL_ASSERT_SEQUENCER_FAULT = 58,
+  RAIL_ASSERT_BUS_ERROR = 59,
+  RAIL_ASSERT_INVALID_FILTERING_CONFIG = 60,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -163,7 +166,10 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_CACHE_CONFIG_FAILED                        ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_CACHE_CONFIG_FAILED)
 #define RAIL_ASSERT_NULL_TRANSITIONS                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_NULL_TRANSITIONS)
 #define RAIL_ASSERT_BAD_LDMA_TRANSFER                          ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_BAD_LDMA_TRANSFER)
+#define RAIL_ASSERT_INVALID_RTCC_SYNC_VALUES                   ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_RTCC_SYNC_VALUES)
+#define RAIL_ASSERT_SEQUENCER_FAULT                            ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_SEQUENCER_FAULT)
 #define RAIL_ASSERT_BUS_ERROR                                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_BUS_ERROR)
+#define RAIL_ASSERT_INVALID_FILTERING_CONFIG                   ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_FILTERING_CONFIG)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -248,7 +254,10 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*54*/ "DMP radio config caching failed",                                          \
     /*55*/ "NULL was supplied as a RAIL_StateTransitions_t argument",                  \
     /*56*/ "LDMA transfer failed",                                                     \
-    /*57*/ "Bus fault",                                                                \
+    /*57*/ "Attempted to wake up with invalid RTCC sync data",                         \
+    /*58*/ "Radio sequencer hit a fault condition",                                    \
+    /*59*/ "Bus fault",                                                                \
+    /*60*/ "The current radio config cannot be used with packet filtering",            \
 }
 
 /**

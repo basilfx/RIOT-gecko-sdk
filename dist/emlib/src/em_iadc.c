@@ -124,13 +124,26 @@ static IADC_Result_t IADC_ConvertRawDataToResult(uint32_t rawData,
 
   switch (alignment) {
     case iadcAlignRight12:
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT16)
+    case iadcAlignRight16:
+#endif
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT20)
+    case iadcAlignRight20:
+#endif
       // Mask out ID and replace with sign extension
       result.data = (rawData & 0x00FFFFFFUL)
                     | ((rawData & 0x00800000UL) != 0x0UL ? 0xFF000000UL : 0x0UL);
       // Mask out data and shift down
       result.id   = (uint8_t)((rawData & 0xFF000000UL) >> 24);
       break;
+
     case iadcAlignLeft12:
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT16)
+    case iadcAlignLeft16:
+#endif
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT20)
+    case iadcAlignLeft20:
+#endif
       result.data = rawData & 0xFFFFFF00UL;
       result.id   = (uint8_t)(rawData & 0x000000FFUL);
       break;
@@ -240,6 +253,9 @@ void IADC_init(IADC_TypeDef *iadc,
 
     tmp = iadc->CFG[config].CFG & ~(_IADC_CFG_ADCMODE_MASK | _IADC_CFG_OSRHS_MASK
                                     | _IADC_CFG_ANALOGGAIN_MASK | _IADC_CFG_REFSEL_MASK
+#if defined(_IADC_CFG_DIGAVG_MASK)
+                                    | _IADC_CFG_DIGAVG_MASK
+#endif
                                     | _IADC_CFG_TWOSCOMPL_MASK);
     iadc->CFG[config].CFG = tmp
                             | (((uint32_t)(adcMode) << _IADC_CFG_ADCMODE_SHIFT) & _IADC_CFG_ADCMODE_MASK)
@@ -249,6 +265,10 @@ void IADC_init(IADC_TypeDef *iadc,
                                & _IADC_CFG_ANALOGGAIN_MASK)
                             | (((uint32_t)(allConfigs->configs[config].reference) << _IADC_CFG_REFSEL_SHIFT)
                                & _IADC_CFG_REFSEL_MASK)
+#if defined(_IADC_CFG_DIGAVG_MASK)
+                            | (((uint32_t)(allConfigs->configs[config].digAvg) << _IADC_CFG_DIGAVG_SHIFT)
+                               & _IADC_CFG_DIGAVG_MASK)
+#endif
                             | (((uint32_t)(allConfigs->configs[config].twosComplement) << _IADC_CFG_TWOSCOMPL_SHIFT)
                                & _IADC_CFG_TWOSCOMPL_MASK);
 

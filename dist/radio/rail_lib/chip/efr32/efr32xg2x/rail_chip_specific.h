@@ -54,21 +54,21 @@ extern "C" {
  * @def TRANSITION_TIME_US
  * @brief Time it takes to take care of protocol switching.
  */
-#define TRANSITION_TIME_US 500
+#define TRANSITION_TIME_US 530
 
 /**
  * @def EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state.
  */
-#define EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG21_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 /**
  * @def EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
  * @brief The size in 32-bit words of RAIL_SchedulerStateBuffer_t to store
  *   RAIL multiprotocol internal state.
  */
-#define EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 25
+#define EFR32XG22_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE 26
 
 /**
  * @def EFR32XG23_RAIL_SCHEDULER_STATE_UINT32_BUFFER_SIZE
@@ -166,10 +166,13 @@ typedef struct RAIL_Config {
    */
   void (*eventsCallback)(RAIL_Handle_t railHandle, RAIL_Events_t events);
   /**
-   * A pointer to a protocol-specific state structure allocated in global
-   * read-write memory and initialized to all zeros.
-   * For the BLE protocol, it should point to a RAIL_BLE_State_t
-   * structure. For IEEE802154, it should be NULL.
+   * Pointer to a structure to hold state information required by the \ref
+   * Protocol_Specific APIs. If needed, this structure must be allocated in
+   * global read-write memory and initialized to all zeros.
+   *
+   * Currently, this is only required when using the \ref BLE APIs and should be
+   * set to point to a \ref RAIL_BLE_State_t structure. When using \ref
+   * IEEE802_15_4 or \ref Z_Wave this should be set to NULL.
    */
   void *protocol;
   /**
@@ -400,10 +403,20 @@ typedef struct RAIL_CalValues {
 typedef int16_t RAIL_FrequencyOffset_t;
 
 /**
+ * The maximum frequency offset value supported by this radio.
+ */
+#define RAIL_FREQUENCY_OFFSET_MAX ((RAIL_FrequencyOffset_t) 0x3FFF)
+
+/**
+ * The minimum frequency offset value supported by this radio.
+ */
+#define RAIL_FREQUENCY_OFFSET_MIN ((RAIL_FrequencyOffset_t) -RAIL_FREQUENCY_OFFSET_MAX)
+
+/**
  * Specifies an invalid frequency offset value. This will be returned if you
  * call \ref RAIL_GetRxFreqOffset() at an invalid time.
  */
-#define RAIL_FREQUENCY_OFFSET_INVALID ((int16_t)0xFFFF)
+#define RAIL_FREQUENCY_OFFSET_INVALID ((RAIL_FrequencyOffset_t) 0x8000)
 
 /** @} */ // end of group Diagnostic_EFR32
 
@@ -457,6 +470,11 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  */
 #define RAIL_TX_POWER_LEVEL_HP_MAX     (180U)
 /**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_HP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_HP_MIN     (1U)
+/**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_MP mode.
  */
@@ -466,23 +484,6 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_LP_MAX     (64U)
-#else
-/**
- * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
- * RAIL_TX_POWER_MODE_2P4_HP mode.
- */
-#define RAIL_TX_POWER_LEVEL_HP_MAX     (128U)
-/**
- * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
- * RAIL_TX_POWER_MODE_2P4_LP mode.
- */
-#define RAIL_TX_POWER_LEVEL_LP_MAX     (16U)
-#endif
-/**
- * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
- * RAIL_TX_POWER_MODE_2P4_HP mode.
- */
-#define RAIL_TX_POWER_LEVEL_HP_MIN     (1U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_MP mode.
@@ -493,6 +494,28 @@ typedef uint8_t RAIL_TxPowerLevel_t;
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_LP_MIN     (1U)
+#else
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_HP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_HP_MAX     (128U)
+/**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_HP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_HP_MIN     (0U)
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_LP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_LP_MAX     (15U)
+/**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_2P4_LP mode.
+ */
+#define RAIL_TX_POWER_LEVEL_LP_MIN     (0U)
+#endif
 
 #if RAIL_FEAT_SUBGIG_RADIO
 /**
@@ -570,12 +593,14 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
 #define RAIL_TX_POWER_MODE_2P4GIG_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HP)
-#define RAIL_TX_POWER_MODE_2P4GIG_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_MP)
-#define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
-#define RAIL_TX_POWER_MODE_2P4GIG_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HIGHEST)
 #define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
+#if _SILICON_LABS_32B_SERIES_2_CONFIG != 2
+#define RAIL_TX_POWER_MODE_2P4GIG_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_MP)
 #define RAIL_TX_POWER_MODE_2P4_MP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_MP)
+#endif
+#define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
 #define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
+#define RAIL_TX_POWER_MODE_2P4GIG_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HIGHEST)
 #define RAIL_TX_POWER_MODE_2P4_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HIGHEST)
 #if RAIL_FEAT_SUBGIG_RADIO
 #define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
@@ -591,17 +616,19 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
  * macro is useful for test applications and debugging output.
  */
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 2
-#define RAIL_TX_POWER_MODE_NAMES { \
-    "RAIL_TX_POWER_MODE_2P4_HP",   \
-    "RAIL_TX_POWER_MODE_2P4_LP",   \
-    "RAIL_TX_POWER_MODE_NONE"      \
+#define RAIL_TX_POWER_MODE_NAMES {       \
+    "RAIL_TX_POWER_MODE_2P4GIG_HP",      \
+    "RAIL_TX_POWER_MODE_2P4GIG_LP",      \
+    "RAIL_TX_POWER_MODE_2P4GIG_HIGHEST", \
+    "RAIL_TX_POWER_MODE_NONE"            \
 }
 #else
-#define RAIL_TX_POWER_MODE_NAMES { \
-    "RAIL_TX_POWER_MODE_2P4_HP",   \
-    "RAIL_TX_POWER_MODE_2P4_MP",   \
-    "RAIL_TX_POWER_MODE_2P4_LP",   \
-    "RAIL_TX_POWER_MODE_NONE"      \
+#define RAIL_TX_POWER_MODE_NAMES {       \
+    "RAIL_TX_POWER_MODE_2P4GIG_HP",      \
+    "RAIL_TX_POWER_MODE_2P4GIG_MP",      \
+    "RAIL_TX_POWER_MODE_2P4GIG_LP",      \
+    "RAIL_TX_POWER_MODE_2P4GIG_HIGHEST", \
+    "RAIL_TX_POWER_MODE_NONE"            \
 }
 #endif
 

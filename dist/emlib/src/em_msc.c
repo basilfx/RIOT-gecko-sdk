@@ -441,6 +441,9 @@ MSC_Status_TypeDef MSC_ErasePage(uint32_t *startAddress)
   // Address must be aligned to page boundary
   EFM_ASSERT((((uint32_t)startAddress) & (FLASH_PAGE_SIZE - 1U)) == 0);
 
+#if defined(_CMU_CLKEN1_MASK)
+  CMU->CLKEN1_SET = CMU_CLKEN1_MSC;
+#endif
   wasLocked = MSC_IS_LOCKED();
   MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
 
@@ -506,6 +509,9 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
   // Check number of bytes, must be divisable by four
   EFM_ASSERT((numBytes & 0x3U) == 0);
 
+#if defined(_CMU_CLKEN1_MASK)
+  CMU->CLKEN1_SET = CMU_CLKEN1_MSC;
+#endif
   wasLocked = MSC_IS_LOCKED();
   MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
 
@@ -560,6 +566,114 @@ MSC_Status_TypeDef MSC_MassErase(void)
   return retVal;
 }
 MSC_RAMFUNC_DEFINITION_END
+
+/***************************************************************************//**
+ * @brief
+ *   Writes data to flash memory using the DMA.
+ *
+ * @details
+ *   This function uses the LDMA to write data to the internal flash memory.
+ *   This is the fastest way to write data to the flash and should be used when
+ *   the application wants to achieve write speeds like they are reported in the
+ *   datasheet. Note that copying data from flash to flash will be slower than
+ *   copying from RAM to flash. So the source data must be in RAM in order to
+ *   see the write speeds similar to the datasheet numbers.
+ *
+ * @note
+ *   This function requires that the LDMA and LDMAXBAR clock is enabled.
+ *
+ * @param[in] ch
+ *   DMA channel to use
+ *
+ * @param[in] address
+ *   A pointer to the flash word to write to. Must be aligned to words.
+ *
+ * @param[in] data
+ *   Data to write to flash.
+ *
+ * @param[in] numBytes
+ *   A number of bytes to write from flash. NB: Must be divisible by four.
+ *
+ * @return
+ *   Returns the status of the write operation.
+ * @verbatim
+ *   flashReturnOk - The operation completed successfully.
+ *   flashReturnInvalidAddr - The operation tried to erase a non-flash area.
+ * @endverbatim
+ ******************************************************************************/
+MSC_Status_TypeDef MSC_WriteWordDma(int ch,
+                                    uint32_t *address,
+                                    const void *data,
+                                    uint32_t numBytes)
+{
+  uint32_t words = numBytes / 4;
+  uint32_t burstLen;
+  uint32_t src = (uint32_t) data;
+  uint32_t dst = (uint32_t) address;
+  bool wasLocked;
+
+  EFM_ASSERT((ch >= 0) && (ch < (int)DMA_CHAN_COUNT));
+
+  LDMA->EN_SET = 0x1;
+  LDMAXBAR->CH[ch].REQSEL = LDMAXBAR_CH_REQSEL_SOURCESEL_MSC
+                            | LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA;
+  LDMA->CH[ch].CFG = _LDMA_CH_CFG_RESETVALUE;
+  LDMA->CH[ch].LOOP = _LDMA_CH_LOOP_RESETVALUE;
+  LDMA->CH[ch].LINK = _LDMA_CH_LINK_RESETVALUE;
+
+#if defined(_CMU_CLKEN1_MASK)
+  CMU->CLKEN1_SET = CMU_CLKEN1_MSC;
+#endif
+  // Unlock MSC
+  wasLocked = MSC_IS_LOCKED();
+  MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
+  // Enable writing to the MSC module.
+  MSC->WRITECTRL |= MSC_WRITECTRL_WREN;
+
+  while (numBytes) {
+    // Max burst length is up to next flash page boundary
+    burstLen = SL_MIN(numBytes,
+                      ((dst + FLASH_PAGE_SIZE) & FLASH_PAGE_MASK) - dst);
+    words = burstLen / 4;
+
+    // Load the address.
+    MSC->ADDRB = dst;
+
+    // Check for an invalid address.
+    if (MSC->STATUS & MSC_STATUS_INVADDR) {
+      return mscReturnInvalidAddr;
+    }
+
+    LDMA->CH[ch].CTRL = LDMA_CH_CTRL_DSTINC_NONE
+                       | LDMA_CH_CTRL_SIZE_WORD
+                       | ((words - 1) << _LDMA_CH_CTRL_XFERCNT_SHIFT);
+    LDMA->CH[ch].SRC = (uint32_t)src;
+    LDMA->CH[ch].DST = (uint32_t)&MSC->WDATA;
+
+    // Enable channel
+    LDMA->CHEN_SET = (0x1 << ch);
+
+    while ((LDMA->CHDONE & (0x1 << ch)) == 0x0) {
+      ;
+    }
+
+    LDMA->CHDONE_CLR = (0x1 << ch);
+    LDMA->CHDIS_SET = (0x1 << ch);
+    MSC->WRITECMD = MSC_WRITECMD_WRITEEND;
+
+    dst      += burstLen;
+    src      += burstLen;
+    numBytes -= burstLen;
+  }
+
+  // Disable writing to the MSC module.
+  MSC->WRITECTRL &= ~MSC_WRITECTRL_WREN;
+  if (wasLocked) {
+    MSC->LOCK = MSC_LOCK_LOCKKEY_LOCK;
+  }
+
+  return mscReturnOk;
+}
 
 #else // defined(_SILICON_LABS_32B_SERIES_2)
 
@@ -1164,6 +1278,121 @@ MSC_Status_TypeDef MSC_WriteWordFast(uint32_t *address,
   return MSC_WriteWord(address, data, numBytes);
 }
 MSC_RAMFUNC_DEFINITION_END
+
+
+#if (_SILICON_LABS_32B_SERIES > 0)
+/***************************************************************************//**
+ * @brief
+ *   Writes data from RAM to flash memory using the DMA.
+ *
+ * @details
+ *   This function uses the LDMA to write data to the internal flash memory.
+ *   This is the fastest way to write data to the flash and should be used when
+ *   the application wants to achieve write speeds like they are reported in the
+ *   datasheet. Note that this function only supports writing data from RAM to
+ *   flash, it does not support writing data from flash to flash.
+ *
+ * @note
+ *   This function requires that the LDMA clock is enabled.
+ *
+ * @param[in] ch
+ *   DMA channel to use
+ *
+ * @param[in] address
+ *   A pointer to the flash word to write to. Must be aligned to words.
+ *
+ * @param[in] data
+ *   Data to write to flash. Note that this argument must be an address in RAM.
+ *   This function does not support copying data from flash to flash on series-1
+ *   devices.
+ *
+ * @param[in] numBytes
+ *   A number of bytes to write from flash. NB: Must be divisible by four.
+ *
+ * @return
+ *   Returns the status of the write operation.
+ * @verbatim
+ *   flashReturnOk - The operation completed successfully.
+ *   flashReturnInvalidAddr - The operation tried to erase a non-flash area.
+ * @endverbatim
+ ******************************************************************************/
+MSC_Status_TypeDef MSC_WriteWordDma(int ch,
+                                    uint32_t *address,
+                                    const void *data,
+                                    uint32_t numBytes)
+{
+  uint32_t words = numBytes / 4;
+  uint32_t burstLen;
+  uint32_t src = (uint32_t) data;
+  uint32_t dst = (uint32_t) address;
+  bool wasLocked;
+
+  EFM_ASSERT((ch >= 0) && (ch < (int)DMA_CHAN_COUNT));
+
+  // Verify that the data argument is in RAM
+  if (((uint32_t)data < SRAM_BASE) || ((uint32_t)data > (SRAM_BASE + SRAM_SIZE))) {
+    EFM_ASSERT(false);
+    return mscReturnInvalidAddr;
+  }
+
+  LDMA->CH[ch].REQSEL = LDMA_CH_REQSEL_SOURCESEL_MSC
+                       | LDMA_CH_REQSEL_SIGSEL_MSCWDATA;
+  LDMA->CH[ch].CFG = _LDMA_CH_CFG_RESETVALUE;
+  LDMA->CH[ch].LOOP = _LDMA_CH_LOOP_RESETVALUE;
+  LDMA->CH[ch].LINK = _LDMA_CH_LINK_RESETVALUE;
+
+  wasLocked = MSC_IS_LOCKED();
+  MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
+  // Enable writing to the MSC module.
+  MSC->WRITECTRL |= MSC_WRITECTRL_WREN;
+
+  while (numBytes) {
+    // Max burst length is up to next flash page boundary
+    burstLen = SL_MIN(numBytes,
+                      ((dst + FLASH_PAGE_SIZE) & FLASH_PAGE_MASK) - dst);
+    words = burstLen / 4;
+
+    // Load the address.
+    MSC->ADDRB    = dst;
+    MSC->WRITECMD = MSC_WRITECMD_LADDRIM;
+
+    // Check for an invalid address.
+    if (MSC->STATUS & MSC_STATUS_INVADDR) {
+      return mscReturnInvalidAddr;
+    }
+
+    LDMA->CH[ch].CTRL = LDMA_CH_CTRL_DSTINC_NONE
+                       | LDMA_CH_CTRL_SIZE_WORD
+                       | ((words - 1) << _LDMA_CH_CTRL_XFERCNT_SHIFT);
+    LDMA->CH[ch].SRC = (uint32_t)src;
+    LDMA->CH[ch].DST = (uint32_t)&MSC->WDATA;
+
+    // Enable channel
+    LDMA->CHEN |= (0x1 << ch);
+    MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
+
+    while ((LDMA->CHDONE & (0x1 << ch)) == 0x0) {
+      ;
+    }
+    BUS_RegMaskedClear(&LDMA->CHDONE, (0x1 << ch));
+    BUS_RegMaskedClear(&LDMA->CHEN, (0x1 << ch));
+
+    dst      += burstLen;
+    src      += burstLen;
+    numBytes -= burstLen;
+  }
+
+  MSC->WRITECMD = MSC_WRITECMD_WRITEEND;
+
+  // Disable writing to the MSC module.
+  MSC->WRITECTRL &= ~MSC_WRITECTRL_WREN;
+  if (wasLocked) {
+    MSC->LOCK = MSC_LOCK_LOCKKEY_LOCK;
+  }
+
+  return mscReturnOk;
+}
+#endif
 
 #if defined(_MSC_MASSLOCK_MASK)
 /***************************************************************************//**

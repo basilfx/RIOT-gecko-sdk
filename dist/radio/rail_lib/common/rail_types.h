@@ -126,7 +126,6 @@ RAIL_ENUM(RAIL_Status_t) {
  * A pointer to init complete callback function
  *
  * @param[in] railHandle A handle for RAIL instance.
- * @return void.
  *
  */
 typedef void (*RAIL_InitCompleteCallbackPtr_t)(RAIL_Handle_t railHandle);
@@ -154,7 +153,6 @@ typedef uint32_t RAIL_Time_t;
  * A pointer to the callback called when the RAIL timer expires.
  *
  * @param[in] cbArg The argument passed to the callback.
- * @return void.
  */
 typedef void (*RAIL_TimerCallback_t)(RAIL_Handle_t cbArg);
 
@@ -234,21 +232,6 @@ typedef struct RAIL_MultiTimer {
   bool                isRunning;      /**< Indicates the timer is currently running. */
   bool                doCallback;     /**< Indicates the callback needs to run. */
 } RAIL_MultiTimer_t;
-
-/**
- * @enum RAIL_SleepConfig_t
- * @brief The configuration
- */
-RAIL_ENUM(RAIL_SleepConfig_t) {
-  RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED, /**< Disable timer sync before and after sleep. */
-  RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED, /**< Enable timer sync before and after sleep. */
-};
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED)
-#define RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED  ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED)
-#endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @enum RAIL_PacketTimePosition_t
@@ -348,6 +331,28 @@ typedef struct RAIL_PacketTimeStamp {
 } RAIL_PacketTimeStamp_t;
 
 /** @} */ // end of group System_Timing
+
+/**
+ * @addtogroup Sleep
+ * @{
+ */
+
+/**
+ * @enum RAIL_SleepConfig_t
+ * @brief The configuration
+ */
+RAIL_ENUM(RAIL_SleepConfig_t) {
+  RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED, /**< Disable timer sync before and after sleep. */
+  RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED, /**< Enable timer sync before and after sleep. */
+};
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// Self-referencing defines minimize compiler complaints when using RAIL_ENUM
+#define RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED)
+#define RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED  ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED)
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/** @} */ // end of group Sleep
 
 /******************************************************************************
  * Multiprotocol Structures
@@ -1734,17 +1739,17 @@ RAIL_ENUM(RAIL_IdleMode_t) {
    */
   RAIL_IDLE_ABORT,
   /**
-   * Force the radio into a shutdown mode as quickly as possible. It
-   * aborts all current operations and cancels any pending scheduled
-   * operations.
-   * It may also corrupt receive or transmit buffers and end up clearing them.
+   * Force the radio into a shutdown mode by stopping whatever state is in
+   * progress. This is a more destructive shutdown than \ref RAIL_IDLE or
+   * \ref RAIL_IDLE_ABORT and can be useful in certain situations when directed
+   * by the support team or for debugging. Note that this method may corrupt
+   * receive and transmit buffers so it requires a more thorough cleanup
+   * and any held packets will be lost.
    */
   RAIL_IDLE_FORCE_SHUTDOWN,
   /**
-   * Similar to the \ref RAIL_IDLE_FORCE_SHUTDOWN command, it quickly
-   * puts the radio into idle state. Additionally, it clears any
-   * pending receive or transmit callbacks and clear both the receive and
-   * transmit storage.
+   * Similar to the \ref RAIL_IDLE_FORCE_SHUTDOWN command, however, it will also
+   * clear any pending RAIL events related to receive and transmit.
    */
   RAIL_IDLE_FORCE_SHUTDOWN_CLEAR_FLAGS,
 };
@@ -2311,7 +2316,11 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * will contain which sync word was detected. Note, this only affects which
  * sync word(s) are received, but not what each of the sync words actually are.
  * This feature may not be available on some combinations of chips, PHYs, and
- * protocols. See the data sheet or support team for more details.
+ * protocols. Use the compile time symbol RAIL_SUPPORTS_DUAL_SYNC_WORDS or
+ * the runtume call RAIL_SupportsDualSyncWords() to check whether the
+ * platform supports this feature. Also, DUALSYNC may be incompatible
+ * with certain radio configurations. In these cases, setting this bit will
+ * be ignored. See the data sheet or support team for more details.
  */
 #define RAIL_RX_OPTION_ENABLE_DUALSYNC (1UL << RAIL_RX_OPTION_ENABLE_DUALSYNC_SHIFT)
 
@@ -2538,14 +2547,29 @@ RAIL_ENUM(RAIL_RxPacketStatus_t) {
  * @brief A handle used to reference a packet during reception processing.
  *   There are several sentinel handle values that pertain to certain
  *   circumstances: \ref RAIL_RX_PACKET_HANDLE_INVALID, \ref
- *   RAIL_RX_PACKET_HANDLE_OLDEST and \ref RAIL_RX_PACKET_HANDLE_NEWEST.
+ *   RAIL_RX_PACKET_HANDLE_OLDEST, \ref RAIL_RX_PACKET_HANDLE_OLDEST_COMPLETE
+ *   and \ref RAIL_RX_PACKET_HANDLE_NEWEST.
  */
 typedef const void *RAIL_RxPacketHandle_t;
 
 /** An invalid RX packet handle value. */
 #define RAIL_RX_PACKET_HANDLE_INVALID  (NULL)
-/** A special RX packet handle to refer to the oldest unreleased packet. */
+
+/** A special RX packet handle to refer to the oldest unreleased packet.
+ * This includes the newest unread packet which is possibly incomplete or not
+ * yet started.
+ * This handle is used implicitly by \ref RAIL_ReadRxFifo().
+ */
 #define RAIL_RX_PACKET_HANDLE_OLDEST   ((RAIL_RxPacketHandle_t) 1)
+
+/** A special RX packet handle to refer to the oldest unreleased
+ *  complete packet. This never includes incomplete or unstarted packets.
+ *  (Using \ref RAIL_RX_PACKET_HANDLE_OLDEST is inappropriate for this
+ *  purpose because it can refer to an unstarted, incomplete, or
+ *  unheld packet which are inappropriate to be consumed by the application.)
+ */
+#define RAIL_RX_PACKET_HANDLE_OLDEST_COMPLETE   ((RAIL_RxPacketHandle_t) 2)
+
 /** A special RX packet handle to refer to the newest unreleased packet
  *  when in callback context. For a callback involving a completed
  *  receive event, this refers to the packet just completed. For
@@ -2553,7 +2577,7 @@ typedef const void *RAIL_RxPacketHandle_t;
  *  completed, which might be in-progress or might not have even
  *  started yet.
  */
-#define RAIL_RX_PACKET_HANDLE_NEWEST   ((RAIL_RxPacketHandle_t) 2)
+#define RAIL_RX_PACKET_HANDLE_NEWEST   ((RAIL_RxPacketHandle_t) 3)
 
 /**
  * @struct RAIL_RxPacketInfo_t
@@ -2823,6 +2847,18 @@ typedef struct RAIL_AutoAckConfig {
 /** @} */ // end of group Auto_Ack
 
 /******************************************************************************
+ * External_Thermistor Structures
+ *****************************************************************************/
+/**
+ * @addtogroup External_Thermistor
+ * @{
+ */
+
+/// A sentinel value to indicate an invalid thermistor measurement value.
+#define RAIL_INVALID_THERMISTOR_VALUE (0xFFFFFFFF)
+/** @} */ // end of group External_Thermistor
+
+/******************************************************************************
  * Calibration Structures
  *****************************************************************************/
 /**
@@ -2883,6 +2919,11 @@ typedef uint8_t (*RAIL_ConvertLqiCallback_t)(uint8_t lqi,
 typedef void (*RAIL_RfSense_CallbackPtr_t)(void);
 
 /**
+ * RF Sense low sensitivity offset.
+ */
+#define RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET   (0x20U)
+
+/**
  * @enum RAIL_RfSenseBand_t
  * @brief An enumeration for specifying the RF Sense frequency band.
  */
@@ -2891,16 +2932,22 @@ RAIL_ENUM(RAIL_RfSenseBand_t) {
   RAIL_RFSENSE_2_4GHZ, /**< RF Sense is in 2.4 G band. */
   RAIL_RFSENSE_SUBGHZ, /**< RF Sense is in subgig band. */
   RAIL_RFSENSE_ANY,    /**< RF Sense is in both bands. */
-  RAIL_RFSENSE_MAX     // Must be last.
+  RAIL_RFSENSE_MAX,    // Must be last before sensitivity options.
+  RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_2_4GHZ,  /**< RF Sense is in low sensitivity 2.4 G band */
+  RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_SUBGHZ,  /**< RF Sense is in low sensitivity subgig band */
+  RAIL_RFENSE_ANY_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_ANY          /**< RF Sense is in low sensitivity for both bands. */
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_RFSENSE_OFF    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_OFF)
-#define RAIL_RFSENSE_2_4GHZ ((RAIL_RfSenseBand_t) RAIL_RFSENSE_2_4GHZ)
-#define RAIL_RFSENSE_SUBGHZ ((RAIL_RfSenseBand_t) RAIL_RFSENSE_SUBGHZ)
-#define RAIL_RFSENSE_ANY    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_ANY)
-#define RAIL_RFSENSE_MAX    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_MAX)
+#define RAIL_RFSENSE_OFF                    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_OFF)
+#define RAIL_RFSENSE_2_4GHZ                 ((RAIL_RfSenseBand_t) RAIL_RFSENSE_2_4GHZ)
+#define RAIL_RFSENSE_SUBGHZ                 ((RAIL_RfSenseBand_t) RAIL_RFSENSE_SUBGHZ)
+#define RAIL_RFSENSE_ANY                    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_ANY)
+#define RAIL_RFSENSE_MAX                    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_MAX)
+#define RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY ((RAIL_RfSenseBand_t) RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY)
+#define RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY ((RAIL_RfSenseBand_t) RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY)
+#define RAIL_RFENSE_ANY_LOW_SENSITIVITY     ((RAIL_RfSenseBand_t) RAIL_RFENSE_ANY_LOW_SENSITIVITY)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -3166,12 +3213,16 @@ typedef struct RAIL_RxDutyCycleConfig {
 RAIL_ENUM(RAIL_StreamMode_t) {
   RAIL_STREAM_CARRIER_WAVE = 0, /**< An unmodulated carrier wave. */
   RAIL_STREAM_PN9_STREAM = 1,   /**< PN9 byte sequence. */
+  RAIL_STREAM_10_STREAM = 2, /**< 101010 sequence.  */
+  RAIL_STREAM_MODES_COUNT   /**< A count of the choices in this enumeration. Must be last. */
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
 #define RAIL_STREAM_CARRIER_WAVE ((RAIL_StreamMode_t) RAIL_STREAM_CARRIER_WAVE)
 #define RAIL_STREAM_PN9_STREAM   ((RAIL_StreamMode_t) RAIL_STREAM_PN9_STREAM)
+#define RAIL_STREAM_10_STREAM   ((RAIL_StreamMode_t) RAIL_STREAM_10_STREAM)
+#define RAIL_STREAM_MODES_COUNT   ((RAIL_StreamMode_t) RAIL_STREAM_MODES_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**

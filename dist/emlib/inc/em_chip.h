@@ -36,10 +36,6 @@
 #include "em_gpio.h"
 #include "em_bus.h"
 
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_220)
-#include "em_cmu.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -299,6 +295,14 @@ __STATIC_INLINE void CHIP_Init(void)
   CMU->HFBUSCLKEN0 &= ~CMU_HFBUSCLKEN0_LE;
 #endif
 
+#if defined(_SILICON_LABS_32B_SERIES_1)              \
+  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)  \
+  && !defined(ERRATA_FIX_EMU_E220_DECBOD_IGNORE)
+  /* First part of the EMU_E220 DECBOD Errata fix. DECBOD Reset can occur
+   * during voltage scaling after EM2/3 wakeup. Second part is in em_emu.c */
+  *(volatile uint32_t *)(EMU_BASE + 0x1A4) |= 0x1f << 10;
+#endif
+
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_200)
   SYSTEM_ChipRevision_TypeDef chipRev;
   SYSTEM_ChipRevisionGet(&chipRev);
@@ -329,10 +333,6 @@ __STATIC_INLINE void CHIP_Init(void)
   /* Set TRACE clock to intended reset value. */
   CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_CLKSEL_MASK)
                       | CMU_TRACECLKCTRL_CLKSEL_HFRCOEM23;
-#endif
-
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_220)
-  CMU_HFRCODPLLBandSet(cmuHFRCODPLLFreq_19M0Hz);
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)

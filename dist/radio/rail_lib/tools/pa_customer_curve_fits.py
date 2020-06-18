@@ -43,14 +43,19 @@
 #  ****************************************************************************/
 
 from __future__ import print_function
-from pylab import *
-import numpy
-import math
-import sys
+from __future__ import division
 import os
+import sys
+import argparse
+import numpy
+try:
+  from matplotlib import pyplot as plt
+except ImportError:
+  pass
 
 API_MAX_POWER = 20
 API_MIN_POWER = -50
+enablePlotting = False
 
 def FitAndPlotPower(actPower, yAxisValues, min=-100, max=100):
   filtPwr=[]
@@ -73,11 +78,13 @@ def FitAndPlotPower(actPower, yAxisValues, min=-100, max=100):
 
   # Do the actual curve fit
   if filtPwr:
-    fig = plt.plot(filtPwr, filtYAxisValues)
+    if enablePlotting:
+      fig = plt.plot(filtPwr, filtYAxisValues)
     coefficients = numpy.polyfit(filtPwr, filtYAxisValues, 1)
     polynomial = numpy.poly1d(coefficients)
     ys = polynomial(filtPwr)
-    fig = plt.plot(filtPwr, ys, label=polynomial)
+    if enablePlotting:
+      fig = plt.plot(filtPwr, ys, label=polynomial)
   else:
     polynomial = [0, 0]
 
@@ -90,7 +97,7 @@ def GenCArrayFromPolys(polylist):
     maxPowerLevel = polylist[i+1]
     pwrcoeff = polylist[i+2]
     curveSegments.append(CurveSegment(int(maxPowerLevel), int(pwrcoeff[1] * 100), int(pwrcoeff[0] * 1000)))
-      
+
   return curveSegments
 
 def StringFromCurveSegments(curveSegments):
@@ -131,26 +138,21 @@ def AdjustMaxValues(curveSegments):
   for i in range(1, len(curveSegments)):
     if curveSegments[i].slope != curveSegments[i-1].slope and curveSegments[i-1].slope != 0 and curveSegments[i].slope != 0:
       # Adjust the max values so that they overlap where the curves actually intercept
+      x_intercept = int((curveSegments[i-1].intercept - curveSegments[i].intercept)
+                     // (curveSegments[i].slope - curveSegments[i-1].slope))
       curveSegments[i].maxValue = min(curveSegments[i-1].maxValue,
-                                      (curveSegments[i].slope * int((curveSegments[i-1].intercept - curveSegments[i].intercept)
-                                        / (curveSegments[i].slope - curveSegments[i-1].slope)) + curveSegments[i].intercept + 500) / 1000)
+                                      (curveSegments[i].slope * x_intercept + curveSegments[i].intercept + 500) // 1000)
 
   return curveSegments
 
-def FitCharData(increment=4):
-
-  if len(sys.argv) < 2:
-    print("Usage: python pa_customer_curve_fits.py <CSV_FILE>")
-    exit()
-  
-  fitResult = ProcessCharDataAndFindPoly(sys.argv[1], increment)
+def FitCharData(csvFile, increment=4):
+  fitResult = ProcessCharDataAndFindPoly(csvFile, increment)
 
   cStr = ""
   cStr += '\nRAIL_TxPowerCurveSegment_t[] C Structure\n'
   cStr += StringFromCurveSegments(AdjustMaxValues(fitResult))
   cStr += '\n'
-
-  print('\n' + cStr)
+  return '\n' + cStr
 
 def ProcessCharDataAndFindPoly(filename, increment=4):
   data = ReadAndProcessCharData(filename)
@@ -166,7 +168,7 @@ def ReadAndProcessCharData(filename):
   # Average powers in case users provide a list of dBm sample for each level
   for entry in chardata:
     pwrlvls.append(entry[0])
-    avgpower = average(entry[1:len(entry)])
+    avgpower = numpy.average(entry[1:len(entry)])
     outpwrs.append(avgpower)
     if maxpower == None or avgpower > maxpower:
       maxpower = avgpower
@@ -210,10 +212,49 @@ def CalcPowerPolys(yAxisValues, powers, increment):
 
     if pwr < API_MIN_POWER:
       break
-  # Uncomment the following line to see a mapping from dBm to power levels visual inspection
-  # show()
+
   return GenCArrayFromPolys(polylist)
 
-if __name__ == '__main__':
-  FitCharData()
+def main():
+  global enablePlotting
+  parser = argparse.ArgumentParser(description="Utility to fit PA data to a curve that can be used in RAIL.")
+  parser.add_argument('csvFile',
+                      type=str,
+                      help="The input CSV file to parse for power information")
+  parser.add_argument('-i', '--increment',
+                      type=int,
+                      default=4,
+                      required=False,
+                      help=argparse.SUPPRESS)
+  parser.add_argument('-o', '--output',
+                      type=str,
+                      default=None,
+                      required=False,
+                      help="The output file to print the results to. Will print to stdout by default.")
+  parser.add_argument('-p', '--plot',
+                      action='store_true',
+                      help="Pass this option to enable plotting the curve fit for visual inspection")
+  a = parser.parse_args()
 
+  # Only use matplotlib if we're graphing results
+  enablePlotting = a.plot
+  if enablePlotting and 'plt' not in globals():
+    print("Error: matplotlib is required for plotting results")
+    return 1
+
+  # Compute the fit and output the result
+  output = FitCharData(a.csvFile, a.increment)
+  if a.output == None:
+    print(output)
+  else:
+    with open(a.output, 'w') as f:
+      f.write(output)
+
+  # Show the plot of the curve fit if requested
+  if enablePlotting:
+    plt.show()
+
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

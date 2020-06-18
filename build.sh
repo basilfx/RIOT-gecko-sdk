@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.7.feature_root_2.7.0.201912121612-219"
+GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.7.feature_root_2.7.6.202005260954-3"
 GECKO_SDK_URL="https://devtools.silabs.com/studio/v4/updates/binary/"
 
 DIST_DIR=`pwd`/dist

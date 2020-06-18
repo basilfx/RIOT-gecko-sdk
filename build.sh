@@ -39,6 +39,9 @@ rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library-mp"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/plugin.info"
 
+find "${DIST_DIR}/radio/rail_lib/autogen/librail_release" -type f -name "*_iar.a" -delete
+find "${DIST_DIR}/radio/rail_lib/autogen/librail_release" -type f -name "*_iar_*.a" -delete
+
 # Ensure Unix line endings are used.
 find "${DIST_DIR}" -name "*.c" -type f -exec dos2unix -k -s -o {} ';'
 find "${DIST_DIR}" -name "*.h" -type f -exec dos2unix -k -s -o {} ';'

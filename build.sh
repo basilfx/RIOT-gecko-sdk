@@ -3,9 +3,9 @@
 GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.7.feature_root_2.7.6.202005260954-3"
 GECKO_SDK_URL="https://devtools.silabs.com/studio/v4/updates/binary/"
 
-DIST_DIR=`pwd`/dist
-SRC_DIR=`pwd`/src
-TEMP_DIR=`pwd`/temp
+DIST_DIR=$(pwd)/dist
+SRC_DIR=$(pwd)/src
+TEMP_DIR=$(pwd)/temp
 
 # Clear everything in the target folder.
 rm -rf "${DIST_DIR}"

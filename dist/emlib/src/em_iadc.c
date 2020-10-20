@@ -482,7 +482,7 @@ void IADC_initSingle(IADC_TypeDef *iadc,
                         | (init->fifoDmaWakeup ? IADC_SINGLEFIFOCFG_DMAWUFIFOSINGLE : 0UL);
 
   // Clear bitfields for single conversion in IADCn->TRIGGER and set new values
-  iadc->TRIGGER = (iadc->TRIGGER & (_IADC_TRIGGER_SINGLETRIGSEL_MASK
+  iadc->TRIGGER = (iadc->TRIGGER & ~(_IADC_TRIGGER_SINGLETRIGSEL_MASK
                                     | _IADC_TRIGGER_SINGLETRIGACTION_MASK
                                     | _IADC_TRIGGER_SINGLETAILGATE_MASK))
                   | (((uint32_t) (init->triggerSelect) << _IADC_TRIGGER_SINGLETRIGSEL_SHIFT)

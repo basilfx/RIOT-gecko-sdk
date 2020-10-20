@@ -88,7 +88,7 @@ extern "C" {
 #define SL_CEILING(n, i)   ((((n) + (i) - 1U) / (i)) * (i))
 
 /** @brief Round n down to closest interval of i. */
-#define SL_FLOOR(n, i) ((n / i) * i))
+#define SL_FLOOR(n, i) ((n / i) * i)
 
 /** @brief Stringify X */
 #define STRINGIZE(X) #X

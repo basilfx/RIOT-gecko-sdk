@@ -564,6 +564,7 @@ void PCNT_Init(PCNT_TypeDef *pcnt, const PCNT_Init_TypeDef *init)
 
     /* pcntModeDisable */
     /* pcntModeOvsSingle */
+    /* pcntModeOvsQuadx */
     default:
       /* No need to set disabled mode if already disabled. */
       if ((pcnt->CTRL & _PCNT_CTRL_MODE_MASK) != PCNT_CTRL_MODE_DISABLE) {
@@ -584,7 +585,7 @@ void PCNT_Init(PCNT_TypeDef *pcnt, const PCNT_Init_TypeDef *init)
       PCNT_CounterTopSet(pcnt, init->counter, init->top);
 
       /* Enter oversampling mode if selected. */
-      if (init->mode == pcntModeOvsSingle) {
+      if (init->mode != pcntModeDisable) {
         PCNT_Sync(pcnt, PCNT_SYNCBUSY_CTRL);
         pcnt->CTRL = tmp | (init->mode << _PCNT_CTRL_MODE_SHIFT);
       }

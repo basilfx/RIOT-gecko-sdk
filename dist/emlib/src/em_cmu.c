@@ -1765,6 +1765,11 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
   unsigned int i;
   bool hclkDivIncreased = false;
   uint32_t hfrcoCalVal, lockStatus, hclkDiv = 0, sysFreq;
+  uint32_t hfrcoFreqRangeExpected;
+  uint32_t hfrcoFreqRangeActual;
+  uint32_t hfrcoCalCurrent;
+  bool hfrcoClamped = false;
+  bool restoreDpll;
 
   EFM_ASSERT(init->frequency >= hfrcoCalTable[0].minFreq);
   EFM_ASSERT(init->frequency
@@ -1806,9 +1811,6 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
     hfrcoCalVal |= tuning << _HFRCO_CAL_TUNING_SHIFT;
   }
 
-  // Update CMSIS HFRCODPLL frequency.
-  SystemHFRCODPLLClockSet(init->frequency);
-
   if (CMU_ClockSelectGet(cmuClock_SYSCLK) == cmuSelect_HFRCODPLL) {
     // Set max wait-states and PCLK divisor while changing core clock
     waitStateMax();
@@ -1835,24 +1837,63 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
   CMU->CLKEN0_SET = CMU_CLKEN0_DPLL0 | CMU_CLKEN0_HFRCO0;
 #endif
 
+  restoreDpll = DPLL0->EN & _DPLL_EN_EN_MASK;
+
   // Make sure DPLL is disabled before configuring
   DPLL0->EN_CLR = DPLL_EN_EN;
   while ((DPLL0->STATUS & (DPLL_STATUS_ENS | DPLL_STATUS_RDY)) != 0UL) {
   }
-  DPLL0->IF_CLR = DPLL_IF_LOCK | DPLL_IF_LOCKFAILLOW | DPLL_IF_LOCKFAILHIGH;
-  DPLL0->CFG1   = ((uint32_t)init->n   << _DPLL_CFG1_N_SHIFT)
-                  | ((uint32_t)init->m << _DPLL_CFG1_M_SHIFT);
+
+  // updates to the CAL register are deferred if FREQBSY is high, so wait
+  // until HFRCO is not busy to keep going
+  while (HFRCO0->STATUS & (HFRCO_STATUS_SYNCBUSY | HFRCO_STATUS_FREQBSY)) {
+  }
+
+  /*
+   * Some devices have clamped frequency ranges, so instead of the usual [0:16]
+   * interval, the upper limit is 12. Hardware takes care of clamping the value,
+   * but we might end up in a situation where tuning and frequency range are not
+   * in sync. So try to detect if the value has been clamped, and if it happened
+   * revert back to the previous value.
+   */
+  hfrcoCalCurrent = HFRCO0->CAL;
   HFRCO0->CAL = hfrcoCalVal;
-  CMU_ClockSelectSet(cmuClock_DPLLREFCLK, init->refClk);
-  DPLL0->CFG = ((init->autoRecover ? 1UL : 0UL) << _DPLL_CFG_AUTORECOVER_SHIFT)
-               | ((init->ditherEn ? 1UL : 0UL)  << _DPLL_CFG_DITHEN_SHIFT)
-               | ((uint32_t)init->edgeSel  << _DPLL_CFG_EDGESEL_SHIFT)
-               | ((uint32_t)init->lockMode << _DPLL_CFG_MODE_SHIFT);
-  // Lock DPLL
-  DPLL0->EN_SET = DPLL_EN_EN;
-  while ((lockStatus = (DPLL0->IF & (DPLL_IF_LOCK
-                                     | DPLL_IF_LOCKFAILLOW
-                                     | DPLL_IF_LOCKFAILHIGH))) == 0UL) {
+
+  // values are not shifted, not necessary for comparison
+  hfrcoFreqRangeExpected = (hfrcoCalVal & _HFRCO_CAL_FREQRANGE_MASK);
+  hfrcoFreqRangeActual   = (HFRCO0->CAL & _HFRCO_CAL_FREQRANGE_MASK);
+
+  EFM_ASSERT(hfrcoFreqRangeExpected == hfrcoFreqRangeActual);
+  if (hfrcoFreqRangeExpected == hfrcoFreqRangeActual) {
+    DPLL0->CFG1   = ((uint32_t)init->n   << _DPLL_CFG1_N_SHIFT)
+                    | ((uint32_t)init->m << _DPLL_CFG1_M_SHIFT);
+    CMU_ClockSelectSet(cmuClock_DPLLREFCLK, init->refClk);
+    DPLL0->CFG = ((init->autoRecover ? 1UL : 0UL) << _DPLL_CFG_AUTORECOVER_SHIFT)
+                 | ((init->ditherEn ? 1UL : 0UL)  << _DPLL_CFG_DITHEN_SHIFT)
+                 | ((uint32_t)init->edgeSel  << _DPLL_CFG_EDGESEL_SHIFT)
+                 | ((uint32_t)init->lockMode << _DPLL_CFG_MODE_SHIFT);
+
+    // Update CMSIS HFRCODPLL frequency.
+    SystemHFRCODPLLClockSet(init->frequency);
+
+  } else {
+    hfrcoClamped = true;
+    HFRCO0->CAL = hfrcoCalCurrent;
+  }
+
+  /*
+   * if HFRCO frequency range has been clamped, re-enable DPLL only if it was
+   * previously enabled
+   */
+  if (!hfrcoClamped || restoreDpll) {
+    DPLL0->IF_CLR = DPLL_IF_LOCK | DPLL_IF_LOCKFAILLOW | DPLL_IF_LOCKFAILHIGH;
+
+    // Lock DPLL
+    DPLL0->EN_SET = DPLL_EN_EN;
+    while ((lockStatus = (DPLL0->IF & (DPLL_IF_LOCK
+                                       | DPLL_IF_LOCKFAILLOW
+                                       | DPLL_IF_LOCKFAILHIGH))) == 0UL) {
+    }
   }
 
   if (CMU_ClockSelectGet(cmuClock_SYSCLK) == cmuSelect_HFRCODPLL) {
@@ -1876,7 +1917,9 @@ bool CMU_DPLLLock(const CMU_DPLLInit_TypeDef *init)
 #endif
   }
 
-  if (lockStatus == DPLL_IF_LOCK) {
+  if (hfrcoClamped) {
+    return false;
+  } else if (lockStatus == DPLL_IF_LOCK) {
     return true;
   }
   return false;
@@ -1904,6 +1947,9 @@ CMU_HFRCODPLLFreq_TypeDef CMU_HFRCODPLLBandGet(void)
  ******************************************************************************/
 void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
 {
+  uint32_t hfrcoFreqRangeExpected;
+  uint32_t hfrcoFreqRangeActual;
+  uint32_t hfrcoCalCurrent;
   uint32_t freqCal, sysFreq;
 #if defined(EMU_VSCALE_PRESENT)
   uint32_t prevFreq;
@@ -1923,12 +1969,6 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
     while ((DPLL0->STATUS & (DPLL_STATUS_ENS | DPLL_STATUS_RDY)) != 0UL) {
     }
   }
-
-  // Update CMSIS HFRCODPLL frequency.
-#if defined(EMU_VSCALE_PRESENT)
-  prevFreq = SystemHFRCODPLLClockGet();
-#endif
-  SystemHFRCODPLLClockSet(freq);
 
   // Set max wait-states and PCLK divisor while changing core clock
   if (CMU_ClockSelectGet(cmuClock_SYSCLK) == cmuSelect_HFRCODPLL) {
@@ -1956,14 +1996,45 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq)
   }
 
 #if defined(EMU_VSCALE_PRESENT)
+  prevFreq = SystemHFRCODPLLClockGet();
+
   if ((uint32_t)freq > prevFreq) {
     /* When increasing frequency voltage scale must be done before the change. */
     EMU_VScaleEM01ByClock((uint32_t)freq, true);
   }
 #endif
 
-  // Activate new band selection
+  // updates to the CAL register are deferred if FREQBSY is high, so wait
+  // until HFRCO is not busy to keep going
+  while (HFRCO0->STATUS & (HFRCO_STATUS_SYNCBUSY | HFRCO_STATUS_FREQBSY)) {
+  }
+
+  /*
+   * Some devices have clamped frequency ranges, so instead of the usual [0:16]
+   * interval, the upper limit is 12. Hardware takes care of clamping the value,
+   * but we might end up in a situation where tuning and frequency range are not
+   * in sync. So try to detect if the value has been clamped, and if it happened
+   * revert back to the previous value.
+   */
+  hfrcoCalCurrent = HFRCO0->CAL;
   HFRCO0->CAL = freqCal;
+
+  // values are not shifted, not necessary for comparison
+  hfrcoFreqRangeExpected = (freqCal     & _HFRCO_CAL_FREQRANGE_MASK);
+  hfrcoFreqRangeActual   = (HFRCO0->CAL & _HFRCO_CAL_FREQRANGE_MASK);
+
+  EFM_ASSERT(hfrcoFreqRangeExpected == hfrcoFreqRangeActual);
+  if (hfrcoFreqRangeExpected == hfrcoFreqRangeActual) {
+    // Update CMSIS HFRCODPLL frequency.
+    SystemHFRCODPLLClockSet(freq);
+  } else {
+    // revert back to previous value
+    HFRCO0->CAL = hfrcoCalCurrent;
+#if defined(EMU_VSCALE_PRESENT)
+    freq = (CMU_HFRCODPLLFreq_TypeDef)prevFreq;
+#endif
+  }
+
 
   // If HFRCODPLL is selected as SYSCLK (and HCLK), optimize flash access
   // wait-state configuration and PCLK divisor for this frequency.

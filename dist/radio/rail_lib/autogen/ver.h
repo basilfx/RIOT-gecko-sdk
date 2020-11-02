@@ -47,10 +47,10 @@ typedef struct
 //-----------------------------------------------------------------------------
 
 const FW_GIT_INFO_t rail_ver = {
-    .short_hash = 0x77dff699UL,
+    .short_hash = 0x415cd2d6UL,
     .tag_major = 2,
     .tag_minor = 8,
-    .tag_rev = 7,
+    .tag_rev = 8,
     .tag_build = 0,
     .details = 0x00,
 };

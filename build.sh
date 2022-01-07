@@ -1,7 +1,9 @@
 #!/bin/bash -e
 
-GECKO_SDK_VERSION="com.silabs.sdk.gecko_platform.v2.7.feature_root_2.7.7.202008240742-8"
-GECKO_SDK_URL="https://devtools.silabs.com/studio/v4/updates/binary/"
+GECKO_SDK_USER="SiliconLabs"
+GECKO_SDK_REPO="gecko_sdk"
+GECKO_SDK_SHA1="991121c706578c9a2135b6f75cc88856e8c64bdc" # Version 4.0
+GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}/archive/${GECKO_SDK_SHA1}.zip"
 
 DIST_DIR=$(pwd)/dist
 SRC_DIR=$(pwd)/src
@@ -14,26 +16,31 @@ mkdir -p "${DIST_DIR}"
 mkdir -p "${TEMP_DIR}"
 
 # Download and extract Gecko SDK.
-wget -O "${TEMP_DIR}/gecko_sdk.zip" "${GECKO_SDK_URL}${GECKO_SDK_VERSION}"
-
-unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}/gecko_sdk"
+wget -O "${TEMP_DIR}/gecko_sdk.zip" "${GECKO_SDK_URL}"
+unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}"
+mv "${TEMP_DIR}/${GECKO_SDK_REPO}-${GECKO_SDK_SHA1}" "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.7/platform/emlib" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/developer/sdks/gecko_sdk_suite/v2.7/platform/radio" "${DIST_DIR}"
-
-# These files are deprecated and cause build errors.
-rm "${DIST_DIR}/emlib/src/em_int.c"
-rm "${DIST_DIR}/emlib/src/em_mpu.c"
-rm "${DIST_DIR}/emlib/inc/em_int.h"
-rm "${DIST_DIR}/emlib/inc/em_mpu.h"
+cp "${TEMP_DIR}/gecko_sdk/License.txt" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/emlib" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/radio" "${DIST_DIR}"
 
 # Remove unneeded files.
+rm "${DIST_DIR}/emlib/emlib_core_validation.lua"
+rm -rf "${DIST_DIR}/emlib/component"
+rm -rf "${DIST_DIR}/emlib/config"
+rm -rf "${DIST_DIR}/emlib/host"
+rm -rf "${DIST_DIR}/emlib/init"
+rm -rf "${DIST_DIR}/radio/efr32_multiphy_configurator"
+rm -rf "${DIST_DIR}/radio/mac"
+rm -rf "${DIST_DIR}/radio/radio_configuration"
 rm "${DIST_DIR}/radio/rail_lib/modules.xml"
 rm -rf "${DIST_DIR}/radio/rail_lib/apps"
+rm -rf "${DIST_DIR}/radio/rail_lib/component"
 rm -rf "${DIST_DIR}/radio/rail_lib/hal"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence-stub"
+rm -rf "${DIST_DIR}/radio/rail_lib/plugin/component"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/module"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library"
 rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library-mp"
@@ -55,6 +62,8 @@ done
 find "${DIST_DIR}" -name "*.orig" -type f -delete
 
 # Rename IRQ handlers to match the RIOT-OS IRQ handlers.
+# IRQ handler symbols used by the blobs can be obtained with some CLI magic:
+# $ nm -g ${DIST_DIR}/radio/rail_lib/autogen/librail_release/*.a | grep IRQHandler | cut -d' ' -f3 | sort | uniq
 for BLOB_FILE in "${DIST_DIR}/radio/rail_lib/autogen/librail_release/"*".a"
 do
     arm-none-eabi-objcopy "${BLOB_FILE}" \
@@ -67,7 +76,15 @@ do
         --redefine-sym AGC_IRQHandler=isr_agc \
         --redefine-sym PROTIMER_IRQHandler=isr_protimer \
         --redefine-sym SYNTH_IRQHandler=isr_synth \
-        --redefine-sym RFSENSE_IRQHandler=isr_rfsense
+        --redefine-sym RFSENSE_IRQHandler=isr_rfsense \
+        --redefine-sym EMUDG_IRQHandler=isr_emudg \
+        --redefine-sym HOSTMAILBOX_IRQHandler=isr_hostmailbox \
+        --redefine-sym PRORTC_IRQHandler=isr_prortc \
+        --redefine-sym RDMAILBOX_IRQHandler=isr_rdmailbox \
+        --redefine-sym RFECA0_IRQHandler=isr_rfeca0 \
+        --redefine-sym RFECA1_IRQHandler=isr_rfeca1 \
+        --redefine-sym SOFTM_IRQHandler=isr_softm \
+        --redefine-sym SYSRTC_SEQ_IRQHandler=isr_sysrtc_seq
 done
 
 # Copy additional source files (such as Makefiles, utilities).

@@ -10,7 +10,10 @@
 extern "C" {
 #endif
 
+#if (_SILICON_LABS_32B_SERIES < 2)
 uint32_t TIMER_Channel2Route(uint8_t ch);
+#endif
+
 uint32_t TIMER_Prescaler2Div(TIMER_Prescale_TypeDef prescaler);
 TIMER_Prescale_TypeDef TIMER_PrescalerCalc(uint32_t freq, uint32_t freq_timer);
 

@@ -33,14 +33,22 @@
 #include <stddef.h>
 
 /***************************************************************************//**
- * @addtogroup emlib
+ * @addtogroup system
  * @{
  ******************************************************************************/
 
-/***************************************************************************//**
- * @addtogroup SYSTEM
- * @{
+/*******************************************************************************
+ *********************************   DEFINES   *********************************
  ******************************************************************************/
+
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+
+/* Bit mask used to extract the part number value without the new naming
+ * bitfield. */
+#define SYSCFG_CHIPREV_PARTNUMBER1  0xFE0
+#define SYSCFG_CHIPREV_PARTNUMBER0  0xF
+
+/** @endcond */
 
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
@@ -55,13 +63,17 @@
  ******************************************************************************/
 void SYSTEM_ChipRevisionGet(SYSTEM_ChipRevision_TypeDef *rev)
 {
-#if defined(_SYSCFG_CHIPREV_FAMILY_MASK)
+#if defined(_SYSCFG_CHIPREV_FAMILY_MASK) || defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
   /* On series-2 (and higher) the revision info is in the SYSCFG->CHIPREV register. */
 #if defined(CMU_CLKEN0_SYSCFG)
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
 #endif
   uint32_t chiprev = SYSCFG->CHIPREV;
+#if defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
+  rev->partNumber = ((chiprev & SYSCFG_CHIPREV_PARTNUMBER1) >> 5) | (chiprev & SYSCFG_CHIPREV_PARTNUMBER0);
+#else
   rev->family = (chiprev & _SYSCFG_CHIPREV_FAMILY_MASK) >> _SYSCFG_CHIPREV_FAMILY_SHIFT;
+#endif
   rev->major  = (chiprev & _SYSCFG_CHIPREV_MAJOR_MASK)  >> _SYSCFG_CHIPREV_MAJOR_SHIFT;
   rev->minor  = (chiprev & _SYSCFG_CHIPREV_MINOR_MASK)  >> _SYSCFG_CHIPREV_MINOR_SHIFT;
 #else
@@ -128,5 +140,61 @@ bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
   return false;
 }
 
-/** @} (end addtogroup SYSTEM) */
-/** @} (end addtogroup emlib) */
+/***************************************************************************//**
+ * @brief
+ *   Get family security capability.
+ *
+ * @note
+ *   This function retrieves the family security capability based on the
+ *   device number. The device number is one letter and 3 digits:
+ *   DEVICENUMBER = (alpha-'A')*1000 + numeric. i.e. 0d = "A000"; 1123d = "B123".
+ *   The security capabilities are represented by ::SYSTEM_SecurityCapability_TypeDef.
+ *
+ * @return
+ *   Security capability of MCU.
+ ******************************************************************************/
+SYSTEM_SecurityCapability_TypeDef SYSTEM_GetSecurityCapability(void)
+{
+  SYSTEM_SecurityCapability_TypeDef sc;
+
+#if (_SILICON_LABS_32B_SERIES == 0)
+  sc = securityCapabilityNA;
+#elif (_SILICON_LABS_32B_SERIES == 1)
+  sc = securityCapabilityBasic;
+#else
+  sc = securityCapabilityUnknown;
+#endif
+
+#if (_SILICON_LABS_32B_SERIES == 2)
+  uint16_t mcuFeatureSetMajor;
+  uint16_t deviceNumber;
+  deviceNumber = SYSTEM_GetPartNumber();
+  mcuFeatureSetMajor = 'A' + (deviceNumber / 1000);
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  // override feature set since BRD4182A Rev A00 -> rev B02 are marked "A"
+  mcuFeatureSetMajor = 'C';
+#endif
+
+  switch (mcuFeatureSetMajor) {
+    case 'A':
+      sc = securityCapabilitySE;
+      break;
+
+    case 'B':
+      sc = securityCapabilityVault;
+      break;
+
+    case 'C':
+      sc = securityCapabilityRoT;
+      break;
+
+    default:
+      sc = securityCapabilityUnknown;
+      break;
+  }
+#endif
+
+  return sc;
+}
+
+/** @} (end addtogroup system) */

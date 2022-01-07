@@ -42,12 +42,7 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup LDMA
+ * @addtogroup ldma LDMA - Linked DMA
  * @brief Linked Direct Memory Access (LDMA) Peripheral API
  *
  * @details
@@ -220,185 +215,302 @@ typedef enum {
   ldmaCfgDstIncSignNeg = _LDMA_CH_CFG_DSTINCSIGN_NEGATIVE  /**< Decrement destination address. */
 } LDMA_CfgDstIncSign_t;
 
+#if defined(_LDMA_CH_CFG_STRUCTBUSPORT_MASK)
+/** Structure fetch operation bus port. */
+typedef enum {
+  ldmaCfgStructBusPort0 = _LDMA_CH_CFG_STRUCTBUSPORT_AHBM0, /**< AHB Master 0 port. */
+  ldmaCfgStructBusPort1 = _LDMA_CH_CFG_STRUCTBUSPORT_AHBM1  /**< AHB Master 1 port. */
+} LDMA_CfgStructBusPort_t;
+#endif
+
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+/** Source operation bus port. */
+typedef enum {
+  ldmaCfgSrcBusPort0 = _LDMA_CH_CFG_SRCBUSPORT_AHBM0, /**< AHB Master 0 port. */
+  ldmaCfgSrcBusPort1 = _LDMA_CH_CFG_SRCBUSPORT_AHBM1  /**< AHB Master 1 port. */
+} LDMA_CfgSrcBusPort_t;
+#endif
+
+#if defined(_LDMA_CH_CFG_DSTBUSPORT_MASK)
+/** Destination operation bus port. */
+typedef enum {
+  ldmaCfgDstBusPort0 = _LDMA_CH_CFG_DSTBUSPORT_AHBM0, /**< AHB Master 0 port. */
+  ldmaCfgDstBusPort1 = _LDMA_CH_CFG_DSTBUSPORT_AHBM1  /**< AHB Master 1 port. */
+} LDMA_CfgDstBusPort_t;
+#endif
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/** Rules table mode (interleaving destination). */
+typedef enum {
+  ldmaIlModeAbsolute   = _LDMA_CH_XCTRL_ILMODE_ABSOLUTE,    /**< Address by value in rules. Size of WORD */
+  ldmaIlModeRelative16 = _LDMA_CH_XCTRL_ILMODE_RELATIVE16,  /**< Address by adding rules to DST. size of HALFWORD */
+  ldmaIlModeRelative8  = _LDMA_CH_XCTRL_ILMODE_RELATIVE8    /**< Address by adding rules to DST. size of BYTE */
+} LDMA_RulesTblMode_t;
+#endif
+
 #if defined(LDMAXBAR_COUNT) && (LDMAXBAR_COUNT > 0)
 /** Peripherals that can trigger LDMA transfers. */
 typedef enum {
   ldmaPeripheralSignal_NONE = LDMAXBAR_CH_REQSEL_SOURCESEL_NONE,                                                                ///< No peripheral selected for DMA triggering.
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ0
-  ldmaPeripheralSignal_LDMAXBAR_PRSREQ0 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ0 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,
+  ldmaPeripheralSignal_LDMAXBAR_PRSREQ0 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ0 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,    ///< Trigger on PRS REQ0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ1
-  ldmaPeripheralSignal_LDMAXBAR_PRSREQ1 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ1 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,
+  ldmaPeripheralSignal_LDMAXBAR_PRSREQ1 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ1 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,    ///< Trigger on PRS REQ1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC0
-  ldmaPeripheralSignal_TIMER0_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,
+  ldmaPeripheralSignal_TIMER0_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,                  ///< Trigger on TIMER0_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC1
-  ldmaPeripheralSignal_TIMER0_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,
+  ldmaPeripheralSignal_TIMER0_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,                  ///< Trigger on TIMER0_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC2
-  ldmaPeripheralSignal_TIMER0_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,
+  ldmaPeripheralSignal_TIMER0_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,                  ///< Trigger on TIMER0_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0UFOF
-  ldmaPeripheralSignal_TIMER0_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,
+  ldmaPeripheralSignal_TIMER0_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,                ///< Trigger on TIMER0_UFOF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC0
-  ldmaPeripheralSignal_TIMER1_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,
+  ldmaPeripheralSignal_TIMER1_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,                  ///< Trigger on TIMER1_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC1
-  ldmaPeripheralSignal_TIMER1_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,
+  ldmaPeripheralSignal_TIMER1_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,                  ///< Trigger on TIMER1_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC2
-  ldmaPeripheralSignal_TIMER1_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,
+  ldmaPeripheralSignal_TIMER1_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,                  ///< Trigger on TIMER1_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1UFOF
-  ldmaPeripheralSignal_TIMER1_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,
+  ldmaPeripheralSignal_TIMER1_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER1UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER1,                ///< Trigger on TIMER1_UFOF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAV
-  ldmaPeripheralSignal_USART0_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,
+  ldmaPeripheralSignal_USART0_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,          ///< Trigger on USART0_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAVRIGHT
-  ldmaPeripheralSignal_USART0_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,
+  ldmaPeripheralSignal_USART0_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART0RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,///< Trigger on USART0_RXDATAVRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBL
-  ldmaPeripheralSignal_USART0_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,
+  ldmaPeripheralSignal_USART0_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,                ///< Trigger on USART0_TXBL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBLRIGHT
-  ldmaPeripheralSignal_USART0_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,
+  ldmaPeripheralSignal_USART0_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,      ///< Trigger on USART0_TXBLRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXEMPTY
-  ldmaPeripheralSignal_USART0_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,
+  ldmaPeripheralSignal_USART0_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART0TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART0,          ///< Trigger on USART0_TXEMPTY.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAV
-  ldmaPeripheralSignal_USART1_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,
+  ldmaPeripheralSignal_USART1_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,          ///< Trigger on USART1_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAVRIGHT
-  ldmaPeripheralSignal_USART1_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,
+  ldmaPeripheralSignal_USART1_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART1RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,///< Trigger on USART1_RXDATAVRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBL
-  ldmaPeripheralSignal_USART1_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,
+  ldmaPeripheralSignal_USART1_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,                ///< Trigger on USART1_TXBL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBLRIGHT
-  ldmaPeripheralSignal_USART1_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,
+  ldmaPeripheralSignal_USART1_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,      ///< Trigger on USART1_TXBLRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXEMPTY
-  ldmaPeripheralSignal_USART1_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,
+  ldmaPeripheralSignal_USART1_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART1TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART1,          ///< Trigger on USART1_TXEMPTY.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAV
-  ldmaPeripheralSignal_USART2_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,
+  ldmaPeripheralSignal_USART2_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,          ///< Trigger on USART2_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAVRIGHT
-  ldmaPeripheralSignal_USART2_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,
+  ldmaPeripheralSignal_USART2_RXDATAVRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART2RXDATAVRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,///< Trigger on USART2_RXDATAVRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBL
-  ldmaPeripheralSignal_USART2_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,
+  ldmaPeripheralSignal_USART2_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,                ///< Trigger on USART2_TXBL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBLRIGHT
-  ldmaPeripheralSignal_USART2_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,
+  ldmaPeripheralSignal_USART2_TXBLRIGHT = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXBLRIGHT | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,      ///< Trigger on USART2_TXBLRIGHT.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXEMPTY
-  ldmaPeripheralSignal_USART2_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,
+  ldmaPeripheralSignal_USART2_TXEMPTY = LDMAXBAR_CH_REQSEL_SIGSEL_USART2TXEMPTY | LDMAXBAR_CH_REQSEL_SOURCESEL_USART2,          ///< Trigger on USART2_TXEMPTY.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_I2C0RXDATAV
-  ldmaPeripheralSignal_I2C0_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_I2C0RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C0,
+  ldmaPeripheralSignal_I2C0_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_I2C0RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C0,                ///< Trigger on I2C0_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_I2C0TXBL
-  ldmaPeripheralSignal_I2C0_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_I2C0TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C0,
+  ldmaPeripheralSignal_I2C0_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_I2C0TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C0,                      ///< Trigger on I2C0_TXBL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_I2C1RXDATAV
-  ldmaPeripheralSignal_I2C1_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_I2C1RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C1,
+  ldmaPeripheralSignal_I2C1_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_I2C1RXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C1,                ///< Trigger on I2C1_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_I2C1TXBL
-  ldmaPeripheralSignal_I2C1_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_I2C1TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C1,
+  ldmaPeripheralSignal_I2C1_TXBL = LDMAXBAR_CH_REQSEL_SIGSEL_I2C1TXBL | LDMAXBAR_CH_REQSEL_SOURCESEL_I2C1,                      ///< Trigger on I2C1_TXBL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_AGCRSSI
-  ldmaPeripheralSignal_AGC_RSSI = LDMAXBAR_CH_REQSEL_SIGSEL_AGCRSSI | LDMAXBAR_CH_REQSEL_SOURCESEL_AGC,
+  ldmaPeripheralSignal_AGC_RSSI = LDMAXBAR_CH_REQSEL_SIGSEL_AGCRSSI | LDMAXBAR_CH_REQSEL_SOURCESEL_AGC,                         ///< Trigger on AGC_RSSI.
   #endif
   #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_PDMRXDATAV)
-  ldmaPeripheralSignal_PDM_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_PDMRXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_PDM,
+  ldmaPeripheralSignal_PDM_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_PDMRXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_PDM,                   ///< Trigger on PDM_RXDATAV.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERBOF
-  ldmaPeripheralSignal_PROTIMER_BOF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERBOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_BOF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERBOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_BOF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC0
-  ldmaPeripheralSignal_PROTIMER_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC1
-  ldmaPeripheralSignal_PROTIMER_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC2
-  ldmaPeripheralSignal_PROTIMER_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC3
-  ldmaPeripheralSignal_PROTIMER_CC3 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC3 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_CC3 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC3 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_CC3.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC4
-  ldmaPeripheralSignal_PROTIMER_CC4 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC4 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_CC4 = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERCC4 | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_CC4.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERPOF
-  ldmaPeripheralSignal_PROTIMER_POF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERPOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_POF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERPOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_POF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERWOF
-  ldmaPeripheralSignal_PROTIMER_WOF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERWOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
+  ldmaPeripheralSignal_PROTIMER_WOF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERWOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,            ///< Trigger on PROTIMER_WOF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_MODEMDEBUG
-  ldmaPeripheralSignal_MODEM_DEBUG = LDMAXBAR_CH_REQSEL_SIGSEL_MODEMDEBUG | LDMAXBAR_CH_REQSEL_SOURCESEL_MODEM,
+  ldmaPeripheralSignal_MODEM_DEBUG = LDMAXBAR_CH_REQSEL_SIGSEL_MODEMDEBUG | LDMAXBAR_CH_REQSEL_SOURCESEL_MODEM,                 ///< Trigger on MODEM_DEBUG.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SCAN
-  ldmaPeripheralSignal_IADC0_IADC_SCAN = LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SCAN | LDMAXBAR_CH_REQSEL_SOURCESEL_IADC0,
+  ldmaPeripheralSignal_IADC0_IADC_SCAN = LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SCAN | LDMAXBAR_CH_REQSEL_SOURCESEL_IADC0,         ///< Trigger on IADC0_IADC_SCAN.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SINGLE
-  ldmaPeripheralSignal_IADC0_IADC_SINGLE = LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SINGLE | LDMAXBAR_CH_REQSEL_SOURCESEL_IADC0,
+  ldmaPeripheralSignal_IADC0_IADC_SINGLE = LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SINGLE | LDMAXBAR_CH_REQSEL_SOURCESEL_IADC0,     ///< Trigger on IADC0_IADC_SINGLE.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA
-  ldmaPeripheralSignal_MSC_WDATA = LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA | LDMAXBAR_CH_REQSEL_SOURCESEL_MSC,
+  ldmaPeripheralSignal_MSC_WDATA = LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA | LDMAXBAR_CH_REQSEL_SOURCESEL_MSC,                       ///< Trigger on MSC_WDATA.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC0
-  ldmaPeripheralSignal_TIMER2_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,
+  ldmaPeripheralSignal_TIMER2_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,                  ///< Trigger on TIMER2_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC1
-  ldmaPeripheralSignal_TIMER2_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,
+  ldmaPeripheralSignal_TIMER2_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,                  ///< Trigger on TIMER2_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC2
-  ldmaPeripheralSignal_TIMER2_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,
+  ldmaPeripheralSignal_TIMER2_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,                  ///< Trigger on TIMER2_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2UFOF
-  ldmaPeripheralSignal_TIMER2_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,
+  ldmaPeripheralSignal_TIMER2_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,                ///< Trigger on TIMER2_UFOF.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC0
-  ldmaPeripheralSignal_TIMER3_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,
+  ldmaPeripheralSignal_TIMER3_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,                  ///< Trigger on TIMER3_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC1
-  ldmaPeripheralSignal_TIMER3_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,
+  ldmaPeripheralSignal_TIMER3_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,                  ///< Trigger on TIMER3_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC2
-  ldmaPeripheralSignal_TIMER3_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,
+  ldmaPeripheralSignal_TIMER3_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,                  ///< Trigger on TIMER3_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3UFOF
-  ldmaPeripheralSignal_TIMER3_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,
+  ldmaPeripheralSignal_TIMER3_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,                ///< Trigger on TIMER3_UFOF.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC0
+  ldmaPeripheralSignal_TIMER5_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER5,                  ///< Trigger on TIMER5_CC0.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC1
+  ldmaPeripheralSignal_TIMER5_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER5,                  ///< Trigger on TIMER5_CC1.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC2
+  ldmaPeripheralSignal_TIMER5_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER5,                  ///< Trigger on TIMER5_CC2.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5UFOF
+  ldmaPeripheralSignal_TIMER5_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER5UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER5,                ///< Trigger on TIMER5_UFOF.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC0
+  ldmaPeripheralSignal_TIMER6_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER6,                  ///< Trigger on TIMER6_CC0.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC1
+  ldmaPeripheralSignal_TIMER6_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER6,                  ///< Trigger on TIMER6_CC1.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC2
+  ldmaPeripheralSignal_TIMER6_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER6,                  ///< Trigger on TIMER6_CC2.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6UFOF
+  ldmaPeripheralSignal_TIMER6_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER6UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER6,                ///< Trigger on TIMER6_UFOF.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC0
+  ldmaPeripheralSignal_TIMER7_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER7,                  ///< Trigger on TIMER7_CC0.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC1
+  ldmaPeripheralSignal_TIMER7_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER7,                  ///< Trigger on TIMER7_CC1.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC2
+  ldmaPeripheralSignal_TIMER7_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER7,                  ///< Trigger on TIMER7_CC2.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7UFOF
+  ldmaPeripheralSignal_TIMER7_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER7UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER7,                ///< Trigger on TIMER7_UFOF.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_LCD
+  ldmaPeripheralSignal_LCD = LDMAXBAR_CH_REQSEL_SIGSEL_LCD | LDMAXBAR_CH_REQSEL_SOURCESEL_LCD,
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC0
-  ldmaPeripheralSignal_TIMER4_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  ldmaPeripheralSignal_TIMER4_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,                  ///< Trigger on TIMER4_CC0.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC1
-  ldmaPeripheralSignal_TIMER4_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  ldmaPeripheralSignal_TIMER4_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,                  ///< Trigger on TIMER4_CC1.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC2
-  ldmaPeripheralSignal_TIMER4_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  ldmaPeripheralSignal_TIMER4_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,                  ///< Trigger on TIMER4_CC2.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4UFOF
-  ldmaPeripheralSignal_TIMER4_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  ldmaPeripheralSignal_TIMER4_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,                ///< Trigger on TIMER4_UFOF.
+  #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_VDAC0CH0_REQ)
+  ldmaPeripheralSignal_VDAC0CH0REQ = LDMAXBAR_CH_REQSEL_SIGSEL_VDAC0CH0_REQ | LDMAXBAR_CH_REQSEL_SOURCESEL_VDAC0,               ///< Trigger on VDAC0_CH0REQ.
+  #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_VDAC0CH1_REQ)
+  ldmaPeripheralSignal_VDAC0CH1REQ = LDMAXBAR_CH_REQSEL_SIGSEL_VDAC0CH1_REQ | LDMAXBAR_CH_REQSEL_SOURCESEL_VDAC0,               ///< Trigger on VDAC0_CH1REQ.
+  #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_VDAC1CH0_REQ)
+  ldmaPeripheralSignal_VDAC1CH0REQ = LDMAXBAR_CH_REQSEL_SIGSEL_VDAC1CH0_REQ | LDMAXBAR_CH_REQSEL_SOURCESEL_VDAC1,               ///< Trigger on VDAC1_CH0REQ.
+  #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_VDAC1CH1_REQ)
+  ldmaPeripheralSignal_VDAC1CH1REQ = LDMAXBAR_CH_REQSEL_SIGSEL_VDAC1CH1_REQ | LDMAXBAR_CH_REQSEL_SOURCESEL_VDAC1,               ///< Trigger on VDAC1_CH1REQ.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUART0RXFL
-  ldmaPeripheralSignal_EUART0_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,
+  ldmaPeripheralSignal_EUART0_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,                ///< Trigger on EUART0_RXFL.
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUART0TXFL
-  ldmaPeripheralSignal_EUART0_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,
+  ldmaPeripheralSignal_EUART0_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,                ///< Trigger on EUART0_TXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART0RXFL
+  ldmaPeripheralSignal_EUSART0_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART0RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART0,             ///< Trigger on EUSART0_RXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART0TXFL
+  ldmaPeripheralSignal_EUSART0_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART0TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART0,             ///< Trigger on EUSART0_TXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART1RXFL
+  ldmaPeripheralSignal_EUSART1_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART1RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART1,             ///< Trigger on EUSART1_RXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART1TXFL
+  ldmaPeripheralSignal_EUSART1_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART1TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART1,             ///< Trigger on EUSART1_TXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART2RXFL
+  ldmaPeripheralSignal_EUSART2_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART2RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART2,             ///< Trigger on EUSART2_RXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART2TXFL
+  ldmaPeripheralSignal_EUSART2_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART2TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART2,             ///< Trigger on EUSART2_TXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART3RXFL
+  ldmaPeripheralSignal_EUSART3_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART3RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART3,             ///< Trigger on EUSART3_RXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART3TXFL
+  ldmaPeripheralSignal_EUSART3_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART3TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART3,             ///< Trigger on EUSART3_TXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART4RXFL
+  ldmaPeripheralSignal_EUSART4_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART4RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART4,             ///< Trigger on EUSART4_RXFL.
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUSART4TXFL
+  ldmaPeripheralSignal_EUSART4_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUSART4TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUSART4,             ///< Trigger on EUSART4_TXFL.
+  #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_LESENSEFIFO)
+  ldmaPeripheralSignal_LESENSE_BUFDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_LESENSEFIFO | LDMAXBAR_CH_REQSEL_SOURCESEL_LESENSE,        ///< Trigger on LESENSEFIFO.
   #endif
 } LDMA_PeripheralSignal_t;
 
 #else
-
+/** Peripherals that can trigger LDMA transfers. */
 typedef enum {
   ldmaPeripheralSignal_NONE = LDMA_CH_REQSEL_SOURCESEL_NONE,                                                                ///< No peripheral selected for DMA triggering.
   #if defined(LDMA_CH_REQSEL_SIGSEL_ADC0SCAN)
@@ -768,7 +880,6 @@ typedef enum {
   ldmaPeripheralSignal_WTIMER3_UFOF = LDMA_CH_REQSEL_SIGSEL_WTIMER3UFOF | LDMA_CH_REQSEL_SOURCESEL_WTIMER3,                 ///< Trigger on WTIMER3_UFOF.
   #endif
 } LDMA_PeripheralSignal_t;
-
 #endif
 
 /*******************************************************************************
@@ -791,7 +902,7 @@ typedef union {
    */
   struct {
     uint32_t  structType : 2;   /**< Set to 0 to select XFER descriptor type.        */
-    uint32_t  reserved0  : 1;
+    uint32_t  reserved0  : 1;   /**< Reserved.                                       */
     uint32_t  structReq  : 1;   /**< DMA transfer trigger during LINKLOAD.           */
     uint32_t  xferCnt    : 11;  /**< Transfer count minus one.                       */
     uint32_t  byteSwap   : 1;   /**< Enable byte swapping transfers.                 */
@@ -819,7 +930,7 @@ typedef union {
    */
   struct {
     uint32_t  structType : 2;   /**< Set to 1 to select SYNC descriptor type.        */
-    uint32_t  reserved0  : 1;
+    uint32_t  reserved0  : 1;   /**< Reserved.                                       */
     uint32_t  structReq  : 1;   /**< DMA transfer trigger during LINKLOAD.           */
     uint32_t  xferCnt    : 11;  /**< Transfer count minus one.                       */
     uint32_t  byteSwap   : 1;   /**< Enable byte swapping transfers.                 */
@@ -836,10 +947,10 @@ typedef union {
 
     uint32_t  syncSet    : 8;   /**< Set bits in LDMA_CTRL.SYNCTRIG register.        */
     uint32_t  syncClr    : 8;   /**< Clear bits in LDMA_CTRL.SYNCTRIG register.      */
-    uint32_t  reserved3  : 16;
+    uint32_t  reserved1  : 16;  /**< Reserved.                                       */
     uint32_t  matchVal   : 8;   /**< Sync trigger match value.                       */
     uint32_t  matchEn    : 8;   /**< Sync trigger match enable.                      */
-    uint32_t  reserved4  : 16;
+    uint32_t  reserved2  : 16;  /**< Reserved.                                       */
 
     uint32_t  linkMode   : 1;   /**< Select absolute or relative link address.       */
     uint32_t  link       : 1;   /**< Enable LINKLOAD when transfer is done.          */
@@ -849,7 +960,7 @@ typedef union {
   /** WRITE DMA descriptor, used for write immediate operations.                     */
   struct {
     uint32_t  structType : 2;   /**< Set to 2 to select WRITE descriptor type.       */
-    uint32_t  reserved0  : 1;
+    uint32_t  reserved0  : 1;   /**< Reserved.                                       */
     uint32_t  structReq  : 1;   /**< DMA transfer trigger during LINKLOAD.           */
     uint32_t  xferCnt    : 11;  /**< Transfer count minus one.                       */
     uint32_t  byteSwap   : 1;   /**< Enable byte swapping transfers.                 */
@@ -873,6 +984,64 @@ typedef union {
   } wri;
 } LDMA_Descriptor_t;
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA extended descriptor.
+ * @details
+ *   The extended descriptor adds additional fields for the extended features
+ *   available on the MMLDMA peripheral: destination interleaving and bufferable.
+ *   The same three different DMA descriptors supported by the LDMA DMA controller
+ *   are available. Each consists of seven WORDs (instead of four in non-extended
+ *   descriptors) which map directly onto HW control registers for a given DMA
+ *   channel. The three descriptor types are XFER, SYNC and WRI. But the
+ *   extended fields are true only for XFER. The extended fields are the following:
+ *
+ *             +-          +- CTRL
+ *             | Original  |  SRC
+ *             | Structure |  DST
+ *   Extended  |           +- LINK
+ *   Structure |              XCTRL
+ *             |              Reserved for future usage
+ *             +-             ILSRC
+ *
+ *   Refer to the reference manual for further information.
+ */
+typedef struct {
+  uint32_t  structType : 2;     /**< Set to 0 to select XFER descriptor type.        */
+  uint32_t  extend     : 1;     /**< Extend data structure.                          */
+  uint32_t  structReq  : 1;     /**< DMA transfer trigger during LINKLOAD.           */
+  uint32_t  xferCnt    : 11;    /**< Transfer count minus one.                       */
+  uint32_t  byteSwap   : 1;     /**< Enable byte swapping transfers.                 */
+  uint32_t  blockSize  : 4;     /**< Number of unit transfers per arbitration cycle. */
+  uint32_t  doneIfs    : 1;     /**< Generate interrupt when done.                   */
+  uint32_t  reqMode    : 1;     /**< Block or cycle transfer selector.               */
+  uint32_t  decLoopCnt : 1;     /**< Enable looped transfers.                        */
+  uint32_t  ignoreSrec : 1;     /**< Ignore single requests.                         */
+  uint32_t  srcInc     : 2;     /**< Source address increment unit size.             */
+  uint32_t  size       : 2;     /**< DMA transfer unit size.                         */
+  uint32_t  dstInc     : 2;     /**< Destination address increment unit size.        */
+  uint32_t  srcAddrMode : 1;    /**< Source addressing mode.                         */
+  uint32_t  dstAddrMode : 1;    /**< Destination addressing mode.                    */
+
+  uint32_t  srcAddr;            /**< DMA source address.                             */
+  uint32_t  dstAddr;            /**< DMA destination address.                        */
+
+  uint32_t  linkMode   : 1;     /**< Select absolute or relative link address.       */
+  uint32_t  link       : 1;     /**< Enable LINKLOAD when transfer is done.          */
+  int32_t   linkAddr   : 30;    /**< Address of next (linked) descriptor.            */
+
+  uint32_t  reserved1  : 4;     /**< Reserved                                        */
+  uint32_t  dstIlEn    : 1;     /**< Destination interleave.                         */
+  uint32_t  IlMode     : 2;     /**< Interleave mode.                                */
+  uint32_t  bufferable : 1;    /**< Reserved                                        */
+  uint32_t  reserved2  : 24;    /**< Allow AHB buffering.                            */
+
+  uint32_t  reserved3;          /**< Reserved                                        */
+  uint32_t  IlSrc;              /**< DMA rules table base address in memory.         */
+} LDMA_DescriptorExtend_t;
+#endif
+
 /** @brief LDMA initialization configuration structure. */
 typedef struct {
   uint8_t               ldmaInitCtrlNumFixed;     /**< Arbitration mode separator. */
@@ -885,21 +1054,35 @@ typedef struct {
  * @brief
  *   DMA transfer configuration structure.
  * @details
- *   This struct configures all aspects of a DMA transfer.
+ *   This structure configures all aspects of a DMA transfer.
  */
 typedef struct {
-  uint32_t              ldmaReqSel;            /**< Selects DMA trigger source.                  */
-  uint8_t               ldmaCtrlSyncPrsClrOff; /**< PRS Synctrig clear enables to clear.         */
-  uint8_t               ldmaCtrlSyncPrsClrOn;  /**< PRS Synctrig clear enables to set.           */
-  uint8_t               ldmaCtrlSyncPrsSetOff; /**< PRS Synctrig set enables to clear.           */
-  uint8_t               ldmaCtrlSyncPrsSetOn;  /**< PRS Synctrig set enables to set.             */
-  bool                  ldmaReqDis;            /**< Mask the PRS trigger input.                  */
-  bool                  ldmaDbgHalt;           /**< Dis. DMA trig when CPU is halted.            */
-  uint8_t               ldmaCfgArbSlots;       /**< Arbitration slot number.                     */
-  uint8_t               ldmaCfgSrcIncSign;     /**< Source address increment sign.               */
-  uint8_t               ldmaCfgDstIncSign;     /**< Destination address increment sign.          */
-  uint8_t               ldmaLoopCnt;           /**< Counter for looped transfers.                */
+  uint32_t                ldmaReqSel;            /**< Selects DMA trigger source.                  */
+  uint8_t                 ldmaCtrlSyncPrsClrOff; /**< PRS Synctrig clear enables to clear.         */
+  uint8_t                 ldmaCtrlSyncPrsClrOn;  /**< PRS Synctrig clear enables to set.           */
+  uint8_t                 ldmaCtrlSyncPrsSetOff; /**< PRS Synctrig set enables to clear.           */
+  uint8_t                 ldmaCtrlSyncPrsSetOn;  /**< PRS Synctrig set enables to set.             */
+  bool                    ldmaReqDis;            /**< Mask the PRS trigger input.                  */
+  bool                    ldmaDbgHalt;           /**< Dis. DMA trig when CPU is halted.            */
+  LDMA_CfgArbSlots_t      ldmaCfgArbSlots;       /**< Arbitration slot number.                     */
+  LDMA_CfgSrcIncSign_t    ldmaCfgSrcIncSign;     /**< Source address increment sign.               */
+  LDMA_CfgDstIncSign_t    ldmaCfgDstIncSign;     /**< Destination address increment sign.          */
+  uint8_t                 ldmaLoopCnt;           /**< Counter for looped transfers.                */
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+  LDMA_CfgStructBusPort_t ldmaCfgStructBusPort;  /**< Structure fetch operation bus port.          */
+  LDMA_CfgSrcBusPort_t    ldmaCfgSrcBusPort;     /**< Source operation bus port.                   */
+  LDMA_CfgDstBusPort_t    ldmaCfgDstBusPort;     /**< Destination operation bus port.              */
+#endif
 } LDMA_TransferCfg_t;
+
+/*******************************************************************************
+ ********************************   DEFINES   **********************************
+ ******************************************************************************/
+
+/** @brief Size in words of a non-extended DMA descriptor. */
+#define LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD  4
+/** @brief Size in words of an extended DMA descriptor. */
+#define LDMA_DESCRIPTOR_EXTEND_SIZE_WORD      7
 
 /*******************************************************************************
  **************************   STRUCT INITIALIZERS   ****************************
@@ -918,17 +1101,37 @@ typedef struct {
  * @brief
  *   Generic DMA transfer configuration for memory to memory transfers.
  */
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+#define LDMA_TRANSFER_CFG_MEMORY()                                \
+  {                                                               \
+    0, 0, 0, 0, 0,                                                \
+    false, false, ldmaCfgArbSlotsAs1,                             \
+    ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, 0,                \
+    ldmaCfgStructBusPort0, ldmaCfgSrcBusPort0, ldmaCfgDstBusPort0 \
+  }
+#else
 #define LDMA_TRANSFER_CFG_MEMORY()                \
   {                                               \
     0, 0, 0, 0, 0,                                \
     false, false, ldmaCfgArbSlotsAs1,             \
     ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, 0 \
   }
+#endif
 
 /**
  * @brief
  *   Generic DMA transfer configuration for looped memory to memory transfers.
  */
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+#define LDMA_TRANSFER_CFG_MEMORY_LOOP(loopCnt)                    \
+  {                                                               \
+    0, 0, 0, 0, 0,                                                \
+    false, false, ldmaCfgArbSlotsAs1,                             \
+    ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos,                   \
+    loopCnt,                                                      \
+    ldmaCfgStructBusPort0, ldmaCfgSrcBusPort0, ldmaCfgDstBusPort0 \
+  }
+#else
 #define LDMA_TRANSFER_CFG_MEMORY_LOOP(loopCnt)  \
   {                                             \
     0, 0, 0, 0, 0,                              \
@@ -936,28 +1139,49 @@ typedef struct {
     ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, \
     loopCnt                                     \
   }
+#endif
 
 /**
  * @brief
  *   Generic DMA transfer configuration for memory to/from peripheral transfers.
  */
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+#define LDMA_TRANSFER_CFG_PERIPHERAL(signal)                      \
+  {                                                               \
+    signal, 0, 0, 0, 0,                                           \
+    false, false, ldmaCfgArbSlotsAs1,                             \
+    ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, 0,                \
+    ldmaCfgStructBusPort0, ldmaCfgSrcBusPort0, ldmaCfgDstBusPort0 \
+  }
+#else
 #define LDMA_TRANSFER_CFG_PERIPHERAL(signal)      \
   {                                               \
     signal, 0, 0, 0, 0,                           \
     false, false, ldmaCfgArbSlotsAs1,             \
     ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, 0 \
   }
+#endif
 
 /**
  * @brief
  *   Generic DMA transfer configuration for looped memory to/from peripheral transfers.
  */
+#if defined(_LDMA_CH_CFG_SRCBUSPORT_MASK)
+#define LDMA_TRANSFER_CFG_PERIPHERAL_LOOP(signal, loopCnt)        \
+  {                                                               \
+    signal, 0, 0, 0, 0,                                           \
+    false, false, ldmaCfgArbSlotsAs1,                             \
+    ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, loopCnt,          \
+    ldmaCfgStructBusPort0, ldmaCfgSrcBusPort0, ldmaCfgDstBusPort0 \
+  }
+#else
 #define LDMA_TRANSFER_CFG_PERIPHERAL_LOOP(signal, loopCnt) \
   {                                                        \
     signal, 0, 0, 0, 0,                                    \
     false, false, ldmaCfgArbSlotsAs1,                      \
     ldmaCfgSrcIncSignPos, ldmaCfgDstIncSignPos, loopCnt    \
   }
+#endif
 
 /**
  * @brief
@@ -992,6 +1216,44 @@ typedef struct {
     }                                                     \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for single memory to memory word transfer
+ *   using the extended descriptor fields.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of words to transfer.
+ */
+#define LDMA_DESCRIPTOR_SINGLE_M2M_WORD_EXTEND(src, dest, count)                                     \
+  {                                                                                                  \
+    .structType   = ldmaCtrlStructTypeXfer,                                                          \
+    .extend       = 1,                                                                               \
+    .structReq    = 1,                                                                               \
+    .xferCnt      = (count) - 1,                                                                     \
+    .byteSwap     = 0,                                                                               \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                                          \
+    .doneIfs      = 1,                                                                               \
+    .reqMode      = ldmaCtrlReqModeAll,                                                              \
+    .decLoopCnt   = 0,                                                                               \
+    .ignoreSrec   = 0,                                                                               \
+    .srcInc       = ldmaCtrlSrcIncOne,                                                               \
+    .size         = ldmaCtrlSizeWord,                                                                \
+    .dstInc       = ldmaCtrlDstIncNone, /* Ignored since destination addressing is non-sequential */ \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                                          \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                                          \
+    .srcAddr      = (uint32_t)(src),                                                                 \
+    .dstAddr      = (uint32_t)(dest),                                                                \
+    .linkMode     = 0,                                                                               \
+    .link         = 0,                                                                               \
+    .linkAddr     = 0,                                                                               \
+    .dstIlEn      = 0,                                                                               \
+    .IlMode       = 0,                                                                               \
+    .bufferable   = 0,                                                                               \
+    .IlSrc        = 0                                                                                \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for single memory to memory half-word transfer.
@@ -1024,6 +1286,44 @@ typedef struct {
       .linkAddr     = 0                                   \
     }                                                     \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for single memory to memory half-word transfer
+ *   using the extended descriptor fields.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of half-words to transfer.
+ */
+#define LDMA_DESCRIPTOR_SINGLE_M2M_HALF_EXTEND(src, dest, count) \
+  {                                                              \
+    .structType   = ldmaCtrlStructTypeXfer,                      \
+    .extend       = 1,                                           \
+    .structReq    = 1,                                           \
+    .xferCnt      = (count) - 1,                                 \
+    .byteSwap     = 0,                                           \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                      \
+    .doneIfs      = 1,                                           \
+    .reqMode      = ldmaCtrlReqModeAll,                          \
+    .decLoopCnt   = 0,                                           \
+    .ignoreSrec   = 0,                                           \
+    .srcInc       = ldmaCtrlSrcIncOne,                           \
+    .size         = ldmaCtrlSizeHalf,                            \
+    .dstInc       = ldmaCtrlDstIncNone,                          \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                      \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                      \
+    .srcAddr      = (uint32_t)(src),                             \
+    .dstAddr      = (uint32_t)(dest),                            \
+    .linkMode     = 0,                                           \
+    .link         = 0,                                           \
+    .linkAddr     = 0,                                           \
+    .dstIlEn      = 0,                                           \
+    .IlMode       = 0,                                           \
+    .bufferable   = 0,                                           \
+    .IlSrc        = 0                                            \
+  }
+#endif
 
 /**
  * @brief
@@ -1058,14 +1358,57 @@ typedef struct {
     }                                                     \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for single memory to memory byte transfer
+ *   using the extended descriptor fields.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of bytes to transfer.
+ */
+#define LDMA_DESCRIPTOR_SINGLE_M2M_BYTE_EXTEND(src, dest, count) \
+  {                                                              \
+    .structType   = ldmaCtrlStructTypeXfer,                      \
+    .extend       = 1,                                           \
+    .structReq    = 1,                                           \
+    .xferCnt      = (count) - 1,                                 \
+    .byteSwap     = 0,                                           \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                      \
+    .doneIfs      = 1,                                           \
+    .reqMode      = ldmaCtrlReqModeAll,                          \
+    .decLoopCnt   = 0,                                           \
+    .ignoreSrec   = 0,                                           \
+    .srcInc       = ldmaCtrlSrcIncOne,                           \
+    .size         = ldmaCtrlSizeByte,                            \
+    .dstInc       = ldmaCtrlDstIncNone,                          \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                      \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                      \
+    .srcAddr      = (uint32_t)(src),                             \
+    .dstAddr      = (uint32_t)(dest),                            \
+    .linkMode     = 0,                                           \
+    .link         = 0,                                           \
+    .linkAddr     = 0,                                           \
+    .dstIlEn      = 0,                                           \
+    .IlMode       = 0,                                           \
+    .bufferable   = 0,                                           \
+    .IlSrc        = 0                                            \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for linked memory to memory word transfer.
  *
  *   Link address must be an absolute address.
  * @note
- *   The linkAddr member of the transfer descriptor is not
- *   initialized.
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of words to transfer.
@@ -1096,14 +1439,67 @@ typedef struct {
     }                                                      \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory word transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address must be an absolute address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of words to transfer.
+ */
+#define LDMA_DESCRIPTOR_LINKABS_M2M_WORD_EXTEND(src, dest, count) \
+  {                                                               \
+    .structType   = ldmaCtrlStructTypeXfer,                       \
+    .extend       = 1,                                            \
+    .structReq    = 1,                                            \
+    .xferCnt      = (count) - 1,                                  \
+    .byteSwap     = 0,                                            \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
+    .doneIfs      = 0,                                            \
+    .reqMode      = ldmaCtrlReqModeAll,                           \
+    .decLoopCnt   = 0,                                            \
+    .ignoreSrec   = 0,                                            \
+    .srcInc       = ldmaCtrlSrcIncOne,                            \
+    .size         = ldmaCtrlSizeWord,                             \
+    .dstInc       = ldmaCtrlDstIncNone,                           \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
+    .srcAddr      = (uint32_t)(src),                              \
+    .dstAddr      = (uint32_t)(dest),                             \
+    .linkMode     = ldmaLinkModeAbs,                              \
+    .link         = 1,                                            \
+    .linkAddr     = 0, /* Must be set runtime ! */                \
+    .dstIlEn      = 0,                                            \
+    .IlMode       = 0,                                            \
+    .bufferable   = 0,                                            \
+    .IlSrc        = 0                                             \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for linked memory to memory half-word transfer.
  *
  *   Link address must be an absolute address.
  * @note
- *   The linkAddr member of the transfer descriptor is not
- *   initialized.
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of half-words to transfer.
@@ -1134,14 +1530,67 @@ typedef struct {
     }                                                      \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory half-word transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address must be an absolute address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of half-words to transfer.
+ */
+#define LDMA_DESCRIPTOR_LINKABS_M2M_HALF_EXTEND(src, dest, count) \
+  {                                                               \
+    .structType   = ldmaCtrlStructTypeXfer,                       \
+    .extend       = 1,                                            \
+    .structReq    = 1,                                            \
+    .xferCnt      = (count) - 1,                                  \
+    .byteSwap     = 0,                                            \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
+    .doneIfs      = 0,                                            \
+    .reqMode      = ldmaCtrlReqModeAll,                           \
+    .decLoopCnt   = 0,                                            \
+    .ignoreSrec   = 0,                                            \
+    .srcInc       = ldmaCtrlSrcIncOne,                            \
+    .size         = ldmaCtrlSizeHalf,                             \
+    .dstInc       = ldmaCtrlDstIncNone,                           \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
+    .srcAddr      = (uint32_t)(src),                              \
+    .dstAddr      = (uint32_t)(dest),                             \
+    .linkMode     = ldmaLinkModeAbs,                              \
+    .link         = 1,                                            \
+    .linkAddr     = 0, /* Must be set runtime ! */                \
+    .dstIlEn      = 0,                                            \
+    .IlMode       = 0,                                            \
+    .bufferable   = 0,                                            \
+    .IlSrc        = 0                                             \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for linked memory to memory byte transfer.
  *
  *   Link address must be an absolute address.
  * @note
- *   The linkAddr member of the transfer descriptor is not
- *   initialized.
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of bytes to transfer.
@@ -1172,15 +1621,63 @@ typedef struct {
     }                                                      \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory byte transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address must be an absolute address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of bytes to transfer.
+ */
+#define LDMA_DESCRIPTOR_LINKABS_M2M_BYTE_EXTEND(src, dest, count) \
+  {                                                               \
+    .structType   = ldmaCtrlStructTypeXfer,                       \
+    .extend       = 1,                                            \
+    .structReq    = 1,                                            \
+    .xferCnt      = (count) - 1,                                  \
+    .byteSwap     = 0,                                            \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
+    .doneIfs      = 0,                                            \
+    .reqMode      = ldmaCtrlReqModeAll,                           \
+    .decLoopCnt   = 0,                                            \
+    .ignoreSrec   = 0,                                            \
+    .srcInc       = ldmaCtrlSrcIncOne,                            \
+    .size         = ldmaCtrlSizeByte,                             \
+    .dstInc       = ldmaCtrlDstIncNone,                           \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
+    .srcAddr      = (uint32_t)(src),                              \
+    .dstAddr      = (uint32_t)(dest),                             \
+    .linkMode     = ldmaLinkModeAbs,                              \
+    .link         = 1,                                            \
+    .linkAddr     = 0, /* Must be set runtime ! */                \
+    .dstIlEn      = 0,                                            \
+    .IlMode       = 0,                                            \
+    .bufferable   = 0,                                            \
+    .IlSrc        = 0                                             \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for linked memory to memory word transfer.
  *
  *   Link address is a relative address.
  * @note
- *   The linkAddr member of the transfer descriptor is initialized to 4,
- *   assuming that the next descriptor immediately follows
- *   this descriptor (in memory).
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of words to transfer.
@@ -1190,31 +1687,80 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_M2M_WORD(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 1,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 0,                                            \
-      .reqMode      = ldmaCtrlReqModeAll,                           \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncOne,                            \
-      .size         = ldmaCtrlSizeWord,                             \
-      .dstInc       = ldmaCtrlDstIncOne,                            \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_M2M_WORD(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 1,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 0,                                               \
+      .reqMode      = ldmaCtrlReqModeAll,                              \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncOne,                               \
+      .size         = ldmaCtrlSizeWord,                                \
+      .dstInc       = ldmaCtrlDstIncOne,                               \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory word transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address is a relative address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of words to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_M2M_WORD_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 1,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 0,                                                     \
+    .reqMode      = ldmaCtrlReqModeAll,                                    \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncOne,                                     \
+    .size         = ldmaCtrlSizeWord,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
@@ -1222,9 +1768,9 @@ typedef struct {
  *
  *   Link address is a relative address.
  * @note
- *   The linkAddr member of transfer descriptor is initialized to 4,
- *   assuming that the next descriptor immediately follows
- *   this descriptor (in memory).
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of half-words to transfer.
@@ -1234,31 +1780,80 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_M2M_HALF(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 1,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 0,                                            \
-      .reqMode      = ldmaCtrlReqModeAll,                           \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncOne,                            \
-      .size         = ldmaCtrlSizeHalf,                             \
-      .dstInc       = ldmaCtrlDstIncOne,                            \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_M2M_HALF(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 1,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 0,                                               \
+      .reqMode      = ldmaCtrlReqModeAll,                              \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncOne,                               \
+      .size         = ldmaCtrlSizeHalf,                                \
+      .dstInc       = ldmaCtrlDstIncOne,                               \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory half-word transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address is a relative address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of half-words to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_M2M_HALF_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 1,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 0,                                                     \
+    .reqMode      = ldmaCtrlReqModeAll,                                    \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncOne,                                     \
+    .size         = ldmaCtrlSizeHalf,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
@@ -1266,9 +1861,9 @@ typedef struct {
  *
  *   Link address is a relative address.
  * @note
- *   The linkAddr member of transfer descriptor is initialized to 4,
- *   assuming that the next descriptor immediately follows
- *   this descriptor (in memory).
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
  * @param[in] src       Source data address.
  * @param[in] dest      Destination data address.
  * @param[in] count     Number of bytes to transfer.
@@ -1278,31 +1873,80 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_M2M_BYTE(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 1,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 0,                                            \
-      .reqMode      = ldmaCtrlReqModeAll,                           \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncOne,                            \
-      .size         = ldmaCtrlSizeByte,                             \
-      .dstInc       = ldmaCtrlDstIncOne,                            \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_M2M_BYTE(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 1,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 0,                                               \
+      .reqMode      = ldmaCtrlReqModeAll,                              \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncOne,                               \
+      .size         = ldmaCtrlSizeByte,                                \
+      .dstInc       = ldmaCtrlDstIncOne,                               \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for linked memory to memory byte transfer
+ *   using the extended descriptor fields.
+ *
+ *   Link address is a relative address.
+ * @note
+ *   The linkAddr member of the transfer descriptor is initialized to 4
+ *   (regular descriptor) or 7 (extended descriptor),  assuming that
+ *   the next descriptor immediately follows this descriptor (in memory).
+ * @param[in] src       Source data address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of bytes to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_M2M_BYTE_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 1,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 0,                                                     \
+    .reqMode      = ldmaCtrlReqModeAll,                                    \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncOne,                                     \
+    .size         = ldmaCtrlSizeByte,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
@@ -1336,6 +1980,44 @@ typedef struct {
       .linkAddr     = 0                                   \
     }                                                     \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for byte transfers from a peripheral to memory
+ *   using the extended descriptor fields.
+ * @param[in] src       Peripheral data source register address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of bytes to transfer.
+ */
+#define LDMA_DESCRIPTOR_SINGLE_P2M_BYTE_EXTEND(src, dest, count) \
+  {                                                              \
+    .structType   = ldmaCtrlStructTypeXfer,                      \
+    .extend       = 1,                                           \
+    .structReq    = 0,                                           \
+    .xferCnt      = (count) - 1,                                 \
+    .byteSwap     = 0,                                           \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                      \
+    .doneIfs      = 1,                                           \
+    .reqMode      = ldmaCtrlReqModeBlock,                        \
+    .decLoopCnt   = 0,                                           \
+    .ignoreSrec   = 0,                                           \
+    .srcInc       = ldmaCtrlSrcIncNone,                          \
+    .size         = ldmaCtrlSizeByte,                            \
+    .dstInc       = ldmaCtrlDstIncNone,                          \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                      \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                      \
+    .srcAddr      = (uint32_t)(src),                             \
+    .dstAddr      = (uint32_t)(dest),                            \
+    .linkMode     = 0,                                           \
+    .link         = 0,                                           \
+    .linkAddr     = 0,                                           \
+    .dstIlEn      = 0,                                           \
+    .IlMode       = 0,                                           \
+    .bufferable   = 0,                                           \
+    .IlSrc        = 0                                            \
+  }
+#endif
 
 /**
  * @brief
@@ -1372,7 +2054,7 @@ typedef struct {
 
 /**
  * @brief
- *   DMA descriptor initializer for byte transfers from memory to a peripheral
+ *   DMA descriptor initializer for byte transfers from memory to a peripheral.
  * @param[in] src       Source data address.
  * @param[in] dest      Peripheral data register destination address.
  * @param[in] count     Number of bytes to transfer.
@@ -1403,6 +2085,48 @@ typedef struct {
     }                                                     \
   }
 
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for byte transfers from memory to a peripheral
+ *   using the extended descriptor fields.
+ * @note
+ *   For the extended descriptor, if IlMode uses the absolute addressing, the
+ *   rules are used directly as the destination addresses of the corresponding
+ *   data. Thus the argument 'dest' will be ignored by the DMA engine.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Peripheral data register destination address.
+ * @param[in] count     Number of bytes to transfer.
+ */
+#define LDMA_DESCRIPTOR_SINGLE_M2P_BYTE_EXTEND(src, dest, count) \
+  {                                                              \
+    .structType   = ldmaCtrlStructTypeXfer,                      \
+    .extend       = 1,                                           \
+    .structReq    = 0,                                           \
+    .xferCnt      = (count) - 1,                                 \
+    .byteSwap     = 0,                                           \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                      \
+    .doneIfs      = 1,                                           \
+    .reqMode      = ldmaCtrlReqModeBlock,                        \
+    .decLoopCnt   = 0,                                           \
+    .ignoreSrec   = 0,                                           \
+    .srcInc       = ldmaCtrlSrcIncOne,                           \
+    .size         = ldmaCtrlSizeByte,                            \
+    .dstInc       = ldmaCtrlDstIncNone,                          \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                      \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                      \
+    .srcAddr      = (uint32_t)(src),                             \
+    .dstAddr      = (uint32_t)(dest),                            \
+    .linkMode     = 0,                                           \
+    .link         = 0,                                           \
+    .linkAddr     = 0,                                           \
+    .dstIlEn      = 0,                                           \
+    .IlMode       = 0,                                           \
+    .bufferable   = 0,                                           \
+    .IlSrc        = 0                                            \
+  }
+#endif
+
 /**
  * @brief
  *   DMA descriptor initializer for byte transfers from a peripheral to memory.
@@ -1415,31 +2139,74 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 0,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 1,                                            \
-      .reqMode      = ldmaCtrlReqModeBlock,                         \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncNone,                           \
-      .size         = ldmaCtrlSizeByte,                             \
-      .dstInc       = ldmaCtrlDstIncOne,                            \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 0,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 1,                                               \
+      .reqMode      = ldmaCtrlReqModeBlock,                            \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncNone,                              \
+      .size         = ldmaCtrlSizeByte,                                \
+      .dstInc       = ldmaCtrlDstIncOne,                               \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for byte transfers from a peripheral to memory
+ *   using the extended descriptor fields.
+ * @param[in] src       Peripheral data source register address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of bytes to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_P2M_BYTE_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 0,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 1,                                                     \
+    .reqMode      = ldmaCtrlReqModeBlock,                                  \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncNone,                                    \
+    .size         = ldmaCtrlSizeByte,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
@@ -1453,35 +2220,78 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_P2M_WORD(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 0,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 1,                                            \
-      .reqMode      = ldmaCtrlReqModeBlock,                         \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncNone,                           \
-      .size         = ldmaCtrlSizeWord,                             \
-      .dstInc       = ldmaCtrlDstIncOne,                            \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_P2M_WORD(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 0,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 1,                                               \
+      .reqMode      = ldmaCtrlReqModeBlock,                            \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncNone,                              \
+      .size         = ldmaCtrlSizeWord,                                \
+      .dstInc       = ldmaCtrlDstIncOne,                               \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for word transfers from a peripheral to memory
+ *   using the extended descriptor fields.
+ * @param[in] src       Peripheral data source register address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of words to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_P2M_WORD_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 0,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 1,                                                     \
+    .reqMode      = ldmaCtrlReqModeBlock,                                  \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncNone,                                    \
+    .size         = ldmaCtrlSizeWord,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
- *   DMA descriptor initializer for byte transfers from memory to a peripheral
+ *   DMA descriptor initializer for byte transfers from memory to a peripheral.
  * @param[in] src       Source data address.
  * @param[in] dest      Peripheral data register destination address.
  * @param[in] count     Number of bytes to transfer.
@@ -1491,31 +2301,78 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_M2P_BYTE(src, dest, count, linkjmp) \
-  {                                                                 \
-    .xfer =                                                         \
-    {                                                               \
-      .structType   = ldmaCtrlStructTypeXfer,                       \
-      .structReq    = 0,                                            \
-      .xferCnt      = (count) - 1,                                  \
-      .byteSwap     = 0,                                            \
-      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
-      .doneIfs      = 1,                                            \
-      .reqMode      = ldmaCtrlReqModeBlock,                         \
-      .decLoopCnt   = 0,                                            \
-      .ignoreSrec   = 0,                                            \
-      .srcInc       = ldmaCtrlSrcIncOne,                            \
-      .size         = ldmaCtrlSizeByte,                             \
-      .dstInc       = ldmaCtrlDstIncNone,                           \
-      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
-      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
-      .srcAddr      = (uint32_t)(src),                              \
-      .dstAddr      = (uint32_t)(dest),                             \
-      .linkMode     = ldmaLinkModeRel,                              \
-      .link         = 1,                                            \
-      .linkAddr     = (linkjmp) * 4                                 \
-    }                                                               \
+#define LDMA_DESCRIPTOR_LINKREL_M2P_BYTE(src, dest, count, linkjmp)    \
+  {                                                                    \
+    .xfer =                                                            \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeXfer,                          \
+      .structReq    = 0,                                               \
+      .xferCnt      = (count) - 1,                                     \
+      .byteSwap     = 0,                                               \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                          \
+      .doneIfs      = 1,                                               \
+      .reqMode      = ldmaCtrlReqModeBlock,                            \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = ldmaCtrlSrcIncOne,                               \
+      .size         = ldmaCtrlSizeByte,                                \
+      .dstInc       = ldmaCtrlDstIncNone,                              \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                          \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                          \
+      .srcAddr      = (uint32_t)(src),                                 \
+      .dstAddr      = (uint32_t)(dest),                                \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   DMA descriptor initializer for byte transfers from memory to a peripheral
+ *   using the extended descriptor fields.
+ * @note
+ *   For the extended descriptor, if IlMode uses the absolute addressing, the
+ *   rules are used directly as the destination addresses of the corresponding
+ *   data. Thus the argument 'dest' will be ignored by the DMA engine.
+ * @param[in] src       Source data address.
+ * @param[in] dest      Peripheral data register destination address.
+ * @param[in] count     Number of bytes to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_M2P_BYTE_EXTEND(src, dest, count, linkjmp) \
+  {                                                                        \
+    .structType   = ldmaCtrlStructTypeXfer,                                \
+    .extend       = 1,                                                     \
+    .structReq    = 0,                                                     \
+    .xferCnt      = (count) - 1,                                           \
+    .byteSwap     = 0,                                                     \
+    .blockSize    = ldmaCtrlBlockSizeUnit1,                                \
+    .doneIfs      = 1,                                                     \
+    .reqMode      = ldmaCtrlReqModeBlock,                                  \
+    .decLoopCnt   = 0,                                                     \
+    .ignoreSrec   = 0,                                                     \
+    .srcInc       = ldmaCtrlSrcIncOne,                                     \
+    .size         = ldmaCtrlSizeByte,                                      \
+    .dstInc       = ldmaCtrlDstIncNone,                                    \
+    .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                                \
+    .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                                \
+    .srcAddr      = (uint32_t)(src),                                       \
+    .dstAddr      = (uint32_t)(dest),                                      \
+    .linkMode     = ldmaLinkModeRel,                                       \
+    .link         = 1,                                                     \
+    .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_EXTEND_SIZE_WORD,          \
+    .dstIlEn      = 0,                                                     \
+    .IlMode       = 0,                                                     \
+    .bufferable   = 0,                                                     \
+    .IlSrc        = 0                                                      \
+  }
+#endif
 
 /**
  * @brief
@@ -1555,8 +2412,13 @@ typedef struct {
  *
  *   Link address must be an absolute address.
  * @note
- *   The linkAddr member of the transfer descriptor is not
- *   initialized.
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
  * @param[in] value     Immediate value to write.
  * @param[in] address   Write address.
  */
@@ -1597,30 +2459,30 @@ typedef struct {
  *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
-#define LDMA_DESCRIPTOR_LINKREL_WRITE(value, address, linkjmp) \
-  {                                                            \
-    .wri =                                                     \
-    {                                                          \
-      .structType   = ldmaCtrlStructTypeWrite,                 \
-      .structReq    = 1,                                       \
-      .xferCnt      = 0,                                       \
-      .byteSwap     = 0,                                       \
-      .blockSize    = 0,                                       \
-      .doneIfs      = 0,                                       \
-      .reqMode      = 0,                                       \
-      .decLoopCnt   = 0,                                       \
-      .ignoreSrec   = 0,                                       \
-      .srcInc       = 0,                                       \
-      .size         = 0,                                       \
-      .dstInc       = 0,                                       \
-      .srcAddrMode  = 0,                                       \
-      .dstAddrMode  = 0,                                       \
-      .immVal       = (value),                                 \
-      .dstAddr      = (uint32_t)(address),                     \
-      .linkMode     = ldmaLinkModeRel,                         \
-      .link         = 1,                                       \
-      .linkAddr     = (linkjmp) * 4                            \
-    }                                                          \
+#define LDMA_DESCRIPTOR_LINKREL_WRITE(value, address, linkjmp)         \
+  {                                                                    \
+    .wri =                                                             \
+    {                                                                  \
+      .structType   = ldmaCtrlStructTypeWrite,                         \
+      .structReq    = 1,                                               \
+      .xferCnt      = 0,                                               \
+      .byteSwap     = 0,                                               \
+      .blockSize    = 0,                                               \
+      .doneIfs      = 0,                                               \
+      .reqMode      = 0,                                               \
+      .decLoopCnt   = 0,                                               \
+      .ignoreSrec   = 0,                                               \
+      .srcInc       = 0,                                               \
+      .size         = 0,                                               \
+      .dstInc       = 0,                                               \
+      .srcAddrMode  = 0,                                               \
+      .dstAddrMode  = 0,                                               \
+      .immVal       = (value),                                         \
+      .dstAddr      = (uint32_t)(address),                             \
+      .linkMode     = ldmaLinkModeRel,                                 \
+      .link         = 1,                                               \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD \
+    }                                                                  \
   }
 
 /**
@@ -1665,8 +2527,13 @@ typedef struct {
  *
  *   Link address must be an absolute address.
  * @note
- *   The linkAddr member of the transfer descriptor is not
- *   initialized.
+ *   The linkAddr member of the transfer descriptor is not initialized.
+ *   linkAddr must be initialized by using the proper bits right-shift
+ *   to get the correct bits from the absolute address.
+ *   _LDMA_CH_LINK_LINKADDR_SHIFT should be used for that operation:
+ * @code
+     desc.linkAddr = ((int32_t)&next_desc) >> _LDMA_CH_LINK_LINKADDR_SHIFT;@endcode
+ *   The opposite bit shift (left) must be done if linkAddr is read.
  * @param[in] set          Sync pattern bits to set.
  * @param[in] clr          Sync pattern bits to clear.
  * @param[in] matchValue   Sync pattern to match.
@@ -1737,9 +2604,25 @@ typedef struct {
       .matchEn      = (matchEnable),                                             \
       .linkMode     = ldmaLinkModeRel,                                           \
       .link         = 1,                                                         \
-      .linkAddr     = (linkjmp) * 4                                              \
+      .linkAddr     = (linkjmp) * LDMA_DESCRIPTOR_NON_EXTEND_SIZE_WORD           \
     }                                                                            \
   }
+
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+/**
+ * @brief
+ *   Initializer for the destination interleaving portion of the DMA extended descriptor.
+ * @param[in] desc      Transfer-type descriptor.
+ * @param[in] ilmode    Rules table addressing mode for interleaved data.
+ * @param[in] ilsrc     Base address for rules table in memory.
+ */
+#define LDMA_DESCRIPTOR_EXTEND_DST_IL_CFG(desc, ilmode, ilsrc) \
+  {                                                            \
+    (desc).dstIlEn = true;                                     \
+    (desc).IlMode  = (ilmode);                                 \
+    (desc).IlSrc   = (uint32_t)(ilsrc);                        \
+  }
+#endif
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
@@ -1751,9 +2634,29 @@ void LDMA_Init(const LDMA_Init_t *init);
 void LDMA_StartTransfer(int ch,
                         const LDMA_TransferCfg_t *transfer,
                         const LDMA_Descriptor_t  *descriptor);
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK)
+void LDMA_StartTransferExtend(int ch,
+                              const LDMA_TransferCfg_t *transfer,
+                              const LDMA_DescriptorExtend_t *descriptor_ext);
+#endif
 void LDMA_StopTransfer(int ch);
 bool LDMA_TransferDone(int ch);
 uint32_t LDMA_TransferRemainingCount(int ch);
+
+#if defined(_LDMA_SWRST_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Reset the LDMA.
+ ******************************************************************************/
+__STATIC_INLINE void LDMA_Reset(void)
+{
+  LDMA->SWRST_SET = LDMA_SWRST_SWRST;
+
+  /* Wait for reset to complete. */
+  while ((LDMA->SWRST & _LDMA_SWRST_RESETTING_MASK)) {
+  }
+}
+#endif
 
 /***************************************************************************//**
  * @brief
@@ -1786,7 +2689,7 @@ __STATIC_INLINE bool LDMA_ChannelEnabled(int ch)
  *
  * @param[in] flags
  *   Pending LDMA interrupt sources to clear. Use one or more valid
- *   interrupt flags for the LDMA module. The flags are @ref LDMA_IFC_ERROR
+ *   interrupt flags for the LDMA module. The flags are LDMA_IFC_ERROR
  *   and one done flag for each channel.
  ******************************************************************************/
 __STATIC_INLINE void LDMA_IntClear(uint32_t flags)
@@ -1804,7 +2707,7 @@ __STATIC_INLINE void LDMA_IntClear(uint32_t flags)
  *
  * @param[in] flags
  *   LDMA interrupt sources to disable. Use one or more valid
- *   interrupt flags for LDMA module. The flags are @ref LDMA_IEN_ERROR
+ *   interrupt flags for LDMA module. The flags are LDMA_IEN_ERROR
  *   and one done flag for each channel.
  ******************************************************************************/
 __STATIC_INLINE void LDMA_IntDisable(uint32_t flags)
@@ -1823,7 +2726,7 @@ __STATIC_INLINE void LDMA_IntDisable(uint32_t flags)
  *
  * @param[in] flags
  *   LDMA interrupt sources to enable. Use one or more valid
- *   interrupt flags for LDMA module. The flags are @ref LDMA_IEN_ERROR
+ *   interrupt flags for LDMA module. The flags are LDMA_IEN_ERROR
  *   and one done flag for each channel.
  ******************************************************************************/
 __STATIC_INLINE void LDMA_IntEnable(uint32_t flags)
@@ -1840,7 +2743,7 @@ __STATIC_INLINE void LDMA_IntEnable(uint32_t flags)
  *
  * @return
  *   LDMA interrupt sources pending. Returns one or more valid
- *   interrupt flags for LDMA module. The flags are @ref LDMA_IF_ERROR and
+ *   interrupt flags for LDMA module. The flags are LDMA_IF_ERROR and
  *   one flag for each LDMA channel.
  ******************************************************************************/
 __STATIC_INLINE uint32_t LDMA_IntGet(void)
@@ -1876,7 +2779,7 @@ __STATIC_INLINE uint32_t LDMA_IntGetEnabled(void)
  *
  * @param[in] flags
  *   LDMA interrupt sources to set to pending. Use one or more valid
- *   interrupt flags for LDMA module. The flags are @ref LDMA_IFS_ERROR and
+ *   interrupt flags for LDMA module. The flags are LDMA_IFS_ERROR and
  *   one done flag for each LDMA channel.
  ******************************************************************************/
 __STATIC_INLINE void LDMA_IntSet(uint32_t flags)
@@ -1888,8 +2791,7 @@ __STATIC_INLINE void LDMA_IntSet(uint32_t flags)
 #endif
 }
 
-/** @} (end addtogroup LDMA) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup ldma) */
 
 #ifdef __cplusplus
 }

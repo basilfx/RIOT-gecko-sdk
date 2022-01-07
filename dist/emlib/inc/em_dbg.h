@@ -41,12 +41,7 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup DBG
+ * @addtogroup dbg
  * @{
  ******************************************************************************/
 
@@ -93,7 +88,9 @@ __STATIC_INLINE bool DBG_Connected(void)
 void DBG_SWOEnable(unsigned int location);
 #endif
 
+#if defined(LOCKBITS_BASE) && !defined(_EFM32_GECKO_FAMILY)
 void DBG_DisableDebugAccess(DBG_LockMode_TypeDef lockMode);
+#endif
 
 #if defined (EMU_CTRL_EM2DBGEN)
 /***************************************************************************//**
@@ -109,7 +106,7 @@ void DBG_DisableDebugAccess(DBG_LockMode_TypeDef lockMode);
  *   (powers down the EFR). Execute Simplicity Commander with command line
  *   parameters:
  *     "./commander.exe device recover"
- *   and then immediately move the switch to the AEM postion. An additional
+ *   and then immediately move the switch to the AEM position. An additional
  *     "./commander.exe device masserase"
  *   command completes the recovery procedure.
  *
@@ -126,8 +123,7 @@ __STATIC_INLINE void DBG_EM2DebugEnable(bool enable)
 }
 #endif
 
-/** @} (end addtogroup DBG) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup dbg) */
 
 #ifdef __cplusplus
 }

@@ -35,12 +35,7 @@
 #if defined(GPCRC_PRESENT) && (GPCRC_COUNT > 0)
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup GPCRC
+ * @addtogroup gpcrc
  * @{
  ******************************************************************************/
 
@@ -78,7 +73,7 @@ void GPCRC_Init(GPCRC_TypeDef * gpcrc, const GPCRC_Init_TypeDef * init)
     polySelect = GPCRC_CTRL_POLYSEL_CRC32;
   } else {
     // If not using the fixed CRC-32 polynomial, use 16-bit.
-    EFM_ASSERT((init->crcPoly & 0xFFFF0000) == 0);
+    EFM_ASSERT((init->crcPoly & 0xFFFF0000UL) == 0U);
 #if defined(GPCRC_CTRL_POLYSEL_CRC16)
     polySelect = GPCRC_CTRL_POLYSEL_CRC16;
 #else
@@ -138,7 +133,6 @@ void GPCRC_Reset(GPCRC_TypeDef * gpcrc)
   gpcrc->INIT = _GPCRC_INIT_RESETVALUE;
 }
 
-/** @} (end addtogroup GPCRC) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup gpcrc) */
 
 #endif /* defined(GPCRC_COUNT) && (GPCRC_COUNT > 0) */

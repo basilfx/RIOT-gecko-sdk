@@ -5,7 +5,7 @@
  *   it need not be included even if rail_assert libraries are included.
  *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -35,6 +35,10 @@
 
 #include "rail_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup Assertions
  * @{
@@ -61,7 +65,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP = 13,
   RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY = 14,
   RAIL_ASSERT_FAILED_RAC_STATE = 15,
-  RAIL_ASSERT_FAILED_TO_BE_ASSIGNED = 16, // Placeholder.
+  RAIL_ASSERT_FAILED_SYNTH_INVALID_VCOCTRL = 16,
   RAIL_ASSERT_FAILED_NESTED_SEQUENCER_LOCK = 17,
   RAIL_ASSERT_FAILED_RSSI_AVERAGE_DONE = 18,
   RAIL_ASSERT_FAILED_DFL_BITS_SIZE = 19,
@@ -78,7 +82,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_FAILED_SCHED_TIMER_NOT_RUNNING = 30,
   RAIL_ASSERT_FAILED_NO_ACTIVE_CONFIG = 31,
   RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SWITCH = 32,
-  RAIL_ASSERT_FAILED_RFINIT = 33,
+  RAIL_ASSERT_FAILED_RESERVED33 = 33,
   RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SCHEDRX = 34,
   RAIL_ASSERT_FAILED_INVALID_HANDLE_SCHEDTX = 35,
   RAIL_ASSERT_FAILED_INACTIVE_HANDLE_SCHEDTX = 36,
@@ -106,6 +110,16 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_SEQUENCER_FAULT = 58,
   RAIL_ASSERT_BUS_ERROR = 59,
   RAIL_ASSERT_INVALID_FILTERING_CONFIG = 60,
+  RAIL_ASSERT_RETIMING_CONFIG = 61,
+  RAIL_ASSERT_FAILED_TX_CRC_CONFIG = 62,
+  RAIL_ASSERT_INVALID_PA_OPERATION = 63,
+  RAIL_ASSERT_SEQ_INVALID_PA_SELECTED = 64,
+  RAIL_ASSERT_FAILED_INVALID_CHANNEL_CONFIG = 65,
+  RAIL_ASSERT_INVALID_DYNAMIC_FRAME_LENGTH = 66,
+  RAIL_ASSERT_FAILED_EM1P_ENTRY = 67,
+  RAIL_ASSERT_FAILED_EM1P_EXIT = 68,
+  RAIL_ASSERT_FAILED_RTCC_SYNC_STOP = 69,
+  RAIL_ASSERT_FAILED_MULTITIMER_CORRUPT = 70,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -126,6 +140,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP                    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP)
 #define RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY                 ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY)
 #define RAIL_ASSERT_FAILED_RAC_STATE                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RAC_STATE)
+#define RAIL_ASSERT_FAILED_SYNTH_INVALID_VCOCTRL               ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_SYNTH_INVALID_VCOCTRL)
 #define RAIL_ASSERT_FAILED_NESTED_SEQUENCER_LOCK               ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_NESTED_SEQUENCER_LOCK)
 #define RAIL_ASSERT_FAILED_RSSI_AVERAGE_DONE                   ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RSSI_AVERAGE_DONE)
 #define RAIL_ASSERT_FAILED_DFL_BITS_SIZE                       ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_DFL_BITS_SIZE)
@@ -142,7 +157,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_FAILED_SCHED_TIMER_NOT_RUNNING             ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_SCHED_TIMER_NOT_RUNNING)
 #define RAIL_ASSERT_FAILED_NO_ACTIVE_CONFIG                    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_NO_ACTIVE_CONFIG)
 #define RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SWITCH             ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SWITCH)
-#define RAIL_ASSERT_FAILED_RFINIT                              ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RFINIT)
+#define RAIL_ASSERT_FAILED_RESERVED33                          ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RESERVED33)
 #define RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SCHEDRX            ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_NO_ACTIVE_HANDLE_SCHEDRX)
 #define RAIL_ASSERT_FAILED_INVALID_HANDLE_SCHEDTX              ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_INVALID_HANDLE_SCHEDTX)
 #define RAIL_ASSERT_FAILED_INACTIVE_HANDLE_SCHEDTX             ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_INACTIVE_HANDLE_SCHEDTX)
@@ -170,6 +185,16 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_SEQUENCER_FAULT                            ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_SEQUENCER_FAULT)
 #define RAIL_ASSERT_BUS_ERROR                                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_BUS_ERROR)
 #define RAIL_ASSERT_INVALID_FILTERING_CONFIG                   ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_FILTERING_CONFIG)
+#define RAIL_ASSERT_RETIMING_CONFIG                            ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_RETIMING_CONFIG)
+#define RAIL_ASSERT_FAILED_TX_CRC_CONFIG                       ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_TX_CRC_CONFIG)
+#define RAIL_ASSERT_INVALID_PA_OPERATION                       ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_PA_OPERATION)
+#define RAIL_ASSERT_SEQ_INVALID_PA_SELECTED                    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_SEQ_INVALID_PA_SELECTED)
+#define RAIL_ASSERT_FAILED_INVALID_CHANNEL_CONFIG              ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_INVALID_CHANNEL_CONFIG)
+#define RAIL_ASSERT_INVALID_DYNAMIC_FRAME_LENGTH               ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_DYNAMIC_FRAME_LENGTH)
+#define RAIL_ASSERT_FAILED_EM1P_ENTRY                          ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_EM1P_ENTRY)
+#define RAIL_ASSERT_FAILED_EM1P_EXIT                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_EM1P_EXIT)
+#define RAIL_ASSERT_FAILED_RTCC_SYNC_STOP                      ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RTCC_SYNC_STOP)
+#define RAIL_ASSERT_FAILED_MULTITIMER_CORRUPT                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_MULTITIMER_CORRUPT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -198,7 +223,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 ///
 #define RAIL_ASSERT_ERROR_MESSAGES {                                                   \
     /* 0*/ "Appended info missing from Rx packet",                                     \
-    /* 1*/ "Payload bytes missing from Rx packet",                                     \
+    /* 1*/ "Receive FIFO too small for IR calibration",                                \
     /* 2*/ "Error reading back packet payload",                                        \
     /* 3*/ "Receive fifo entry has invalid status",                                    \
     /* 4*/ "Receive fifo entry bad packet length",                                     \
@@ -213,7 +238,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*13*/ "Error synchronizing the RAIL timebase after sleep",                        \
     /*14*/ "VCO frequency outside supported range",                                    \
     /*15*/ "Radio active while changing channels",                                     \
-    /*16*/ "Unassigned error code",                                                    \
+    /*16*/ "Invalid Synth VCOCTRL field calculation",                                  \
     /*17*/ "Nested attempt to lock the sequencer",                                     \
     /*18*/ "RSSI averaging enabled without a valid callback",                          \
     /*19*/ "Invalid dynamic frame length setting provided (dflBits)",                  \
@@ -228,9 +253,9 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*28*/ "Attempted to set RAIL timings to invalid value",                           \
     /*29*/ "NULL was supplied as a RAIL_Handle_t argument",                            \
     /*30*/ "Scheduled timer not running",                                              \
-    /*31*/ "No active config to switch from",                                          \
+    /*31*/ "API improperly called while protocol inactive",                            \
     /*32*/ "No active handle after switch",                                            \
-    /*33*/ "RfInit failed to configure active state",                                  \
+    /*33*/ "Reserved for future use",                                                  \
     /*34*/ "No active handle for scheduled rx",                                        \
     /*35*/ "Invalid handle for scheduled tx",                                          \
     /*36*/ "Inactive handle for scheduled tx",                                         \
@@ -258,10 +283,24 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*58*/ "Radio sequencer hit a fault condition",                                    \
     /*59*/ "Bus fault",                                                                \
     /*60*/ "The current radio config cannot be used with packet filtering",            \
+    /*61*/ "Retiming configuration error",                                             \
+    /*62*/ "TX CRC configuration is corrupt",                                          \
+    /*63*/ "The current PA config does not allow for this operation",                  \
+    /*64*/ "The sequencer selected an invalid PA",                                     \
+    /*65*/ "Invalid/unsupported channel config",                                       \
+    /*66*/ "The dynamic frame length configuration is invalid",                        \
+    /*67*/ "Failed to enable EM1P energy mode",                                        \
+    /*68*/ "Failed to disable EM1P energy mode",                                       \
+    /*69*/ "Failed to disable RTCC synchronization",                                   \
+    /*70*/ "Multitimer linked list corrupted",                                         \
 }
 
 /**
  * @}
  */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // __RAIL_ASSERT_ERROR_CODES_H__

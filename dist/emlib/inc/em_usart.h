@@ -42,12 +42,7 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup USART
+ * @addtogroup usart USART - Synchronous/Asynchronous Serial
  * @brief Universal Synchronous/Asynchronous Receiver/Transmitter
  *   Peripheral API
  * @details
@@ -63,7 +58,7 @@ extern "C" {
  * CPU intervention. It is possible to transmit and receive large frames while
  * the MCU remains in EM1 Sleep.
  *
- * This module does not support DMA configuration. The @ref UARTDRV and @ref SPIDRV drivers
+ * This module does not support DMA configuration. The UARTDRV and SPIDRV drivers
  * provide full support for DMA and more.
  *
  *  The following steps are necessary for basic operation:
@@ -83,12 +78,12 @@ extern "C" {
  *  @if DOXYDOC_P1_DEVICE
  *  @include em_usart_route_p1.c
  *  @note UART hardware flow control is not directly supported in hardware on
- *        @ref _SILICON_LABS_32B_SERIES_0 parts.
+ *        _SILICON_LABS_32B_SERIES_0 parts.
  *  @endif
  *  @if DOXYDOC_P2_DEVICE
  *  @include em_usart_route_p2.c
  *  @endif
- *  @note @ref UARTDRV supports all types of UART flow control. Software assisted
+ *  @note UARTDRV supports all types of UART flow control. Software assisted
  *        hardware flow control is available for parts without true UART hardware
  *        flow control.
  * @{
@@ -154,18 +149,28 @@ typedef enum {
 } USART_Stopbits_TypeDef;
 
 #if defined(_USART_ROUTEPEN_RTSPEN_MASK) && defined(_USART_ROUTEPEN_CTSPEN_MASK)
+/** Hardware Flow Control Selection. */
 typedef enum {
+  /** No hardware flow control. */
   usartHwFlowControlNone = 0,
+  /** CTS signal is enabled for TX flow control. */
   usartHwFlowControlCts = USART_ROUTEPEN_CTSPEN,
+  /** RTS signal is enabled for RX flow control. */
   usartHwFlowControlRts = USART_ROUTEPEN_RTSPEN,
+  /** CTS and RTS signals are enabled for TX and RX flow control. */
   usartHwFlowControlCtsAndRts = USART_ROUTEPEN_CTSPEN | USART_ROUTEPEN_RTSPEN,
 } USART_HwFlowControl_TypeDef;
 
 #elif defined(USART_CTRLX_CTSEN)
+/** Hardware Flow Control Selection. */
 typedef enum {
+  /** No hardware flow control. */
   usartHwFlowControlNone = 0,
+  /** CTS signal is enabled for TX flow control. */
   usartHwFlowControlCts,
+  /** RTS signal is enabled for RX flow control. */
   usartHwFlowControlRts,
+  /** CTS and RTS signals are enabled for TX and RX flow control. */
   usartHwFlowControlCtsAndRts
 } USART_HwFlowControl_TypeDef;
 #endif
@@ -203,6 +208,7 @@ typedef enum {
 /** PRS Channel type */
 typedef uint8_t USART_PRS_Channel_t;
 
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 /** Deprecated PRS channel selector value.
  *  New code should use an integer instead. */
 #define usartIrDAPrsCh0       0U
@@ -233,6 +239,7 @@ typedef uint8_t USART_PRS_Channel_t;
 #define usartPrsTriggerCh5    5U
 #define usartPrsTriggerCh6    6U
 #define usartPrsTriggerCh7    7U
+/** @endcond */
 
 #if defined(_USART_I2SCTRL_MASK) && defined(USART_I2SCTRL_I2SEN)
 /** I2S format selection. */
@@ -318,6 +325,10 @@ typedef struct {
   /** Auto CS enabling. */
   bool                  autoCsEnable;
 
+  /** Enable CS invert. By default, chip select is active low.
+   * Set to true to make chip select active high. */
+  bool                  csInv;
+
 #if (_SILICON_LABS_32B_SERIES > 0)
   /** Auto CS hold time in baud cycles. */
   uint8_t               autoCsHold;
@@ -356,7 +367,8 @@ typedef struct {
     usartDatabits8,        /* 8 data bits. */                                                      \
     usartNoParity,         /* No parity. */                                                        \
     usartStopbits1,        /* 1 stop bit. */                                                       \
-    false,                 /* Auto CS functionality enable/disable switch */                       \
+    false,                 /* Auto CS functionality enable/disable switch. */                      \
+    false,                 /* No CS invert. */                                                     \
   }
 #elif defined(_SILICON_LABS_32B_SERIES_0)
 /* Default USART Async struct for Series 0 devices */
@@ -372,7 +384,8 @@ typedef struct {
     false,                 /* Do not disable majority vote. */                                     \
     false,                 /* Not USART PRS input mode. */                                         \
     0,                     /* PRS channel 0. */                                                    \
-    false,                 /* Auto CS functionality enable/disable switch */                       \
+    false,                 /* Auto CS functionality enable/disable switch. */                      \
+    false,                 /* No CS invert. */                                                     \
   }
 #elif (_SILICON_LABS_32B_SERIES > 0)
 /* Default USART Async struct for Series 1 and Series 2 devices */
@@ -389,9 +402,10 @@ typedef struct {
     false,                 /* Not USART PRS input mode. */                                         \
     0,                     /* PRS channel 0. */                                                    \
     false,                 /* Auto CS functionality enable/disable switch */                       \
-    0,                     /* Auto CS Hold cycles */                                               \
-    0,                     /* Auto CS Setup cycles */                                              \
-    usartHwFlowControlNone /* No HW flow control */                                                \
+    false,                 /* No CS invert. */                                                     \
+    0,                     /* Auto CS Hold cycles. */                                              \
+    0,                     /* Auto CS Setup cycles. */                                             \
+    usartHwFlowControlNone /* No HW flow control. */                                               \
   }
 #endif
 
@@ -456,6 +470,10 @@ typedef struct {
   /** Auto CS enabling */
   bool                    autoCsEnable;
 
+  /** Enable CS invert. By default, chip select is active low.
+   * Set to true to make chip select active high. */
+  bool                    csInv;
+
 #if defined(_USART_TIMING_CSHOLD_MASK)
   /** Auto CS hold time in baud cycles */
   uint8_t                 autoCsHold;
@@ -477,7 +495,8 @@ typedef struct {
     true,            /* Master mode. */                                                      \
     false,           /* Send least significant bit first. */                                 \
     usartClockMode0, /* Clock idle low, sample on rising edge. */                            \
-    false,           /* No AUTOCS mode */                                                    \
+    false,           /* No AUTOCS mode. */                                                   \
+    false,           /* No CS invert. */                                                     \
   }
 #elif defined(_SILICON_LABS_32B_SERIES_0)
 /* Default USART Sync configuration for series 0 devices. */
@@ -493,7 +512,8 @@ typedef struct {
     false,           /* Not USART PRS input mode. */                                         \
     0,               /* PRS channel 0. */                                                    \
     false,           /* No AUTOTX mode. */                                                   \
-    false,           /* No AUTOCS mode */                                                    \
+    false,           /* No AUTOCS mode. */                                                   \
+    false,           /* No CS invert. */                                                     \
   }
 #elif (_SILICON_LABS_32B_SERIES > 0)
 /* Default USART Sync configuration for series 2 devices */
@@ -510,6 +530,7 @@ typedef struct {
     0,               /* PRS channel 0. */                                                    \
     false,           /* No AUTOTX mode. */                                                   \
     false,           /* No AUTOCS mode. */                                                   \
+    false,           /* No CS invert. */                                                     \
     0,               /* Auto CS Hold cycles. */                                              \
     0                /* Auto CS Setup cycles. */                                             \
   }
@@ -530,6 +551,7 @@ typedef struct {
    *  of the configured USART bit period. */
   USART_IrDAPw_Typedef     irPw;
 
+#if defined(USART_IRCTRL_IRPRSEN)
   /** Enable the PRS channel selected by irPrsSel as input to IrDA module
    *  instead of TX. */
   bool                     irPrsEn;
@@ -537,6 +559,7 @@ typedef struct {
   /** PRS can be used as input to the pulse modulator instead of TX.
    *  This value selects the channel to use. */
   USART_PRS_Channel_t      irPrsSel;
+#endif
 } USART_InitIrDA_TypeDef;
 
 /** Default configuration for IrDA mode initialization structure. */
@@ -553,6 +576,7 @@ typedef struct {
       usartEvenParity,       /* Even parity. */                                                      \
       usartStopbits1,        /* 1 stop bit. */                                                       \
       false,                 /* Auto CS functionality enable/disable switch */                       \
+      false,                 /* No CS invert. */                                                     \
     },                                                                                               \
     false,            /* Rx invert disabled. */                                                      \
     false,            /* Filtering disabled. */                                                      \
@@ -576,6 +600,7 @@ typedef struct {
       false,                 /* Not USART PRS input mode. */                                         \
       0,                     /* PRS channel 0. */                                                    \
       false,                 /* Auto CS functionality enable/disable switch */                       \
+      false,                 /* No CS invert. */                                                     \
     },                                                                                               \
     false,            /* Rx invert disabled. */                                                      \
     false,            /* Filtering disabled. */                                                      \
@@ -585,6 +610,7 @@ typedef struct {
   }
 #elif (_SILICON_LABS_32B_SERIES > 0)
 /* Default USART IrDA struct for Series 1 and Series 2 devices */
+#if defined(USART_IRCTRL_IRPRSEN)
 #define USART_INITIRDA_DEFAULT                                                                       \
   {                                                                                                  \
     {                                                                                                \
@@ -599,6 +625,7 @@ typedef struct {
       false,                 /* Not USART PRS input mode. */                                         \
       0,                     /* PRS channel 0. */                                                    \
       false,                 /* Auto CS functionality enable/disable switch */                       \
+      false,                 /* No CS invert. */                                                     \
       0,                     /* Auto CS Hold cycles */                                               \
       0,                     /* Auto CS Setup cycles */                                              \
       usartHwFlowControlNone /* No HW flow control */                                                \
@@ -609,6 +636,31 @@ typedef struct {
     false,            /* Routing to PRS is disabled. */                                              \
     0                 /* PRS channel 0. */                                                           \
   }
+#else
+#define USART_INITIRDA_DEFAULT                                                                       \
+  {                                                                                                  \
+    {                                                                                                \
+      usartEnable,           /* Enable RX/TX when initialization is complete. */                     \
+      0,                     /* Use current configured reference clock for configuring baud rate. */ \
+      115200,                /* 115200 bits/s. */                                                    \
+      usartOVS16,            /* 16x oversampling. */                                                 \
+      usartDatabits8,        /* 8 data bits. */                                                      \
+      usartEvenParity,       /* Even parity. */                                                      \
+      usartStopbits1,        /* 1 stop bit. */                                                       \
+      false,                 /* Do not disable majority vote. */                                     \
+      false,                 /* Not USART PRS input mode. */                                         \
+      0,                     /* PRS channel 0. */                                                    \
+      false,                 /* Auto CS functionality enable/disable switch */                       \
+      false,                 /* No CS invert. */                                                     \
+      0,                     /* Auto CS Hold cycles */                                               \
+      0,                     /* Auto CS Setup cycles */                                              \
+      usartHwFlowControlNone /* No HW flow control */                                                \
+    },                                                                                               \
+    false,            /* Rx invert disabled. */                                                      \
+    false,            /* Filtering disabled. */                                                      \
+    usartIrDAPwTHREE  /* Pulse width is set to ONE. */                                               \
+  }
+#endif
 #endif
 
 #if defined(_USART_I2SCTRL_MASK)
@@ -649,6 +701,7 @@ typedef struct {
       true,            /* Most significant bit first. */                                       \
       usartClockMode0, /* Clock idle low, sample on rising edge. */                            \
       false,           /* No AUTOCS mode */                                                    \
+      false,           /* No CS invert. */                                                     \
     },                                                                                         \
     usartI2sFormatW16D16, /* 16-bit word, 16-bit data */                                       \
     true,               /* Delay on I2S data. */                                               \
@@ -672,6 +725,7 @@ typedef struct {
       0,               /* PRS channel 0. */                                                    \
       false,           /* No AUTOTX mode. */                                                   \
       false,           /* No AUTOCS mode */                                                    \
+      false,           /* No CS invert. */                                                     \
     },                                                                                         \
     usartI2sFormatW16D16, /* 16-bit word, 16-bit data */                                       \
     true,               /* Delay on I2S data. */                                               \
@@ -695,6 +749,7 @@ typedef struct {
       usartPrsRxCh0,    /* PRS channel selection (dummy). */                                   \
       false,            /* Disable AUTOTX mode. */                                             \
       false,            /* No AUTOCS mode */                                                   \
+      false,            /* No CS invert. */                                                    \
       0,                /* Auto CS Hold cycles */                                              \
       0                 /* Auto CS Setup cycles */                                             \
     },                                                                                         \
@@ -739,7 +794,7 @@ void USART_InitPrsTrigger(USART_TypeDef *usart, const USART_PrsTriggerInit_TypeD
  *   Clear one or more pending USART interrupts.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @param[in] flags
  *   Pending USART/UART interrupt source(s) to clear. Use one or more valid
@@ -759,7 +814,7 @@ __STATIC_INLINE void USART_IntClear(USART_TypeDef *usart, uint32_t flags)
  *   Disable one or more USART interrupts.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @param[in] flags
  *   USART/UART interrupt source(s) to disable. Use one or more valid
@@ -780,7 +835,7 @@ __STATIC_INLINE void USART_IntDisable(USART_TypeDef *usart, uint32_t flags)
  *   USART_IntClear() prior to enabling the interrupt.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @param[in] flags
  *   USART/UART interrupt source(s) to enable. Use one or more valid
@@ -799,7 +854,7 @@ __STATIC_INLINE void USART_IntEnable(USART_TypeDef *usart, uint32_t flags)
  *   The event bits are not cleared by the use of this function.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @return
  *   USART/UART interrupt source(s) pending. Returns one or more valid
@@ -816,7 +871,7 @@ __STATIC_INLINE uint32_t USART_IntGet(USART_TypeDef *usart)
  *   Useful for handling more interrupt sources in the same interrupt handler.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @note
  *   Interrupt flags are not cleared by the use of this function.
@@ -846,7 +901,7 @@ __STATIC_INLINE uint32_t USART_IntGetEnabled(USART_TypeDef *usart)
  *   Set one or more pending USART interrupts from SW.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @param[in] flags
  *   USART/UART interrupt source(s) to set to pending. Use one or more valid
@@ -866,7 +921,7 @@ __STATIC_INLINE void USART_IntSet(USART_TypeDef *usart, uint32_t flags)
  *   Get USART STATUS register.
  *
  * @param[in] usart
- *   Pointer to USART/UART peripheral register block.
+ *   Pointer to the USART/UART peripheral register block.
  *
  * @return
  *  STATUS register value.
@@ -895,7 +950,7 @@ uint16_t USART_RxExt(USART_TypeDef *usart);
  *   Please refer to @ref USART_RxDataXGet() for reception of 9 bit frames.
  *
  * @note
- *   Since this function does not check whether the RXDATA register actually
+ *   Because this function does not check whether the RXDATA register actually
  *   holds valid data, it should only be used in situations when it is certain
  *   that there is valid data, ensured by some external program routine, e.g.,
  *   when handling an RXDATAV interrupt. The @ref USART_Rx() is normally a
@@ -931,7 +986,7 @@ __STATIC_INLINE uint8_t USART_RxDataGet(USART_TypeDef *usart)
  *   for reception of two 9 bit frames.
  *
  * @note
- *   Since this function does not check whether the RXDOUBLE register actually
+ *   Because this function does not check whether the RXDOUBLE register actually
  *   holds valid data, it should only be used in situations when it is certain
  *   that there is valid data, ensured by some external program routine, e.g.,
  *   when handling an RXDATAV interrupt. The @ref USART_RxDouble() is
@@ -966,7 +1021,7 @@ __STATIC_INLINE uint16_t USART_RxDoubleGet(USART_TypeDef *usart)
  *   quickly read the received data.
  *
  * @note
- *   Since this function does not check whether the RXDOUBLEX register actually
+ *   Because this function does not check whether the RXDOUBLEX register actually
  *   holds valid data, it should only be used in situations when it is certain
  *   that there is valid data, ensured by some external program routine, e.g.,
  *   when handling an RXDATAV interrupt. The @ref USART_RxDoubleExt() is
@@ -1001,7 +1056,7 @@ __STATIC_INLINE uint32_t USART_RxDoubleXGet(USART_TypeDef *usart)
  *   superfluous, in order to quickly read the received data.
  *
  * @note
- *   Since this function does not check whether the RXDATAX register actually
+ *   Because this function does not check whether the RXDATAX register actually
  *   holds valid data, it should only be used in situations when it is certain
  *   that there is valid data, ensured by some external program routine, e.g.,
  *   when handling an RXDATAV interrupt. The @ref USART_RxExt() is normally
@@ -1028,8 +1083,7 @@ void USART_TxDouble(USART_TypeDef *usart, uint16_t data);
 void USART_TxDoubleExt(USART_TypeDef *usart, uint32_t data);
 void USART_TxExt(USART_TypeDef *usart, uint16_t data);
 
-/** @} (end addtogroup USART) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup usart) */
 
 #ifdef __cplusplus
 }

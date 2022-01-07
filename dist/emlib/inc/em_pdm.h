@@ -42,21 +42,16 @@
 extern "C" {
 #endif
 
-/***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
 /* *INDENT-OFF* */
 /***************************************************************************//**
- * @addtogroup PDM
+ * @addtogroup pdm PDM - Pulse Density Modulation
  * @brief Pulse Density Modulation (PDM) peripheral API
  *
  * @details
  * PDM API functions provide full support for the PDM peripheral.
- * The PDM peripheral accept PDM bitstreams and produce PCM encoded output.
+ * The PDM peripheral accepts PDM bitstreams and produces PCM encoded output.
  *
- * <b> Example PDM usage when interfacing to two PDM microphones: </b>
+ * <b> The following is an example PDM usage when interfacing to two PDM microphones: </b>
  *
  * Configure clocks and GPIO pins:
  *  @code
@@ -64,7 +59,7 @@ extern "C" {
     CMU_DPLLInit_TypeDef pllInit = CMU_DPLL_LFXO_TO_40MHZ;
 
     CMU_OscillatorEnable(cmuOsc_LFXO, true, true);
-    // Lock PLL to 1,411,209 Hz to achive 44,100 kHz PCM sampling rate
+    // Lock PLL to 1,411,209 Hz to achieve 44,100 kHz PCM sampling rate
     // when using 32x PDM oversampling
     pllInit.frequency = 1411209;
     pllInit.m = 14;
@@ -254,7 +249,7 @@ void PDM_Reset(PDM_TypeDef *pdm);
 
 /***************************************************************************//**
  * @brief
- *   Clear PDM filter.
+ *   Clear the PDM filter.
  *
  * @param[in] pdm
  *   A pointer to the PDM peripheral register block.
@@ -291,8 +286,8 @@ __STATIC_INLINE void PDM_FifoFlush(PDM_TypeDef *pdm)
  *
  * @param[in] flags
  *   Pending PDM interrupt sources to clear. Use one or more valid
- *   interrupt flags for the PDM module. The flags are @ref @ref PDM_IFC_DV,
- *   @ref PDM_IFC_DVL, @ref PDM_IFC_OF and @ref PDM_IFC_UF.
+ *   interrupt flags for the PDM module. The flags are PDM_IFC_DV,
+ *   PDM_IFC_DVL, PDM_IFC_OF and PDM_IFC_UF.
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntClear(PDM_TypeDef *pdm, uint32_t flags)
 {
@@ -312,8 +307,8 @@ __STATIC_INLINE void PDM_IntClear(PDM_TypeDef *pdm, uint32_t flags)
  *
  * @param[in] flags
  *   PDM interrupt sources to disable. Use one or more valid
- *   interrupt flags for the PDM module. The flags are @ref @ref PDM_IEN_DV,
- *   @ref PDM_IEN_DVL, @ref PDM_IEN_OF and @ref PDM_IEN_UF.
+ *   interrupt flags for the PDM module. The flags are PDM_IEN_DV,
+ *   PDM_IEN_DVL, PDM_IEN_OF and PDM_IEN_UF.
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntDisable(PDM_TypeDef *pdm, uint32_t flags)
 {
@@ -334,8 +329,8 @@ __STATIC_INLINE void PDM_IntDisable(PDM_TypeDef *pdm, uint32_t flags)
  *
  * @param[in] flags
  *   PDM interrupt sources to enable. Use one or more valid
- *   interrupt flags for the PDM module. The flags are @ref @ref PDM_IEN_DV,
- *   @ref PDM_IEN_DVL, @ref PDM_IEN_OF and @ref PDM_IEN_UF.
+ *   interrupt flags for the PDM module. The flags are PDM_IEN_DV,
+ *   PDM_IEN_DVL, PDM_IEN_OF and PDM_IEN_UF.
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntEnable(PDM_TypeDef *pdm, uint32_t flags)
 {
@@ -354,8 +349,8 @@ __STATIC_INLINE void PDM_IntEnable(PDM_TypeDef *pdm, uint32_t flags)
  *
  * @return
  *   PDM interrupt sources pending. Returns one or more valid
- *   interrupt flags for PDM module. The flags are @ref PDM_IF_DV,
- *   @ref PDM_IF_DVL, @ref PDM_IF_OF and @ref PDM_IF_UF.
+ *   interrupt flags for PDM module. The flags are PDM_IF_DV,
+ *   PDM_IF_DVL, PDM_IF_OF and PDM_IF_UF.
  ******************************************************************************/
 __STATIC_INLINE uint32_t PDM_IntGet(PDM_TypeDef *pdm)
 {
@@ -389,15 +384,15 @@ __STATIC_INLINE uint32_t PDM_IntGetEnabled(PDM_TypeDef *pdm)
 
 /***************************************************************************//**
  * @brief
- *   Set one or more pending PDM interrupts
+ *   Set one or more pending PDM interrupts.
  *
  * @param[in] pdm
  *   A pointer to the PDM peripheral register block.
  *
  * @param[in] flags
  *   PDM interrupt sources to set to pending. Use one or more valid
- *   interrupt flags for the PDM module. The flags are @ref PDM_IFS_DV,
- *   @ref PDM_IFS_DVL, @ref PDM_IFS_OF and @ref PDM_IFS_UF.
+ *   interrupt flags for the PDM module. The flags are PDM_IFS_DV,
+ *   PDM_IFS_DVL, PDM_IFS_OF and PDM_IFS_UF.
  ******************************************************************************/
 __STATIC_INLINE void PDM_IntSet(PDM_TypeDef *pdm, uint32_t flags)
 {
@@ -433,7 +428,7 @@ __STATIC_INLINE uint32_t PDM_Rx(PDM_TypeDef *pdm)
 
 /***************************************************************************//**
  * @brief
- *   Start PDM operation (start the PDM filter).
+ *   Start the PDM operation (start the PDM filter).
  *
  * @param[in] pdm
  *   A pointer to the PDM peripheral register block.
@@ -448,7 +443,7 @@ __STATIC_INLINE void PDM_Start(PDM_TypeDef *pdm)
 
 /***************************************************************************//**
  * @brief
- *   Get PDM STATUS register.
+ *   Get the PDM STATUS register.
  *
  * @param[in] pdm
  *   A pointer to the PDM peripheral register block.
@@ -463,7 +458,7 @@ __STATIC_INLINE uint32_t PDM_StatusGet(PDM_TypeDef *pdm)
 
 /***************************************************************************//**
  * @brief
- *   Stop PDM operation (stop the PDM filter).
+ *   Stop the PDM operation (stop the PDM filter).
  *
  * @param[in] pdm
  *   A pointer to the PDM peripheral register block.
@@ -476,8 +471,7 @@ __STATIC_INLINE void PDM_Stop(PDM_TypeDef *pdm)
   pdm->CMD = PDM_CMD_STOP;
 }
 
-/** @} (end addtogroup PDM) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup pdm) */
 
 #ifdef __cplusplus
 }

@@ -37,9 +37,7 @@ extern "C" {
 
 /* *INDENT-OFF* */
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- * @addtogroup RAMFUNC
+ * @addtogroup ramfunc RAMFUNC - RAM Function Support
  * @brief RAM code support
  * @details
  *  Provides support for executing code from RAM.
@@ -47,7 +45,7 @@ extern "C" {
  * @{
 
   @note
-   Other cross-compiler support macros are implemented in @ref COMMON.
+   Other cross-compiler support macros are implemented in @ref common.
 
   @note
     Functions executing from RAM should not be declared as static.
@@ -75,8 +73,8 @@ extern "C" {
   void MyPrint(const char* string);
   @endverbatim
 
-  Issues have been observed with armgcc when there is no declarator. It is
-  recommended to have a declarator also for internal functions, but move the
+  Issues have been observed with ARM GCC when there is no declarator. It is
+  recommended to have a declarator also for internal functions but move the
   declarator to the .c file.
 
   In your .c file:
@@ -139,6 +137,12 @@ extern "C" {
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
+#elif defined(__GNUC__) && defined(CONFIG_SOC_FAMILY_EXX32)
+/* Zephyr environment */
+#define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".ramfunc")))
+#define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
+#define SL_RAMFUNC_DEFINITION_END
+
 #elif defined(__GNUC__)
 /* Simplicity Studio, Atollic and Vanilla armgcc */
 #define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".ram")))
@@ -154,8 +158,7 @@ extern "C" {
 #define RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END
 /** @endcond */
 
-/** @} (end addtogroup RAMFUNC) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup ramfunc) */
 
 #ifdef __cplusplus
 }

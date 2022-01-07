@@ -3,7 +3,7 @@
  * @brief Header file for RAIL Flash Data functionality
  *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -35,6 +35,10 @@
 #include <stdbool.h>
 
 #include "rail_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Return a pointer to a valid byte array in flash.
@@ -92,5 +96,9 @@ uint32_t FD_GetLength(void);
  * @return The max byte array length in bytes available for use.
  */
 uint32_t FD_GetMaxLength(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __FLASHDATA_PLUGIN_H__

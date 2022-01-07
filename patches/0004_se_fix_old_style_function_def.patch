@@ -1,0 +1,13 @@
+diff --git dist/emlib/src/em_se.c dist/emlib/src/em_se.c
+index 10872c3..7ef2a2f 100644
+--- dist/emlib/src/em_se.c
++++ dist/emlib/src/em_se.c
+@@ -945,7 +945,7 @@ SE_Response_t SE_writeUserData(uint32_t offset,
+  * @retval SE_RESPONSE_CRYPTO_ERROR on an internal SE failure, or
+  * @retval SE_RESPONSE_INVALID_PARAMETER when an invalid parameter was passed
+  ******************************************************************************/
+-SE_Response_t SE_eraseUserData()
++SE_Response_t SE_eraseUserData(void)
+ {
+   // SE command structures
+   SE_Command_t command = SE_COMMAND_DEFAULT(SE_COMMAND_ERASE_USER_DATA);

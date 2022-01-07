@@ -19,3 +19,8 @@ This change is compatible with the original source code.
 This patch renames `GPIO_PinModeSet` into `GPIO_PinModeSetExt` and adds an additional parameter to not change the pin (output) state. The RIOT-OS GPIO peripheral interface requires that pin initialization should not modify the output state. The method `GPIO_PinModeSet` is added, which will will invoke `GPIO_PinModeSetExt` to behave as originally.
 
 This change is compatible with the original source code.
+
+### 0004
+Fixes an [old-style function definition](https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wold-style-definition) warning / error.
+
+This change is compatible with the original source code.

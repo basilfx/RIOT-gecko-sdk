@@ -4,7 +4,7 @@
  *   and other types.
  *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -29,10 +29,13 @@
  *
  ******************************************************************************/
 
+#ifndef __PA_AUTO_MODE_H
+#define __PA_AUTO_MODE_H
 #include "rail.h"
-#include "rail_features.h"
 
-#include "em_common.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @addtogroup RAIL_API
@@ -53,11 +56,13 @@ RAIL_ENUM(RAIL_PaBand_t) {
   /** Indicates a 2.4GHz band PA. */
   RAIL_PA_BAND_2P4GIG,
   /** Indicates a Sub-GHz band PA. */
-  RAIL_PA_BAND_SUBGIG
+  RAIL_PA_BAND_SUBGIG,
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_PA_BAND_COUNT,
 };
 
 /**
- * @enum RAIL_PaAutoModeConfigEntry_t
+ * @struct RAIL_PaAutoModeConfigEntry_t
  * @brief Struct to ease specification of appropriate ranges
  * within which a PA should be used.
  */
@@ -84,3 +89,9 @@ extern RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[];
  * @}
  * end of RAIL_API
  */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __PA_AUTO_MODE_H

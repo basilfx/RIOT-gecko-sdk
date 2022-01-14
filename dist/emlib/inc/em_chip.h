@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Chip Initialization API
+ * @brief Chip Errata Workarounds
  *******************************************************************************
  * # License
  * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
@@ -32,6 +32,7 @@
 #define EM_CHIP_H
 
 #include "em_device.h"
+#include "em_common.h"
 #include "em_system.h"
 #include "em_gpio.h"
 #include "em_bus.h"
@@ -41,15 +42,10 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup CHIP
- * @brief Chip errata workarounds initialization API
+ * @addtogroup chip CHIP - Chip Errata Workarounds
+ * @brief Chip errata workaround APIs
  * @details
- *  API to initialize chip for errata workarounds.
+ *  API to apply chip errata workarounds at initialization and reset.
  * @{
  ******************************************************************************/
 
@@ -169,7 +165,9 @@ __STATIC_INLINE void CHIP_Init(void)
   prodRev = SYSTEM_GetProdRev();
   SYSTEM_ChipRevisionGet(&chipRev);
 
-  if ((prodRev >= 16) && (chipRev.minor >= 3)) {
+  // All Giant and Leopard parts except Leopard Rev E
+  if ((prodRev >= 16) && (chipRev.minor >= 3)
+      && !((chipRev.major == 2) && (chipRev.minor == 4))) {
     /* This fixes an issue with the LFXO on high temperatures. */
     *(volatile uint32_t*)0x400C80C0 =
       (*(volatile uint32_t*)0x400C80C0 & ~(1 << 6) ) | (1 << 4);
@@ -183,7 +181,7 @@ __STATIC_INLINE void CHIP_Init(void)
 
   if (prodRev <= 129) {
     /* This fixes a mistaken internal connection between PC0 and PC4. */
-    /* This disables an internal pulldown on PC4. */
+    /* This disables an internal pull-down on PC4. */
     *(volatile uint32_t*)(0x400C6018) = (1 << 26) | (5 << 0);
     /* This disables an internal LDO test signal driving PC4. */
     *(volatile uint32_t*)(0x400C80E4) &= ~(1 << 24);
@@ -239,13 +237,11 @@ __STATIC_INLINE void CHIP_Init(void)
     *(volatile uint32_t *)(EMU_BASE + 0x164) |= 0x4;
   }
 
-#if defined(_EFR_DEVICE)
   /****************************
    * Fix for errata DCDC_E206.
    * Disable bypass limit enabled temporarily in SystemInit() errata
    * workaround. */
   BUS_RegBitWrite(&EMU->DCDCCLIMCTRL, _EMU_DCDCCLIMCTRL_BYPLIMEN_SHIFT, 0);
-#endif
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_84)
@@ -286,17 +282,19 @@ __STATIC_INLINE void CHIP_Init(void)
   }
 #endif
 
-#if defined(_LCD_DISPCTRL_CHGRDST_MASK)
 /* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
+#if defined(_LCD_DISPCTRL_CHGRDST_MASK)
+#if defined(_SILICON_LABS_32B_SERIES_1)
   CMU->HFBUSCLKEN0 |= CMU_HFBUSCLKEN0_LE;
   CMU->LFACLKEN0   |= CMU_LFACLKEN0_LCD;
   *(volatile uint32_t *)(LCD_BASE + 0x034) |= (0x1UL << 12);
   CMU->LFACLKEN0   &= ~CMU_LFACLKEN0_LCD;
   CMU->HFBUSCLKEN0 &= ~CMU_HFBUSCLKEN0_LE;
 #endif
+#endif
 
-#if defined(_SILICON_LABS_32B_SERIES_1)              \
-  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)  \
+#if defined(_SILICON_LABS_32B_SERIES_1)             \
+  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80) \
   && !defined(ERRATA_FIX_EMU_E220_DECBOD_IGNORE)
   /* First part of the EMU_E220 DECBOD Errata fix. DECBOD Reset can occur
    * during voltage scaling after EM2/3 wakeup. Second part is in em_emu.c */
@@ -346,10 +344,106 @@ __STATIC_INLINE void CHIP_Init(void)
     }
   }
 #endif
+
+/* PM-3503 */
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_210)
+  {
+    bool syscfgClkIsOff = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) == 0);
+    CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+
+    bool dcdcClkIsOff = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) == 0);
+    CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+    bool dcdcIsLock = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK_LOCKED) != 0);
+    DCDC->LOCK = DCDC_LOCK_LOCKKEY_UNLOCKKEY;
+
+    while (DCDC->SYNCBUSY & DCDC_SYNCBUSY_CTRL) {
+      /* Wait for previous synchronization to finish */
+    }
+    DCDC->CTRL_CLR = DCDC_CTRL_MODE;
+    while ((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) {
+      /* Wait for BYPASS switch enable. */
+    }
+
+    if ((SYSCFG->ROOTLOCKSTATUS & SYSCFG_ROOTLOCKSTATUS_REGLOCK) == 0) {
+      *(volatile uint32_t *)(DCDC_BASE + 0x205CUL) = (0x1UL << 18);
+    }
+
+    if (dcdcIsLock) {
+      DCDC->LOCK = ~DCDC_LOCK_LOCKKEY_UNLOCKKEY;
+    }
+    if (dcdcClkIsOff) {
+      CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+    }
+    if (syscfgClkIsOff) {
+      CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+    }
+  }
+#endif
+
+/* PM-5163 */
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_215)    \
+  && defined(_SILICON_LABS_EFR32_2G4HZ_HP_PA_PRESENT) \
+  && (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM == 20)
+  SYSTEM_ChipRevision_TypeDef chipRev;
+  SYSTEM_ChipRevisionGet(&chipRev);
+
+  if (chipRev.major == 0x01 && chipRev.minor == 0x00) {
+    bool hfxo0ClkIsOff = (CMU->CLKEN0 & CMU_CLKEN0_HFXO0) == 0;
+    CMU->CLKEN0_SET = CMU_CLKEN0_HFXO0;
+
+    *(volatile uint32_t*)(HFXO0_BASE + 0x0034UL) =
+      (*(volatile uint32_t*)(HFXO0_BASE + 0x0034UL) & 0xE3FFFFFFUL)
+      | 0x0C000000UL;
+
+    if (hfxo0ClkIsOff) {
+      CMU->CLKEN0_CLR = CMU_CLKEN0_HFXO0;
+    }
+  }
+#endif
 }
 
-/** @} (end addtogroup CHIP) */
-/** @} (end addtogroup emlib) */
+/**************************************************************************//**
+ * @brief
+ *   Chip reset routine with errata workarounds.
+ *
+ * @note
+ *   This function should be called to reset the chip. It does not return.
+ *
+ * This function applies any errata workarounds needed to cleanly reset the
+ * device and then performs a system reset. See the device-specific errata for
+ * details.
+ *****************************************************************************/
+__STATIC_INLINE void CHIP_Reset(void)
+{
+#if defined(_EFR_DEVICE) && defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
+  /****************************
+   * Workaround for errata DCDC_E206.
+   * Disable radio interference minimization features when resetting */
+
+  // Ensure access to EMU registers
+  EMU->LOCK = EMU_LOCK_LOCKKEY_UNLOCK;
+  EMU->PWRLOCK = EMU_PWRLOCK_LOCKKEY_LOCK;
+
+  // No need to do anything if the DCDC is not powering DVDD
+  if ((EMU->PWRCFG & _EMU_PWRCFG_PWRCFG_MASK) == EMU_PWRCFG_PWRCFG_DCDCTODVDD) {
+    // Make sure radio cannot accidentally re-enable features
+    *(volatile uint32_t *)(0x40084040UL) = 0x1UL;
+
+    // If DCDC is in use, disable features
+    uint32_t dcdcMode = EMU->DCDCCTRL & _EMU_DCDCCTRL_DCDCMODE_MASK;
+    if ((dcdcMode == EMU_DCDCCTRL_DCDCMODE_LOWNOISE)
+        || (dcdcMode == EMU_DCDCCTRL_DCDCMODE_LOWPOWER)) {
+      BUS_RegBitWrite((volatile uint32_t *)(0x400E3060UL), 28UL, 0);
+      BUS_RegBitWrite((volatile uint32_t *)(0x400E3074UL), 0, 0);
+    }
+  }
+#endif
+
+  NVIC_SystemReset();
+}
+
+/** @} (end addtogroup chip) */
 
 #ifdef __cplusplus
 }

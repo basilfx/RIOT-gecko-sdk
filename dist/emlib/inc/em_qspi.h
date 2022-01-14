@@ -42,12 +42,7 @@ extern "C" {
 #include <stdbool.h>
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup QSPI
+ * @addtogroup qspi
  * @{
  ******************************************************************************/
 
@@ -189,7 +184,7 @@ typedef struct {
   bool                       enable;
 
   /**
-   * Master mode baude rate divisor. Values can be even numbers in the range
+   * Master mode baud rate divisor. Values can be even numbers in the range
    * [2-32] inclusive. */
   uint8_t                    divisor;
 } QSPI_Init_TypeDef;
@@ -265,7 +260,7 @@ __STATIC_INLINE uint16_t QSPI_GetReadLevel(QSPI_TypeDef * qspi)
  *   Pointer to QSPI peripheral register block.
  *
  * @param[in] enable
- *   true to enable quad spi, false to disable quad spi.
+ *   true to enable Quad SPI, false to disable Quad SPI.
  ******************************************************************************/
 __STATIC_INLINE void QSPI_Enable(QSPI_TypeDef * qspi, bool enable)
 {
@@ -332,8 +327,7 @@ __STATIC_INLINE void QSPI_IntDisable(QSPI_TypeDef * qspi, uint32_t flags)
   qspi->IRQMASK = ~flags & (~_QSPI_IRQMASK_MASK);
 }
 
-/** @} (end addtogroup QSPI) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup qspi) */
 
 #ifdef __cplusplus
 }

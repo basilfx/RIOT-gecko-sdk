@@ -32,13 +32,10 @@
 #if defined(AES_COUNT) && (AES_COUNT > 0)
 
 #include "em_assert.h"
-/***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
+#include <string.h>
 
 /***************************************************************************//**
- * @addtogroup AES
+ * @addtogroup aes
  * @details
  *  This module contains functions to control the AES peripheral of Silicon
  *  Labs 32-bit MCUs and SoCs.
@@ -52,6 +49,39 @@
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
 #define AES_BLOCKSIZE    16
+
+/* Convenience macro to fetch a 32-bit unsigned integer from a potentially
+ * unaligned byte array with native endianness.
+ * Optimising compilers should be able to recognize that this operation is a
+ * direct access on architectures which support unaligned access. */
+#define __UINT_FROM_BYTEARRAY(ptr_to_array) \
+  ( ((uint32_t)((ptr_to_array)[3])) << 24   \
+    | ((uint32_t)((ptr_to_array)[2])) << 16 \
+    | ((uint32_t)((ptr_to_array)[1])) <<  8 \
+    | ((uint32_t)((ptr_to_array)[0])) <<  0)
+
+/* Convenience macro to put a 32-bit unsigned integer into a potentially
+ * unaligned byte array with native endianness.
+ * Optimising compilers should be able to recognize that this operation is a
+ * direct write on architectures which support unaligned access. */
+#define __UINT_TO_BYTEARRAY(ptr_to_array, value) \
+  do {                                           \
+    uint32_t valbuf = value;                     \
+    (ptr_to_array)[3] = (valbuf >> 24) & 0xFFu;  \
+    (ptr_to_array)[2] = (valbuf >> 16) & 0xFFu;  \
+    (ptr_to_array)[1] = (valbuf >>  8) & 0xFFu;  \
+    (ptr_to_array)[0] = (valbuf >>  0) & 0xFFu;  \
+  } while (0)
+
+/* Convenience macro to fetch a byte-reversed 32-bit unsigned integer from a
+ * potentially unaligned byte array. */
+#define __REV_FROM_BYTEARRAY(ptr_to_array) \
+  __REV(__UINT_FROM_BYTEARRAY(ptr_to_array))
+
+/* Convenience macro to put a byte-reversed 32-bit unsigned integer into a
+ * potentially unaligned byte array. */
+#define __REV_TO_BYTEARRAY(ptr_to_array, value) \
+  __UINT_TO_BYTEARRAY(ptr_to_array, __REV(value))
 
 /** @endcond */
 
@@ -130,12 +160,8 @@ void AES_CBC128(uint8_t *out,
                 bool encrypt)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
   /* Need to buffer one block when decrypting in case 'out' replaces 'in'. */
-  uint32_t       prev[4];
+  uint32_t       prev[AES_BLOCKSIZE / sizeof(uint32_t)];
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -143,11 +169,9 @@ void AES_CBC128(uint8_t *out,
   len /= AES_BLOCKSIZE;
 
   #if defined(AES_CTRL_KEYBUFEN)
-  if (key) {
-    /* Load the key into a high key for a key buffer usage. */
-    for (i = 3; i >= 0; i--) {
-      AES->KEYHA = __REV(_key[i]);
-    }
+  /* Load the key into a high key for a key buffer usage. */
+  for (i = 3; i >= 0; i--) {
+    AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
   }
   #endif
 
@@ -162,7 +186,7 @@ void AES_CBC128(uint8_t *out,
     /* Load an initialization vector. Since writing to DATA, it will */
     /* not trigger encryption. */
     for (i = 3; i >= 0; i--) {
-      AES->DATA = __REV(_iv[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&iv[i * 4]);
     }
 
     /* Encrypt data. */
@@ -170,15 +194,15 @@ void AES_CBC128(uint8_t *out,
       #if !defined(AES_CTRL_KEYBUFEN)
       /* Load key. */
       for (i = 3; i >= 0; i--) {
-        AES->KEYLA = __REV(_key[i]);
+        AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
       }
       #endif
 
       /* Load data and trigger encryption. */
       for (i = 3; i >= 0; i--) {
-        AES->XORDATA = __REV(_in[i]);
+        AES->XORDATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
       }
-      _in += 4;
+      in += AES_BLOCKSIZE;
 
       /* Wait for completion. */
       while (AES->STATUS & AES_STATUS_RUNNING)
@@ -186,9 +210,9 @@ void AES_CBC128(uint8_t *out,
 
       /* Save encrypted data. */
       for (i = 3; i >= 0; i--) {
-        _out[i] = __REV(AES->DATA);
+        __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
       }
-      _out += 4;
+      out += AES_BLOCKSIZE;
     }
   } else {
     /* Select decryption mode. */
@@ -199,22 +223,20 @@ void AES_CBC128(uint8_t *out,
     #endif
 
     /* Copy initialization vector to the previous buffer to avoid special handling. */
-    for (i = 0; i < 4; i++) {
-      prev[i] = _iv[i];
-    }
+    memcpy(prev, iv, AES_BLOCKSIZE);
 
     /* Decrypt data. */
     while (len--) {
       #if !defined(AES_CTRL_KEYBUFEN)
       /* Load key. */
       for (i = 3; i >= 0; i--) {
-        AES->KEYLA = __REV(_key[i]);
+        AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
       }
       #endif
 
       /* Load data and trigger decryption. */
       for (i = 3; i >= 0; i--) {
-        AES->DATA = __REV(_in[i]);
+        AES->DATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
       }
 
       /* Wait for completion. */
@@ -225,16 +247,16 @@ void AES_CBC128(uint8_t *out,
       /* (Writing to XORDATA will not trigger encoding, triggering enabled on DATA.) */
       for (i = 3; i >= 0; i--) {
         AES->XORDATA = __REV(prev[i]);
-        prev[i]      = _in[i];
       }
-      _in += 4;
+      memcpy(prev, in, AES_BLOCKSIZE);
+      in += AES_BLOCKSIZE;
 
       /* Fetch decrypted data in a separate loop */
       /* due to internal auto-shifting of words. */
       for (i = 3; i >= 0; i--) {
-        _out[i] = __REV(AES->DATA);
+        __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
       }
-      _out += 4;
+      out += AES_BLOCKSIZE;
     }
   }
 }
@@ -279,12 +301,8 @@ void AES_CBC256(uint8_t *out,
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
   /* Buffer one block when decrypting in case output replaces input. */
-  uint32_t       prev[4];
+  uint32_t       prev[AES_BLOCKSIZE / sizeof(uint32_t)];
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -298,19 +316,19 @@ void AES_CBC256(uint8_t *out,
     /* Load an initialization vector. Since writing to DATA, it will */
     /* not trigger encryption. */
     for (i = 3; i >= 0; i--) {
-      AES->DATA = __REV(_iv[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&iv[i * 4]);
     }
 
     /* Encrypt data. */
     while (len--) {
       /* Load the key and data and trigger encryption. */
       for (i = 3, j = 7; i >= 0; i--, j--) {
-        AES->KEYLA = __REV(_key[j]);
-        AES->KEYHA = __REV(_key[i]);
+        AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+        AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
         /* Write data last, since will trigger encryption on the last iteration. */
-        AES->XORDATA = __REV(_in[i]);
+        AES->XORDATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
       }
-      _in += 4;
+      in += AES_BLOCKSIZE;
 
       /* Wait for completion. */
       while (AES->STATUS & AES_STATUS_RUNNING)
@@ -318,27 +336,25 @@ void AES_CBC256(uint8_t *out,
 
       /* Save encrypted data. */
       for (i = 3; i >= 0; i--) {
-        _out[i] = __REV(AES->DATA);
+        __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
       }
-      _out += 4;
+      out += AES_BLOCKSIZE;
     }
   } else {
     /* Select decryption mode. */
     AES->CTRL = AES_CTRL_AES256 | AES_CTRL_DECRYPT | AES_CTRL_DATASTART;
 
     /* Copy the initialization vector to the previous buffer to avoid special handling. */
-    for (i = 0; i < 4; i++) {
-      prev[i] = _iv[i];
-    }
+    memcpy(prev, iv, AES_BLOCKSIZE);
 
     /* Decrypt data. */
     while (len--) {
       /* Load the key and data and trigger decryption. */
       for (i = 3, j = 7; i >= 0; i--, j--) {
-        AES->KEYLA = __REV(_key[j]);
-        AES->KEYHA = __REV(_key[i]);
+        AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+        AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
         /* Write data last, since will trigger encryption on the last iteration. */
-        AES->DATA = __REV(_in[i]);
+        AES->DATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
       }
 
       /* Wait for completion. */
@@ -348,16 +364,16 @@ void AES_CBC256(uint8_t *out,
       /* To avoid an additional buffer, hardware is used directly for XOR and buffer. */
       for (i = 3; i >= 0; i--) {
         AES->XORDATA = __REV(prev[i]);
-        prev[i]      = _in[i];
       }
-      _in += 4;
+      memcpy(prev, in, AES_BLOCKSIZE);
+      in += AES_BLOCKSIZE;
 
       /* Fetch decrypted data in a separate loop */
       /* due to internal auto-shifting of words. */
       for (i = 3; i >= 0; i--) {
-        _out[i] = __REV(AES->DATA);
+        __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
       }
-      _out += 4;
+      out += AES_BLOCKSIZE;
     }
   }
 }
@@ -429,12 +445,8 @@ void AES_CFB128(uint8_t *out,
                 bool encrypt)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
-  const uint32_t *data;
-  uint32_t       tmp[4];
+  const uint8_t  *data;
+  uint8_t        tmp[AES_BLOCKSIZE];
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -447,34 +459,32 @@ void AES_CFB128(uint8_t *out,
   #if defined(AES_CTRL_KEYBUFEN)
   /* Load the key into high key for key buffer usage. */
   for (i = 3; i >= 0; i--) {
-    AES->KEYHA = __REV(_key[i]);
+    AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
   }
   #endif
 
   /* Encrypt/decrypt data. */
-  data = _iv;
+  data = iv;
   len /= AES_BLOCKSIZE;
   while (len--) {
     #if !defined(AES_CTRL_KEYBUFEN)
     /* Load the key. */
     for (i = 3; i >= 0; i--) {
-      AES->KEYLA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
     #endif
 
     /* Load data and trigger encryption. */
     for (i = 3; i >= 0; i--) {
-      AES->DATA = __REV(data[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&data[i * 4]);
     }
 
     /* Do some required processing before waiting for completion. */
     if (encrypt) {
-      data = _out;
+      data = out;
     } else {
       /* Copy the current ciphertext block since it may be overwritten. */
-      for (i = 0; i < 4; i++) {
-        tmp[i] = _in[i];
-      }
+      memcpy(tmp, in, AES_BLOCKSIZE);
       data = tmp;
     }
 
@@ -484,10 +494,10 @@ void AES_CFB128(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 
@@ -529,12 +539,8 @@ void AES_CFB256(uint8_t *out,
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
-  const uint32_t *data;
-  uint32_t       tmp[4];
+  const uint8_t  *data;
+  uint8_t        tmp[AES_BLOCKSIZE];
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -542,25 +548,23 @@ void AES_CFB256(uint8_t *out,
   AES->CTRL = AES_CTRL_AES256 | AES_CTRL_DATASTART;
 
   /* Encrypt/decrypt data. */
-  data = _iv;
+  data = iv;
   len /= AES_BLOCKSIZE;
   while (len--) {
     /* Load the key and block to be encrypted/decrypted. */
     for (i = 3, j = 7; i >= 0; i--, j--) {
-      AES->KEYLA = __REV(_key[j]);
-      AES->KEYHA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+      AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
       /* Write data last, since will trigger encryption on last iteration. */
-      AES->DATA = __REV(data[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&data[i * 4]);
     }
 
     /* Do some required processing before waiting for completion. */
     if (encrypt) {
-      data = _out;
+      data = out;
     } else {
       /* Copy the current ciphertext block since it may be overwritten. */
-      for (i = 0; i < 4; i++) {
-        tmp[i] = _in[i];
-      }
+      memcpy(tmp, in, AES_BLOCKSIZE);
       data = tmp;
     }
 
@@ -569,10 +573,10 @@ void AES_CFB256(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 #endif
@@ -645,10 +649,6 @@ void AES_CTR128(uint8_t *out,
                 AES_CtrFuncPtr_TypeDef ctrFunc)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  uint32_t       *_ctr = (uint32_t *)ctr;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
   EFM_ASSERT(ctrFunc);
@@ -663,7 +663,7 @@ void AES_CTR128(uint8_t *out,
   if (key) {
     /* Load the key into high key for key buffer usage. */
     for (i = 3; i >= 0; i--) {
-      AES->KEYHA = __REV(_key[i]);
+      AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
   }
   #endif
@@ -674,13 +674,13 @@ void AES_CTR128(uint8_t *out,
     #if !defined(AES_CTRL_KEYBUFEN)
     /* Load the key. */
     for (i = 3; i >= 0; i--) {
-      AES->KEYLA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
     #endif
 
     /* Load ctr to be encrypted/decrypted. */
     for (i = 3; i >= 0; i--) {
-      AES->DATA = __REV(_ctr[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&ctr[i * 4]);
     }
     /* Increment ctr for the next use. */
     ctrFunc(ctr);
@@ -691,10 +691,10 @@ void AES_CTR128(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 
@@ -737,10 +737,6 @@ void AES_CTR256(uint8_t *out,
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  uint32_t       *_ctr = (uint32_t *)ctr;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
   EFM_ASSERT(ctrFunc);
@@ -753,10 +749,10 @@ void AES_CTR256(uint8_t *out,
   while (len--) {
     /* Load the key and block to be encrypted/decrypted. */
     for (i = 3, j = 7; i >= 0; i--, j--) {
-      AES->KEYLA = __REV(_key[j]);
-      AES->KEYHA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+      AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
       /* Write data last, since will trigger encryption on last iteration. */
-      AES->DATA = __REV(_ctr[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&ctr[i * 4]);
     }
     /* Increment ctr for the next use. */
     ctrFunc(ctr);
@@ -767,10 +763,10 @@ void AES_CTR256(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 #endif
@@ -791,9 +787,7 @@ void AES_CTR256(uint8_t *out,
  ******************************************************************************/
 void AES_CTRUpdate32Bit(uint8_t *ctr)
 {
-  uint32_t *_ctr = (uint32_t *)ctr;
-
-  _ctr[3] = __REV(__REV(_ctr[3]) + 1);
+  __REV_TO_BYTEARRAY(&ctr[12], __REV_FROM_BYTEARRAY(&ctr[12]) + 1);
 }
 
 /***************************************************************************//**
@@ -814,12 +808,10 @@ void AES_CTRUpdate32Bit(uint8_t *ctr)
 void AES_DecryptKey128(uint8_t *out, const uint8_t *in)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
 
   /* Load key */
   for (i = 3; i >= 0; i--) {
-    AES->KEYLA = __REV(_in[i]);
+    AES->KEYLA = __REV_FROM_BYTEARRAY(&in[i * 4]);
   }
 
   /* Do dummy encryption to generate decrypt key */
@@ -833,7 +825,7 @@ void AES_DecryptKey128(uint8_t *out, const uint8_t *in)
 
   /* Save decryption key */
   for (i = 3; i >= 0; i--) {
-    _out[i] = __REV(AES->KEYLA);
+    __REV_TO_BYTEARRAY(&out[i * 4], AES->KEYLA);
   }
 }
 
@@ -857,13 +849,11 @@ void AES_DecryptKey256(uint8_t *out, const uint8_t *in)
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
 
   /* Load key */
   for (i = 3, j = 7; i >= 0; i--, j--) {
-    AES->KEYLA = __REV(_in[j]);
-    AES->KEYHA = __REV(_in[i]);
+    AES->KEYLA = __REV_FROM_BYTEARRAY(&in[j * 4]);
+    AES->KEYHA = __REV_FROM_BYTEARRAY(&in[i * 4]);
   }
 
   /* Do dummy encryption to generate decrypt key */
@@ -876,8 +866,8 @@ void AES_DecryptKey256(uint8_t *out, const uint8_t *in)
 
   /* Save decryption key */
   for (i = 3, j = 7; i >= 0; i--, j--) {
-    _out[j] = __REV(AES->KEYLA);
-    _out[i] = __REV(AES->KEYHA);
+    __REV_TO_BYTEARRAY(&out[j * 4], AES->KEYLA);
+    __REV_TO_BYTEARRAY(&out[i * 4], AES->KEYHA);
   }
 }
 #endif
@@ -940,16 +930,13 @@ void AES_ECB128(uint8_t *out,
                 bool encrypt)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
   #if defined(AES_CTRL_KEYBUFEN)
   /* Load the key into high key for key buffer usage. */
   for (i = 3; i >= 0; i--) {
-    AES->KEYHA = __REV(_key[i]);
+    AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
   }
   #endif
 
@@ -975,15 +962,15 @@ void AES_ECB128(uint8_t *out,
     #if !defined(AES_CTRL_KEYBUFEN)
     /* Load the key. */
     for (i = 3; i >= 0; i--) {
-      AES->KEYLA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
     #endif
 
     /* Load a block to be encrypted/decrypted. */
     for (i = 3; i >= 0; i--) {
-      AES->DATA = __REV(_in[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
     }
-    _in += 4;
+    in += AES_BLOCKSIZE;
 
     /* Wait for completion. */
     while (AES->STATUS & AES_STATUS_RUNNING)
@@ -991,9 +978,9 @@ void AES_ECB128(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA);
+      __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
     }
-    _out += 4;
+    out += AES_BLOCKSIZE;
   }
 }
 
@@ -1033,9 +1020,6 @@ void AES_ECB256(uint8_t *out,
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -1052,12 +1036,12 @@ void AES_ECB256(uint8_t *out,
   while (len--) {
     /* Load the key and block to be encrypted/decrypted. */
     for (i = 3, j = 7; i >= 0; i--, j--) {
-      AES->KEYLA = __REV(_key[j]);
-      AES->KEYHA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+      AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
       /* Write data last, since will trigger encryption on last iteration. */
-      AES->DATA = __REV(_in[i]);
+      AES->DATA = __REV_FROM_BYTEARRAY(&in[i * 4]);
     }
-    _in += 4;
+    in += AES_BLOCKSIZE;
 
     /* Wait for completion. */
     while (AES->STATUS & AES_STATUS_RUNNING)
@@ -1065,9 +1049,9 @@ void AES_ECB256(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA);
+      __REV_TO_BYTEARRAY(&out[i * 4], AES->DATA);
     }
-    _out += 4;
+    out += AES_BLOCKSIZE;
   }
 }
 #endif
@@ -1136,10 +1120,6 @@ void AES_OFB128(uint8_t *out,
                 const uint8_t *iv)
 {
   int            i;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -1154,9 +1134,9 @@ void AES_OFB128(uint8_t *out,
   /* Load the initialization vector. */
   for (i = 3; i >= 0; i--) {
     #if defined(AES_CTRL_KEYBUFEN)
-    AES->KEYHA = __REV(_key[i]);
+    AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     #endif
-    AES->DATA  = __REV(_iv[i]);
+    AES->DATA  = __REV_FROM_BYTEARRAY(&iv[i * 4]);
   }
 
   /* Encrypt/decrypt data. */
@@ -1165,7 +1145,7 @@ void AES_OFB128(uint8_t *out,
     #if !defined(AES_CTRL_KEYBUFEN)
     /* Load the key. */
     for (i = 3; i >= 0; i--) {
-      AES->KEYLA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
     #endif
 
@@ -1177,10 +1157,10 @@ void AES_OFB128(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 
@@ -1218,10 +1198,6 @@ void AES_OFB256(uint8_t *out,
 {
   int            i;
   int            j;
-  uint32_t       *_out = (uint32_t *)out;
-  const uint32_t *_in  = (const uint32_t *)in;
-  const uint32_t *_key = (const uint32_t *)key;
-  const uint32_t *_iv  = (const uint32_t *)iv;
 
   EFM_ASSERT(!(len % AES_BLOCKSIZE));
 
@@ -1230,7 +1206,7 @@ void AES_OFB256(uint8_t *out,
 
   /* Load the initialization vector. */
   for (i = 3; i >= 0; i--) {
-    AES->DATA = __REV(_iv[i]);
+    AES->DATA = __REV_FROM_BYTEARRAY(&iv[i * 4]);
   }
 
   /* Encrypt/decrypt data. */
@@ -1238,8 +1214,8 @@ void AES_OFB256(uint8_t *out,
   while (len--) {
     /* Load the key. */
     for (i = 3, j = 7; i >= 0; i--, j--) {
-      AES->KEYLA = __REV(_key[j]);
-      AES->KEYHA = __REV(_key[i]);
+      AES->KEYLA = __REV_FROM_BYTEARRAY(&key[j * 4]);
+      AES->KEYHA = __REV_FROM_BYTEARRAY(&key[i * 4]);
     }
 
     AES->CMD = AES_CMD_START;
@@ -1250,14 +1226,13 @@ void AES_OFB256(uint8_t *out,
 
     /* Save encrypted/decrypted data. */
     for (i = 3; i >= 0; i--) {
-      _out[i] = __REV(AES->DATA) ^ _in[i];
+      __UINT_TO_BYTEARRAY(&out[i * 4], __REV(AES->DATA) ^ __UINT_FROM_BYTEARRAY(&in[i * 4]));
     }
-    _out += 4;
-    _in  += 4;
+    out += AES_BLOCKSIZE;
+    in  += AES_BLOCKSIZE;
   }
 }
 #endif
 
-/** @} (end addtogroup AES) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup aes) */
 #endif /* defined(AES_COUNT) && (AES_COUNT > 0) */

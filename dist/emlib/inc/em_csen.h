@@ -42,16 +42,11 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup CSEN
+ * @addtogroup csen CSEN - Capacitive Sense
  * @brief Capacitive Sense (CSEN) Peripheral API.
  *
  * @details
- *  Provides functions for controlling the capacitive sense
+ *  Provides functions to control the capacitive sense
  *  peripheral of Silicon Labs' 32-bit MCUs and SoCs. The CSEN includes a
  *  capacitance-to-digital circuit that measures capacitance on selected
  *  inputs. Measurements are performed using either a Successive Approximation
@@ -62,7 +57,7 @@ extern "C" {
  *  mode. Also, several port pins can be shorted together to measure the
  *  combined capacitance.
  *
- *  The CSEN includes an accumulator which can be configured to average
+ *  The CSEN includes an accumulator, which can be configured to average
  *  multiple conversions on the selected input. Additionally, an Exponential
  *  Moving Average (EMA) calculator is included to provide data smoothing.
  *  A comparator is also included and can be used to terminate a continuous
@@ -359,16 +354,17 @@ typedef struct {
   CSEN_PRSSel_TypeDef           prsSel;
 
   /** CSEN input to APORT channel mapping. */
-  CSEN_InputSel_TypeDef         input0To7;
-  CSEN_InputSel_TypeDef         input8To15;
-  CSEN_InputSel_TypeDef         input16To23;
-  CSEN_InputSel_TypeDef         input24To31;
-  CSEN_InputSel_TypeDef         input32To39;
-  CSEN_InputSel_TypeDef         input40To47;
-  CSEN_InputSel_TypeDef         input48To55;
-  CSEN_InputSel_TypeDef         input56To63;
+  CSEN_InputSel_TypeDef         input0To7;   /** CSEN input select 0-7. */
+  CSEN_InputSel_TypeDef         input8To15;  /** CSEN input select 8-15. */
+  CSEN_InputSel_TypeDef         input16To23; /** CSEN input select 6-23. */
+  CSEN_InputSel_TypeDef         input24To31; /** CSEN input select 24-31. */
+  CSEN_InputSel_TypeDef         input32To39; /** CSEN input select 32-39. */
+  CSEN_InputSel_TypeDef         input40To47; /** CSEN input select 40-47. */
+  CSEN_InputSel_TypeDef         input48To55; /** CSEN input select 48-55. */
+  CSEN_InputSel_TypeDef         input56To63; /** CSEN input select 56-63. */
 } CSEN_Init_TypeDef;
 
+/** CSEN default initialization. */
 #define CSEN_INIT_DEFAULT                                             \
   {                                                                   \
     false,                      /* Charge pump low accuracy mode. */  \
@@ -469,6 +465,7 @@ typedef struct {
   CSEN_GainSel_TypeDef          gainSel;
 } CSEN_InitMode_TypeDef;
 
+/** CSEN default mode initialization. */
 #define CSEN_INITMODE_DEFAULT                                          \
   {                                                                    \
     csenSampleModeSingle,       /* Sample one input and stop. */       \
@@ -501,15 +498,15 @@ typedef struct {
 
 /***************************************************************************//**
  * @brief
- *   Get last conversion result.
+ *   Get the last conversion result.
  *
  * @note
- *   Check conversion busy flag before calling this function. In addition,
+ *   Check the conversion busy flag before calling this function. In addition,
  *   the result width and format depend on the parameters passed to the
  *   @ref CSEN_InitMode() function.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @return
  *   Result data from last conversion.
@@ -521,13 +518,13 @@ __STATIC_INLINE uint32_t CSEN_DataGet(CSEN_TypeDef *csen)
 
 /***************************************************************************//**
  * @brief
- *   Get last exponential moving average.
+ *   Get the last exponential moving average.
  *
  * @note
- *   Confirm CSEN is idle before calling this function.
+ *   Confirm that CSEN is idle before calling this function.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @return
  *   Exponential moving average from last conversion.
@@ -539,13 +536,13 @@ __STATIC_INLINE uint32_t CSEN_EMAGet(CSEN_TypeDef *csen)
 
 /***************************************************************************//**
  * @brief
- *   Set exponential moving average initial value.
+ *   Set the exponential moving average initial value.
  *
  * @note
  *   Call this function before starting a conversion.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @param[in] ema
  *   Initial value for the exponential moving average.
@@ -557,10 +554,10 @@ __STATIC_INLINE void CSEN_EMASet(CSEN_TypeDef *csen, uint32_t ema)
 
 /***************************************************************************//**
  * @brief
- *   Disables the CSEN.
+ *   Disable CSEN.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  ******************************************************************************/
 __STATIC_INLINE void CSEN_Disable(CSEN_TypeDef *csen)
 {
@@ -569,10 +566,10 @@ __STATIC_INLINE void CSEN_Disable(CSEN_TypeDef *csen)
 
 /***************************************************************************//**
  * @brief
- *   Enables the CSEN.
+ *   Enable CSEN.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  ******************************************************************************/
 __STATIC_INLINE void CSEN_Enable(CSEN_TypeDef *csen)
 {
@@ -589,7 +586,7 @@ void CSEN_Reset(CSEN_TypeDef *csen);
  *   Clear one or more pending CSEN interrupts.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @param[in] flags
  *   Pending CSEN interrupt source to clear. Use a bitwise logic OR combination
@@ -605,7 +602,7 @@ __STATIC_INLINE void CSEN_IntClear(CSEN_TypeDef *csen, uint32_t flags)
  *   Disable one or more CSEN interrupts.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @param[in] flags
  *   CSEN interrupt sources to disable. Use a bitwise logic OR combination of
@@ -621,12 +618,12 @@ __STATIC_INLINE void CSEN_IntDisable(CSEN_TypeDef *csen, uint32_t flags)
  *   Enable one or more CSEN interrupts.
  *
  * @note
- *   Depending on the use, a pending interrupt may already be set prior to
+ *   Depending on the use case, a pending interrupt may already be set prior to
  *   enabling the interrupt. Consider using CSEN_IntClear() prior to enabling
  *   if such a pending interrupt should be ignored.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @param[in] flags
  *   CSEN interrupt sources to enable. Use a bitwise logic OR combination of
@@ -645,7 +642,7 @@ __STATIC_INLINE void CSEN_IntEnable(CSEN_TypeDef *csen, uint32_t flags)
  *   The event bits are not cleared by the use of this function.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @return
  *   CSEN interrupt sources pending. A bitwise logic OR combination of valid
@@ -662,7 +659,7 @@ __STATIC_INLINE uint32_t CSEN_IntGet(CSEN_TypeDef *csen)
  *   Useful for handling more interrupt sources in the same interrupt handler.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @note
  *   Interrupt flags are not cleared by the use of this function.
@@ -679,7 +676,7 @@ __STATIC_INLINE uint32_t CSEN_IntGetEnabled(CSEN_TypeDef *csen)
 {
   uint32_t ien;
 
-  /* Store CSENx->IEN in temporary variable in order to define explicit order
+  /* Store CSENx->IEN in temporary variable to define explicit order
    * of volatile accesses. */
   ien = csen->IEN;
 
@@ -692,7 +689,7 @@ __STATIC_INLINE uint32_t CSEN_IntGetEnabled(CSEN_TypeDef *csen)
  *   Set one or more pending CSEN interrupts from SW.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @param[in] flags
  *   CSEN interrupt sources to set to pending. Use a bitwise logic OR combination
@@ -708,7 +705,7 @@ __STATIC_INLINE void CSEN_IntSet(CSEN_TypeDef *csen, uint32_t flags)
  *   Return CSEN conversion busy status.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  *
  * @return
  *   True if CSEN conversion is in progress.
@@ -720,10 +717,10 @@ __STATIC_INLINE bool CSEN_IsBusy(CSEN_TypeDef *csen)
 
 /***************************************************************************//**
  * @brief
- *   Start scan sequence and/or single conversion.
+ *   Start a scan sequence and/or a single conversion.
  *
  * @param[in] csen
- *   Pointer to CSEN peripheral register block.
+ *   Pointer to a CSEN peripheral register block.
  ******************************************************************************/
 __STATIC_INLINE void CSEN_Start(CSEN_TypeDef *csen)
 {
@@ -731,7 +728,6 @@ __STATIC_INLINE void CSEN_Start(CSEN_TypeDef *csen)
 }
 
 /** @} (end addtogroup CSEN) */
-/** @} (end addtogroup emlib) */
 
 #ifdef __cplusplus
 }

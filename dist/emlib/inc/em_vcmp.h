@@ -42,12 +42,7 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup VCMP
+ * @addtogroup vcmp
  * @{
  ******************************************************************************/
 
@@ -123,7 +118,7 @@ typedef struct {
     false,             /** Rising edge sense not enabled. */                 \
     vcmpWarmTime4Cycles, /** 4 clock cycles warm-up time. */                 \
     vcmpHystNone,      /** No hysteresis. */                                 \
-    0,                 /** 0 in digital ouput when inactive. */              \
+    0,                 /** 0 in digital output when inactive. */             \
     true,              /** Do not use low power reference. */                \
     39,                /** Trigger level just below 3V. */                   \
     true,              /** Enable after initialization. */                   \
@@ -164,6 +159,9 @@ __STATIC_INLINE void VCMP_Disable(void)
  *
  * @param[in] v
  *   Voltage Level for trigger.
+ *
+ * @return
+ *   Trigger level.
  ******************************************************************************/
 __STATIC_INLINE uint32_t VCMP_VoltageToLevel(float v)
 {
@@ -172,7 +170,10 @@ __STATIC_INLINE uint32_t VCMP_VoltageToLevel(float v)
 
 /***************************************************************************//**
  * @brief
- *   Returns true if Voltage Comparator indicated VDD < trigger level, else
+ *   Check whether VDD is lower than the trigger level.
+ *
+ * @return
+ *   True if Voltage Comparator indicated VDD < trigger level, else
  *   returns false.
  ******************************************************************************/
 __STATIC_INLINE bool VCMP_VDDLower(void)
@@ -186,7 +187,10 @@ __STATIC_INLINE bool VCMP_VDDLower(void)
 
 /***************************************************************************//**
  * @brief
- *   Returns true if Voltage Comparator indicated VDD > trigger level, else
+ *   Check whether VDD is higher than the trigger level.
+ *
+ * @return
+ *   True if Voltage Comparator indicated VDD > trigger level, else
  *   returns false.
  ******************************************************************************/
 __STATIC_INLINE bool VCMP_VDDHigher(void)
@@ -200,7 +204,10 @@ __STATIC_INLINE bool VCMP_VDDHigher(void)
 
 /***************************************************************************//**
  * @brief
- *    VCMP output is ready.
+ *    Check whether the VCMP output is ready.
+ *
+ * @return
+ *   True if VCMP output is ready.
  ******************************************************************************/
 __STATIC_INLINE bool VCMP_Ready(void)
 {
@@ -313,8 +320,7 @@ __STATIC_INLINE uint32_t VCMP_IntGetEnabled(void)
   return VCMP->IF & tmp;
 }
 
-/** @} (end addtogroup VCMP) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup vcmp) */
 
 #ifdef __cplusplus
 }

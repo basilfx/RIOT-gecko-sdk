@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "em_bus.h"
+#include "em_msc_compat.h"
 #include "em_ramfunc.h"
 
 #ifdef __cplusplus
@@ -44,13 +45,8 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup emlib
- * @{
- ******************************************************************************/
-
-/***************************************************************************//**
- * @addtogroup MSC
- * @brief Memory System Controller API.
+ * @addtogroup msc MSC - Memory System Controller
+ * @brief Memory System Controller API
  * @details
  *  Contains functions to control the MSC, primarily the Flash.
  *  Users can perform Flash memory write and erase operations, as well as
@@ -59,9 +55,9 @@ extern "C" {
  *  features such as instruction pre-fetch, cache, and configurable branch prediction
  *  are typically available.
  *
- * @note Flash wait-state configuration is handled by @ref CMU module.
+ * @note Flash wait-state configuration is handled by @ref cmu.
  *       When core clock configuration is changed by a call to functions such as
- *       @ref CMU_ClockSelectSet() or @ref CMU_HFRCOBandSet(), then Flash wait-state
+ *       CMU_ClockSelectSet() or CMU_HFRCOBandSet(), then Flash wait-state
  *       configuration is also updated.
  *
  *  MSC resets into a safe state. To initialize the instruction interface
@@ -69,8 +65,8 @@ extern "C" {
  *  @include em_msc_init_exec.c
  *
  * @note The optimal configuration is highly application dependent. Performance
- *       benchmarking is supported by most families. See @ref MSC_StartCacheMeasurement()
- *       and @ref MSC_GetCacheMeasurement() for more details.
+ *       benchmarking is supported by most families. See MSC_StartCacheMeasurement()
+ *       and MSC_GetCacheMeasurement() for more details.
  *
  * @note
  *   The flash write and erase runs from RAM on the EFM32G devices. On all other
@@ -80,7 +76,7 @@ extern "C" {
  *   Flash erase may add ms of delay to interrupt latency if executing from Flash.
  *
  * Flash write and erase operations are supported by @ref MSC_WriteWord(),
- * @ref MSC_ErasePage(), and @ref MSC_MassErase().
+ * @ref MSC_ErasePage(), and MSC_MassErase().
  * Mass erase is supported for MCU and SoC families with larger Flash sizes.
  *
  * @note
@@ -92,11 +88,18 @@ extern "C" {
  * @deprecated
  *   The configuration called EM_MSC_RUN_FROM_FLASH is deprecated. This was
  *   previously used for allocating the flash write functions in either flash
- *   or RAM. Flash write functions are now placed in flash on all devices
- *   except the EFM32G automatically.
+ *   or RAM.
+ *
+ * @note
+ *   The configuration EM_MSC_RUN_FROM_RAM is used for allocating the flash
+ *   write functions in FLASH and RAM respectively. By default, flash write
+ *   functions are placed in RAM on EFM32G and Series 2 devices
+ *   automatically and that could not be changed. For other devices,
+ *   flash write functions are placed in FLASH but that could be changed using
+ *   EM_MSC_RUN_FROM_RAM.
  *
  * @deprecated
- *   The function called @ref MSC_WriteWordFast() is deprecated.
+ *   The function called MSC_WriteWordFast() is deprecated.
  *
  * @{
  ******************************************************************************/
@@ -115,10 +118,12 @@ extern "C" {
  *    Timeout is set very large (in the order of 100x longer than
  *    necessary). This is to avoid any corner case.
  */
-#define MSC_PROGRAM_TIMEOUT    10000000ul
+#define MSC_PROGRAM_TIMEOUT    10000000UL
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-#if defined(_EFM32_GECKO_FAMILY) || defined(_SILICON_LABS_32B_SERIES_2)
+#if defined(_EFM32_GECKO_FAMILY)         \
+  || defined(_SILICON_LABS_32B_SERIES_2) \
+  || defined(EM_MSC_RUN_FROM_RAM)
 #define MSC_RAMFUNC_DECLARATOR          SL_RAMFUNC_DECLARATOR
 #define MSC_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DEFINITION_BEGIN
 #define MSC_RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END
@@ -152,7 +157,54 @@ typedef enum {
 } MSC_BusStrategy_Typedef;
 #endif
 
-#if defined(MSC_READCTRL_DOUTBUFEN)
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MASK)
+/** AHBHOST masters that can use alternate MPAHBRAM ports. */
+typedef enum {
+  mscDmemMasterLDMA    = _SYSCFG_DMEM0PORTMAPSEL_LDMAPORTSEL_SHIFT,
+  mscDmemMasterSRWAES  = _SYSCFG_DMEM0PORTMAPSEL_SRWAESPORTSEL_SHIFT,
+  mscDmemMasterAHBSRW  = _SYSCFG_DMEM0PORTMAPSEL_AHBSRWPORTSEL_SHIFT,
+  mscDmemMasterSRWECA0 = _SYSCFG_DMEM0PORTMAPSEL_SRWECA0PORTSEL_SHIFT,
+  mscDmemMasterSRWECA1 = _SYSCFG_DMEM0PORTMAPSEL_SRWECA1PORTSEL_SHIFT,
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA0PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA0 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA0PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA1PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA1 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA1PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA2PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA2 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA2PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_LDMA1PORTSEL_MASK)
+  mscDmemMasterLDMA1   = _SYSCFG_DMEM0PORTMAPSEL_LDMA1PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_SRWLDMAPORTSEL_MASK)
+  mscDmemMasterSRWLDMA = _SYSCFG_DMEM0PORTMAPSEL_SRWLDMAPORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_USBPORTSEL_MASK)
+  mscDmemMasterUSB     = _SYSCFG_DMEM0PORTMAPSEL_USBPORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_BUFCPORTSEL_MASK)
+  mscDmemMasterBUFC    = _SYSCFG_DMEM0PORTMAPSEL_BUFCPORTSEL_SHIFT
+#endif
+} MSC_DmemMaster_TypeDef;
+#endif
+
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK)
+/** AHB port given priority. */
+typedef enum {
+  mscPortPriorityNone  = _MPAHBRAM_CTRL_AHBPORTPRIORITY_NONE,
+  mscPortPriorityPort0 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT0,
+  mscPortPriorityPort1 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT1,
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT2)
+  mscPortPriorityPort2 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT2,
+#endif
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT3)
+  mscPortPriorityPort3 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT3,
+#endif
+} MSC_PortPriority_TypeDef;
+#endif
+
+#if defined(MSC_READCTRL_DOUTBUFEN) || defined(MSC_RDATACTRL_DOUTBUFEN)
 /** Code execution configuration */
 typedef struct {
   bool doutBufEn;       /**< Flash dout pipeline buffer enable */
@@ -187,7 +239,9 @@ typedef struct {
   }
 #endif
 
-#if defined(_MSC_ECCCTRL_MASK) || defined(_SYSCFG_DMEM0ECCCTRL_MASK)
+#if defined(_MSC_ECCCTRL_MASK)          \
+  || defined(_SYSCFG_DMEM0ECCCTRL_MASK) \
+  || defined(_MPAHBRAM_CTRL_MASK)
 
 #if defined(_SILICON_LABS_32B_SERIES_1_CONFIG_1)
 /** EFM32GG11B incorporates 2 memory banks including ECC support. */
@@ -211,8 +265,9 @@ typedef struct {
     { 0, 1 },                 \
   }
 
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
-/** EFR32XG21 incorporates 1 memory bank including ECC support. */
+#elif defined(_SILICON_LABS_32B_SERIES_2)
+
+/** Series 2 chips incorporate 1 memory bank including ECC support. */
 #define MSC_ECC_BANKS  (1)
 /** Default MSC EccConfig initialization */
 #define MSC_ECCCONFIG_DEFAULT \
@@ -220,15 +275,7 @@ typedef struct {
     { false },                \
     { 0, 1 },                 \
   }
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
-/** EFR32XG21 incorporates 1 memory bank including ECC support. */
-#define MSC_ECC_BANKS  (1)
-/** Default MSC EccConfig initialization */
-#define MSC_ECCCONFIG_DEFAULT \
-  {                           \
-    { false },                \
-    { 0, 1 },                 \
-  }
+
 #else
 #error Device not supported.
 #endif
@@ -256,7 +303,7 @@ typedef struct {
  *    Clear one or more pending MSC interrupts.
  *
  * @param[in] flags
- *    Pending MSC intterupt source to clear. Use a bitwise logic OR combination
+ *    Pending MSC interrupt source to clear. Use a bitwise logic OR combination
  *   of valid interrupt flags for the MSC module (MSC_IF_nnn).
  ******************************************************************************/
 __STATIC_INLINE void MSC_IntClear(uint32_t flags)
@@ -365,7 +412,7 @@ __STATIC_INLINE void MSC_IntSet(uint32_t flags)
 #if defined(MSC_IF_CHOF) && defined(MSC_IF_CMOF)
 /***************************************************************************//**
  * @brief
- *   Starts measuring cache hit ratio.
+ *   Start measuring  the cache hit ratio.
  * @details
  *   Starts performance counters. It is defined inline to
  *   minimize the impact of this code on the measurement itself.
@@ -385,7 +432,7 @@ __STATIC_INLINE void MSC_StartCacheMeasurement(void)
 
 /***************************************************************************//**
  * @brief
- *   Stops measuring hit rate.
+ *   Stop measuring the hit rate.
  * @note
  *   Defined inline to minimize the impact of this
  *   code on the measurement itself.
@@ -444,8 +491,8 @@ __STATIC_INLINE int32_t MSC_GetCacheMeasurement(void)
     return -2;
   }
 
-  hits  = MSC->CACHEHITS;
-  total = MSC->CACHEMISSES + hits;
+  hits  = (int32_t)MSC->CACHEHITS;
+  total = (int32_t)MSC->CACHEMISSES + hits;
 
   /* To avoid a division by zero. */
   if (total == 0) {
@@ -524,8 +571,19 @@ __STATIC_INLINE void MSC_BusStrategy(mscBusStrategy_Typedef mode)
 void MSC_Init(void);
 void MSC_Deinit(void);
 void MSC_ExecConfigSet(MSC_ExecConfig_TypeDef *execConfig);
-#if defined(_MSC_ECCCTRL_MASK) || defined(_SYSCFG_DMEM0ECCCTRL_MASK)
+#if defined(_MSC_ECCCTRL_MASK)          \
+  || defined(_SYSCFG_DMEM0ECCCTRL_MASK) \
+  || defined(_MPAHBRAM_CTRL_MASK)
 void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig);
+#endif
+
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MASK)
+void MSC_DmemPortMapSet(MSC_DmemMaster_TypeDef master, uint8_t port);
+#endif
+
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK)
+void MSC_PortSetPriority(MSC_PortPriority_TypeDef portPriority);
+MSC_PortPriority_TypeDef MSC_PortGetCurrentPriority(void);
 #endif
 
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
@@ -533,17 +591,32 @@ MSC_WriteWord(uint32_t *address,
               void const *data,
               uint32_t numBytes);
 
+#if !defined(_SILICON_LABS_32B_SERIES_2)
 /* Note that this function is deprecated because we no longer support
  * placing msc code in ram. */
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_WriteWordFast(uint32_t *address,
                   void const *data,
                   uint32_t numBytes);
+#endif
 
 MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_ErasePage(uint32_t *startAddress);
 
 #if defined(MSC_WRITECMD_ERASEMAIN0)
+/***************************************************************************//**
+ * @brief
+ *   Erase the entire Flash in one operation.
+ *
+ * @note
+ *   This command will erase the entire contents of the device.
+ *   Use with care, both a debug session and all contents of the flash will be
+ *   lost. The lock bit, MLW will prevent this operation from executing and
+ *   might prevent a successful mass erase.
+ *
+ * @return
+ *   Returns the status of the operation.
+ ******************************************************************************/
 SL_RAMFUNC_DECLARATOR MSC_Status_TypeDef
 MSC_MassErase(void);
 #endif
@@ -555,8 +628,7 @@ MSC_Status_TypeDef MSC_WriteWordDma(int ch,
                                     uint32_t numBytes);
 #endif
 
-/** @} (end addtogroup MSC) */
-/** @} (end addtogroup emlib) */
+/** @} (end addtogroup msc) */
 
 #ifdef __cplusplus
 }

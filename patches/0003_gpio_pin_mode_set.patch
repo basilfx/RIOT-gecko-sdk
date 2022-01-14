@@ -1,8 +1,8 @@
 diff --git dist/emlib/inc/em_gpio.h dist/emlib/inc/em_gpio.h
-index bea098e..a8a4797 100644
+index 203bcf38..1acdf113 100644
 --- dist/emlib/inc/em_gpio.h
 +++ dist/emlib/inc/em_gpio.h
-@@ -964,10 +964,36 @@ __STATIC_INLINE void GPIO_PinLock(GPIO_Port_TypeDef port, unsigned int pin)
+@@ -995,10 +995,36 @@ __STATIC_INLINE void GPIO_PinLock(GPIO_Port_TypeDef port, unsigned int pin)
  GPIO_Mode_TypeDef GPIO_PinModeGet(GPIO_Port_TypeDef port,
                                    unsigned int pin);
  
@@ -44,10 +44,10 @@ index bea098e..a8a4797 100644
  /***************************************************************************//**
   * @brief
 diff --git dist/emlib/src/em_gpio.c dist/emlib/src/em_gpio.c
-index db6d1bf..cac9a8b 100644
+index 6aec2483..71573eb9 100644
 --- dist/emlib/src/em_gpio.c
 +++ dist/emlib/src/em_gpio.c
-@@ -261,7 +261,8 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
+@@ -329,7 +329,8 @@ void GPIO_EM4WUExtIntConfig(GPIO_Port_TypeDef port,
  
  /***************************************************************************//**
   * @brief
@@ -57,7 +57,7 @@ index db6d1bf..cac9a8b 100644
   *
   * @param[in] port
   *   The GPIO port to access.
-@@ -275,17 +276,21 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
+@@ -343,17 +344,21 @@ void GPIO_EM4WUExtIntConfig(GPIO_Port_TypeDef port,
   * @param[in] out
   *   A value to set for the pin in the DOUT register. The DOUT setting is important for
   *   some input mode configurations to determine the pull-up/down direction.
@@ -84,8 +84,8 @@ index db6d1bf..cac9a8b 100644
      if (out) {
        GPIO_PinOutSet(port, pin);
      } else {
-@@ -303,7 +308,7 @@ void GPIO_PinModeSet(GPIO_Port_TypeDef port,
-                           | (mode << ((pin - 8) * 4));
+@@ -371,7 +376,7 @@ void GPIO_PinModeSet(GPIO_Port_TypeDef port,
+     BUS_RegMaskedWrite(&(GPIO->P[port].MODEH), 0xFu << ((pin - 8) * 4), (uint32_t)mode << ((pin - 8) * 4));
    }
  
 -  if (mode == gpioModeDisabled) {

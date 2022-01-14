@@ -18,7 +18,7 @@
 #define SL_WFX_VERSION_H
 
 /** X.x.x: Major version of the driver */
-#define FMAC_DRIVER_VERSION_MAJOR      2
+#define FMAC_DRIVER_VERSION_MAJOR      3
 /** x.X.x: Minor version of the driver */
 #define FMAC_DRIVER_VERSION_MINOR      4
 /** x.x.X: Revision of the driver */

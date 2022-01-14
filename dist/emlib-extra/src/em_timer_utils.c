@@ -4,6 +4,7 @@
 #include "em_timer.h"
 #include "em_assert.h"
 
+#if (_SILICON_LABS_32B_SERIES < 2)
 /***************************************************************************//**
  * @brief
  *   Convert a channel index number to the route bit field.
@@ -21,12 +22,13 @@ __INLINE uint32_t TIMER_Channel2Route(uint8_t ch)
 {
   EFM_ASSERT(TIMER_CH_VALID(ch));
 
-#ifdef _SILICON_LABS_32B_PLATFORM_1
+#ifdef _SILICON_LABS_32B_SERIES_0
   return (TIMER_ROUTE_CC0PEN << ch);
 #else
   return (TIMER_ROUTEPEN_CC0PEN << ch);
 #endif
 }
+#endif /* (_SILICON_LABS_32B_SERIES < 2) */
 
 /***************************************************************************//**
  * @brief

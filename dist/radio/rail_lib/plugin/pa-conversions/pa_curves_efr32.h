@@ -6,7 +6,7 @@
  *   dBm powers.
  *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -31,21 +31,42 @@
  *
  ******************************************************************************/
 
-#ifndef __PA_CURVES_EFR32_H_
-#define __PA_CURVES_EFR32_H_
+#ifndef PA_CURVES_EFR32_H
+#define PA_CURVES_EFR32_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef _SILICON_LABS_32B_SERIES_1
-#include "pa_curves_efr32xg1x.h"
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
-#include "pa_curves_efr32xg22.h"
-#elif defined (_SILICON_LABS_32B_SERIES_2)
-#include "pa_curves_efr32xg21.h"
-#else
+#include "em_device.h"
 
+#ifdef _SILICON_LABS_32B_SERIES_1
+#include "efr32xg1x/sl_rail_util_pa_curves.h"
+#elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+#include "efr32xg21/sl_rail_util_pa_curves.h"
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#include "efr32xg22/sl_rail_util_pa_curves.h"
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#if defined(_SILICON_LABS_EFR32_SUBGHZ_HP_PA_PRESENT)
+  #if (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 20)
+  #include "efr32xg23/sl_rail_util_pa_curves_20dbm.h"
+  #elif (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 10)
+  #include "efr32xg23/sl_rail_util_pa_curves_10dbm_434M.h"
+  #else
+  #include "efr32xg23/sl_rail_util_pa_curves_14dbm.h"
+  #endif
+#else
+#error "No valid PA available for selected chip."
+#endif
+#elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_4)
+  #if (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM > 10)
+  #include "efr32xg24/sl_rail_util_pa_curves_20dbm.h"
+  #else
+  #include "efr32xg24/sl_rail_util_pa_curves_10dbm.h"
+  #endif
+#elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+#include "efr32xg25/sl_rail_util_pa_curves.h"
+#else
 #error "Unsupported platform!"
 #endif
 
@@ -53,4 +74,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif // PA_CURVES_EFR32_H

@@ -2,7 +2,7 @@
 Minimal distribution of the Silicon Labs Gecko SDK for EFM32/EFR32/EZR32 microcontrollers, prepared for usage with [RIOT-OS](https://github.com/RIOT-OS/RIOT).
 
 ## Version
-The current version of the Gecko SDK is 4.0, which includes EMLIB and RAIL.
+The current version of the Gecko SDK is 4.1.2, which includes EMLIB and RAIL.
 
 ## Contents
 Only the following is included in the `dist/` folder:

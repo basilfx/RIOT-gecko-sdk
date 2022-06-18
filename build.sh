@@ -2,7 +2,7 @@
 
 GECKO_SDK_USER="SiliconLabs"
 GECKO_SDK_REPO="gecko_sdk"
-GECKO_SDK_SHA1="991121c706578c9a2135b6f75cc88856e8c64bdc" # Version 4.0
+GECKO_SDK_SHA1="1b1146884839bbfddaae34da39de8d780ed905b9" # Version 4.1.2
 GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}/archive/${GECKO_SDK_SHA1}.zip"
 
 DIST_DIR=$(pwd)/dist
@@ -67,23 +67,24 @@ find "${DIST_DIR}" -name "*.orig" -type f -delete
 for BLOB_FILE in "${DIST_DIR}/radio/rail_lib/autogen/librail_release/"*".a"
 do
     arm-none-eabi-objcopy "${BLOB_FILE}" \
-        --redefine-sym FRC_PRI_IRQHandler=isr_frc_pri \
-        --redefine-sym FRC_IRQHandler=isr_frc \
-        --redefine-sym MODEM_IRQHandler=isr_modem \
-        --redefine-sym RAC_SEQ_IRQHandler=isr_rac_seq \
-        --redefine-sym RAC_RSM_IRQHandler=isr_rac_rsm \
-        --redefine-sym BUFC_IRQHandler=isr_bufc \
         --redefine-sym AGC_IRQHandler=isr_agc \
-        --redefine-sym PROTIMER_IRQHandler=isr_protimer \
-        --redefine-sym SYNTH_IRQHandler=isr_synth \
-        --redefine-sym RFSENSE_IRQHandler=isr_rfsense \
+        --redefine-sym BUFC_IRQHandler=isr_bufc \
         --redefine-sym EMUDG_IRQHandler=isr_emudg \
+        --redefine-sym EMU_IRQHandler=isr_emu \
+        --redefine-sym FRC_IRQHandler=isr_frc \
+        --redefine-sym FRC_PRI_IRQHandler=isr_frc_pri \
         --redefine-sym HOSTMAILBOX_IRQHandler=isr_hostmailbox \
+        --redefine-sym MODEM_IRQHandler=isr_modem \
         --redefine-sym PRORTC_IRQHandler=isr_prortc \
+        --redefine-sym PROTIMER_IRQHandler=isr_protimer \
+        --redefine-sym RAC_RSM_IRQHandler=isr_rac_rsm \
+        --redefine-sym RAC_SEQ_IRQHandler=isr_rac_seq \
         --redefine-sym RDMAILBOX_IRQHandler=isr_rdmailbox \
         --redefine-sym RFECA0_IRQHandler=isr_rfeca0 \
         --redefine-sym RFECA1_IRQHandler=isr_rfeca1 \
+        --redefine-sym RFSENSE_IRQHandler=isr_rfsense \
         --redefine-sym SOFTM_IRQHandler=isr_softm \
+        --redefine-sym SYNTH_IRQHandler=isr_synth \
         --redefine-sym SYSRTC_SEQ_IRQHandler=isr_sysrtc_seq
 done
 

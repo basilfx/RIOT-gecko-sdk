@@ -13,5 +13,5 @@ ifeq ($(EFM32_FAMILY),efr32fg14p)
   RAIL_LIB = $(CURDIR)/librail_efr32xg14_gcc_release.a
 endif
 
-$(BINDIR)/$(MODULE).a:
-	cp $(RAIL_LIB) $@
+$(BINDIR)/$(MODULE).a: $(RAIL_LIB)
+	cp $< $@

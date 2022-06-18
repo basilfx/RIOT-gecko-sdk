@@ -22,11 +22,19 @@ mv "${TEMP_DIR}/${GECKO_SDK_REPO}-${GECKO_SDK_SHA1}" "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
 cp "${TEMP_DIR}/gecko_sdk/License.txt" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/common" "${DIST_DIR}"
 rsync -avp "${TEMP_DIR}/gecko_sdk/platform/emlib" "${DIST_DIR}"
 rsync -avp "${TEMP_DIR}/gecko_sdk/platform/radio" "${DIST_DIR}"
 
 # Remove unneeded files.
 rm "${DIST_DIR}/emlib/emlib_core_validation.lua"
+rm -rf "${DIST_DIR}/common/component"
+rm -rf "${DIST_DIR}/common/component_catalog"
+rm -rf "${DIST_DIR}/common/config"
+rm -rf "${DIST_DIR}/common/errno"
+rm -rf "${DIST_DIR}/common/script"
+rm -rf "${DIST_DIR}/common/src"
+rm -rf "${DIST_DIR}/common/toolchain"
 rm -rf "${DIST_DIR}/emlib/component"
 rm -rf "${DIST_DIR}/emlib/config"
 rm -rf "${DIST_DIR}/emlib/host"

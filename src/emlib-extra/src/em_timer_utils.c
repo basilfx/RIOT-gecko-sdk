@@ -20,8 +20,6 @@
  ******************************************************************************/
 __INLINE uint32_t TIMER_Channel2Route(uint8_t ch)
 {
-  EFM_ASSERT(TIMER_CH_VALID(ch));
-
 #ifdef _SILICON_LABS_32B_SERIES_0
   return (TIMER_ROUTE_CC0PEN << ch);
 #else

@@ -31,7 +31,7 @@
 #include "em_prs.h"
 #if defined(PRS_COUNT) && (PRS_COUNT > 0)
 
-#include "em_assert.h"
+#include "sl_assert.h"
 
 /***************************************************************************//**
  * @addtogroup prs PRS - Peripheral Reflex System
@@ -653,8 +653,6 @@ void PRS_Combine(unsigned int chA, unsigned int chB, PRS_Logic_t logic)
                                  | _PRS_ASYNC_CH_CTRL_AUXSEL_MASK))
                             | ((uint32_t)logic << _PRS_ASYNC_CH_CTRL_FNSEL_SHIFT)
                             | ((uint32_t)chB << _PRS_ASYNC_CH_CTRL_AUXSEL_SHIFT);
-  PRS->ASYNC_CH[chB].CTRL = (PRS->ASYNC_CH[chB].CTRL & ~_PRS_ASYNC_CH_CTRL_FNSEL_MASK)
-                            | PRS_ASYNC_CH_CTRL_FNSEL_DEFAULT;
 #endif
 }
 #endif

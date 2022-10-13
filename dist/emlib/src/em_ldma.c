@@ -33,7 +33,7 @@
 #if defined(LDMA_PRESENT) && (LDMA_COUNT == 1)
 
 #include <stddef.h>
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_bus.h"
 #include "em_cmu.h"
 #include "em_core.h"
@@ -95,7 +95,7 @@ void LDMA_DeInit(void)
 #endif
 
   CMU_ClockEnable(cmuClock_LDMA, false);
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG) && (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
   CMU_ClockEnable(cmuClock_LDMAXBAR, false);
 #endif
 }
@@ -163,7 +163,7 @@ void LDMA_Init(const LDMA_Init_t *init)
   EFM_ASSERT(init->ldmaInitIrqPriority < (1 << __NVIC_PRIO_BITS));
 
   CMU_ClockEnable(cmuClock_LDMA, true);
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG) && (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
   CMU_ClockEnable(cmuClock_LDMAXBAR, true);
 #endif
 

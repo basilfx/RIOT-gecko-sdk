@@ -30,11 +30,8 @@
  ******************************************************************************/
 #include "pa_auto_mode.h"
 
-#ifdef RAIL_PA_AUTO_MODE_WEAK
-__WEAK
-#endif
 #if _SILICON_LABS_32B_SERIES_1_CONFIG != 0
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
   // LP PA's range is from -12.5 to 0 dBm
   // Because the default algorithm stops at the
   // first matching entry, specify LP for its range
@@ -56,12 +53,16 @@ RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
     .max = INT16_MAX,
     .mode = RAIL_TX_POWER_MODE_SUBGIG,
     .band = RAIL_PA_BAND_SUBGIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 1
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
-  // While EFR32XG21 does have a low power PA, matching networks can only
-  // perform well for the HP and MP PA's, or the LP PA alone.
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
   {
     .min = INT16_MIN,
     .max = 100,
@@ -73,10 +74,16 @@ RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
     .max = INT16_MAX,
     .mode = RAIL_TX_POWER_MODE_2P4_HP,
     .band = RAIL_PA_BAND_2P4GIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
-#elif _SILICON_LABS_32B_SERIES_2_CONFIG == 2
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
+#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
   {
     .min = -287,
     .max = 0,
@@ -88,54 +95,120 @@ RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
     .max = INT16_MAX,
     .mode = RAIL_TX_POWER_MODE_2P4_HP,
     .band = RAIL_PA_BAND_2P4GIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 3
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
   {
     .min = INT16_MIN,
     .max = INT16_MAX,
     .mode = RAIL_TX_POWER_MODE_SUBGIG_HP,
     .band = RAIL_PA_BAND_SUBGIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 4
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
-#if (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM <= 10)
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault10dBm[] = {
   {
     .min = -250,
     .max = 0,
     .mode = RAIL_TX_POWER_MODE_2P4_LP,
     .band = RAIL_PA_BAND_2P4GIG
   },
-#endif
   {
     .min = INT16_MIN,
     .max = INT16_MAX,
     .mode = RAIL_TX_POWER_MODE_2P4_HP,
     .band = RAIL_PA_BAND_2P4GIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
+  }
+};
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_2P4_HP,
+    .band = RAIL_PA_BAND_2P4GIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 5
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
 // todo_sol: PA auto mode
   {
     .min = INT16_MIN,
     .max = INT16_MAX,
-    .mode = 0,
+    .mode = RAIL_TX_POWER_MODE_SUBGIG_HP,
     .band = RAIL_PA_BAND_SUBGIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_OFDM_PA,
+    .band = RAIL_PA_BAND_SUBGIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #else
-RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[] = {
+static const RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfigDefault[] = {
   {
     .min = INT16_MIN,
     .max = INT16_MAX,
     .mode = 0,
     .band = RAIL_PA_BAND_2P4GIG
+  },
+  {
+    .min = INT16_MIN,
+    .max = INT16_MAX,
+    .mode = RAIL_TX_POWER_MODE_NONE,
+    .band = RAIL_PA_BAND_COUNT
   }
 };
 #endif
+
+#ifdef RAIL_PA_AUTO_MODE_WEAK
+__WEAK
+#endif
+// RAIL_PaAutoModeConfig points at a constant object of RAIL_PaAutoModeConfigDefault or
+// a constant RAIL_PaAutoModeConfigEntry_t strongly defined.
+const RAIL_PaAutoModeConfigEntry_t * RAIL_PaAutoModeConfig = RAIL_PaAutoModeConfigDefault;
+
+RAIL_Status_t RAIL_ConfigPaAutoEntry(RAIL_Handle_t railHandle,
+                                     const RAIL_PaAutoModeConfigEntry_t *paAutoModeEntry)
+{
+  (void)railHandle;
+  if (paAutoModeEntry == NULL) {
+    return RAIL_STATUS_INVALID_PARAMETER;
+  }
+  RAIL_PaAutoModeConfig = paAutoModeEntry;
+  return RAIL_STATUS_NO_ERROR;
+}
 
 #ifdef RAIL_PA_AUTO_MODE_WEAK
 __WEAK
@@ -160,25 +233,42 @@ RAIL_Status_t RAILCb_PaAutoModeDecision(RAIL_Handle_t railHandle,
   (void)chCfgEntry;
 #endif
 
+#if _SILICON_LABS_32B_SERIES_2_CONFIG == 4
+  if (RAIL_SupportsTxPowerMode(railHandle,
+                               RAIL_TX_POWER_MODE_2P4GIG_LP,
+                               NULL)) {
+    RAIL_PaAutoModeConfig = RAIL_PaAutoModeConfigDefault10dBm;
+  }
+#endif
+
   // Find the index of the configuration entry that contains
   // the desired power.
   // Note: Code assumes there must be a catch-all entry for each band
   // else the loop will wander into uncharted RAM
+  const RAIL_PaAutoModeConfigEntry_t *trackSupportedPa = NULL;
   for (uint8_t index = 0U; RAIL_PaAutoModeConfig[index].band < RAIL_PA_BAND_COUNT; index++) {
-    RAIL_PaAutoModeConfigEntry_t entry = RAIL_PaAutoModeConfig[index];
-    bool validBand = true;
+    const RAIL_PaAutoModeConfigEntry_t *entry = &RAIL_PaAutoModeConfig[index];
+    if (RAIL_SupportsTxPowerMode(railHandle,
+                                 entry->mode,
+                                 NULL)) {
+      trackSupportedPa = entry;
+      bool validBand = true;
 #if RAIL_FEAT_DUAL_BAND_RADIO
-    validBand = (entry.band == band);
+      validBand = (entry->band == band);
 #endif
-    if (validBand && (entry.min <= *power) && (entry.max >= *power)) {
-      *mode = entry.mode;
-      break;
+      if (validBand && (entry->min <= *power) && (entry->max >= *power)) {
+        *mode = entry->mode;
+        break;
+      }
     }
   }
 
   // If we still haven't found anything, just error out.
   if (*mode == RAIL_TX_POWER_MODE_NONE) {
-    return RAIL_STATUS_INVALID_PARAMETER;
+    if (trackSupportedPa == NULL) {
+      return RAIL_STATUS_INVALID_PARAMETER;
+    }
+    *mode = trackSupportedPa->mode;
   }
 
   return RAIL_STATUS_NO_ERROR;

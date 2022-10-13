@@ -78,11 +78,20 @@ typedef struct RAIL_PaAutoModeConfigEntry {
 } RAIL_PaAutoModeConfigEntry_t;
 
 /**
- * The current PA auto mode configuration structure used by the auto mode plugin
+ * The actual PA auto mode configuration structure used by the auto mode plugin
  * to control output power.
  */
-extern RAIL_PaAutoModeConfigEntry_t RAIL_PaAutoModeConfig[];
+extern const RAIL_PaAutoModeConfigEntry_t *RAIL_PaAutoModeConfig;
 
+/**
+ * Configure the PA auto mode entries.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] paAutoModeEntry Entries used to configure PA auto mode decision points.
+ * @return Status parameter indicating success of function call.
+ */
+RAIL_Status_t RAIL_ConfigPaAutoEntry(RAIL_Handle_t railHandle,
+                                     const RAIL_PaAutoModeConfigEntry_t *paAutoModeEntry);
 /** @} */ // PA Power Amplifier (PA)
 
 /**

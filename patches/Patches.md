@@ -24,3 +24,8 @@ This change is compatible with the original source code.
 Fixes an [old-style function definition](https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wold-style-definition) warning / error.
 
 This change is compatible with the original source code.
+
+### 0005
+Fixes an [outside array bounds](https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Warray-bounds) warning / error triggered by a Silabs workaround.
+
+This change is compatible with the original source code.

@@ -39,6 +39,20 @@
 
 #include "rail_features.h"
 
+#if     (defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
+//  Copied from rail_types.h to satisfy doxygen build.
+/// The RAIL library does not use enumerations because the ARM EABI leaves their
+/// size ambiguous, which causes problems if the application is built
+/// with different flags than the library. Instead, uint8_t typedefs
+/// are used in compiled code for all enumerations. For documentation purposes, this is
+/// converted to an actual enumeration since it's much easier to read in Doxygen.
+#define RAIL_ENUM(name) enum name
+/// This macro is a more generic version of the \ref RAIL_ENUM() macro that
+/// allows the size of the type to be overridden instead of forcing the use of
+/// a uint8_t. See \ref RAIL_ENUM() for more information.
+#define RAIL_ENUM_GENERIC(name, type) enum name
+#endif//(defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -151,6 +165,55 @@ typedef struct RAIL_Config {
    */
   RAIL_StateBuffer_t buffer;
 } RAIL_Config_t;
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+/**
+ * @enum RAIL_RadioStateEfr32_t
+ * @brief Radio state machine statuses.
+ */
+RAIL_ENUM(RAIL_RadioStateEfr32_t) {
+  RAIL_RAC_STATE_OFF,         /**< Radio is off. */
+  RAIL_RAC_STATE_RXWARM,      /**< Radio is enabling the receiver. */
+  RAIL_RAC_STATE_RXSEARCH,    /**< Radio is listening for incoming frames. */
+  RAIL_RAC_STATE_RXFRAME,     /**< Radio is receiving a frame. */
+  RAIL_RAC_STATE_RXPD,        /**< Radio is powering down receiver and going to
+                                   OFF state. */
+  RAIL_RAC_STATE_RX2RX,       /**< Radio is going back to receive mode after
+                                   receiving a frame. */
+  RAIL_RAC_STATE_RXOVERFLOW,  /**< Received data was lost due to full receive
+                                   buffer. */
+  RAIL_RAC_STATE_RX2TX,       /**< Radio is disabling receiver and enabling
+                                   transmitter. */
+  RAIL_RAC_STATE_TXWARM,      /**< Radio is enabling transmitter. */
+  RAIL_RAC_STATE_TX,          /**< Radio is transmitting data. */
+  RAIL_RAC_STATE_TXPD,        /**< Radio is powering down transmitter and going
+                                   to OFF state. */
+  RAIL_RAC_STATE_TX2RX,       /**< Radio is disabling transmitter and enabling
+                                   reception. */
+  RAIL_RAC_STATE_TX2TX,       /**< Radio is preparing a transmission after the
+                                   previous transmission was ended. */
+  RAIL_RAC_STATE_SHUTDOWN,    /**< Radio is powering down receiver and going to
+                                   OFF state. */
+  RAIL_RAC_STATE_NONE         /**< Invalid Radio state, must be the last entry. */
+};
+
+// Self-referencing defines minimize compiler complaints when using RAIL_ENUM
+#define RAIL_RAC_STATE_OFF          ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_OFF)
+#define RAIL_RAC_STATE_RXWARM       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXWARM)
+#define RAIL_RAC_STATE_RXSEARCH     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXSEARCH)
+#define RAIL_RAC_STATE_RXFRAME      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXFRAME)
+#define RAIL_RAC_STATE_RXPD         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXPD)
+#define RAIL_RAC_STATE_RX2RX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2RX)
+#define RAIL_RAC_STATE_RXOVERFLOW   ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXOVERFLOW)
+#define RAIL_RAC_STATE_RX2TX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2TX)
+#define RAIL_RAC_STATE_TXWARM       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXWARM)
+#define RAIL_RAC_STATE_TX           ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX)
+#define RAIL_RAC_STATE_TXPD         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXPD)
+#define RAIL_RAC_STATE_TX2RX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2RX)
+#define RAIL_RAC_STATE_TX2TX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2TX)
+#define RAIL_RAC_STATE_SHUTDOWN     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_SHUTDOWN)
+#define RAIL_RAC_STATE_NONE         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_NONE)
+#endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group General_EFR32XG1
 
@@ -352,6 +415,8 @@ RAIL_Status_t RAIL_ApplyIrCalibration(RAIL_Handle_t railHandle,
  * determined from a previous run of \ref RAIL_CalibrateIrAlt on the same
  * physical device with the same radio configuration. The imageRejection value
  * will also be stored to the \ref RAIL_ChannelConfigEntry_t::attr, if possible.
+ * @note: To make sure the imageRejection value is stored/configured correctly,
+ * \ref RAIL_ConfigAntenna should be called before calling this API.
  *
  * If multiple protocols are used, this function will return
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
@@ -404,6 +469,8 @@ RAIL_Status_t RAIL_CalibrateIr(RAIL_Handle_t railHandle,
  * calibration that adds significant code space when run and can be run with a
  * separate firmware image on each device to save code space in the
  * final image.
+ * @note: To make sure the imageRejection value is stored/configured correctly,
+ * \ref RAIL_ConfigAntenna should be called before calling this API.
  *
  * If multiple protocols are used, this function will return
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
@@ -698,7 +765,7 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 };
 
 /**
- * The number of PA's on this chip.
+ * The number of PA's on this chip. (Including Virtual PAs)
  */
 #define RAIL_NUM_PA (3U)
 
@@ -722,7 +789,7 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 #define RAIL_TX_POWER_MODE_NAMES {  \
     "RAIL_TX_POWER_MODE_2P4GIG_HP", \
     "RAIL_TX_POWER_MODE_2P4GIG_LP", \
-    "RAIL_TX_POWER_MODE_SUBGIG_HP", \
+    "RAIL_TX_POWER_MODE_SUBGIG",    \
     "RAIL_TX_POWER_MODE_NONE"       \
 }
 
@@ -834,9 +901,9 @@ typedef struct RAIL_PtiConfig {
  * @ingroup RAIL_API
  *
  * The EFR product families have many digital and analog modules that can run
- * in parallel with a radio. Such combinations can result in interference and
- * degradation on the radio RX sensitivity. Retiming have the capability to
- * modify the clocking of the digital modules to reduce such interference.
+ * in parallel with a radio. These combinations can cause interference and
+ * degradation on the radio RX sensitivity. Retiming can
+ * modify the clocking of the digital modules to reduce the interference.
  */
 
 /**
@@ -891,7 +958,7 @@ RAIL_Status_t RAIL_ConfigRetimeOptions(RAIL_Handle_t railHandle,
                                        RAIL_RetimeOptions_t options);
 
 /**
- * Gets currently configured retiming option.
+ * Get the currently configured retiming option.
  *
  * @param[in] railHandle A handle of RAIL instance.
  * @param[out] pOptions A pointer to configured retiming options
@@ -900,6 +967,16 @@ RAIL_Status_t RAIL_ConfigRetimeOptions(RAIL_Handle_t railHandle,
  */
 RAIL_Status_t RAIL_GetRetimeOptions(RAIL_Handle_t railHandle,
                                     RAIL_RetimeOptions_t *pOptions);
+
+/**
+ * Indicate that the DCDC peripheral bus clock enable has changed allowing
+ * RAIL to react accordingly.
+ *
+ * @note This should be called after DCDC has been enabled or disabled.
+ *
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_ChangedDcdc(void);
 
 /** @} */ // end of group Retiming_EFR32
 

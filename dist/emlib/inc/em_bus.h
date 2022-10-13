@@ -31,7 +31,7 @@
 #ifndef EM_BUS_H
 #define EM_BUS_H
 
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_core.h"
 #include "em_device.h"
 
@@ -145,7 +145,7 @@ __STATIC_INLINE void BUS_RegBitWrite(volatile uint32_t *addr,
   EFM_ASSERT(bit < 32U);
 #if defined(PER_REG_BLOCK_SET_OFFSET) && defined(PER_REG_BLOCK_CLR_OFFSET)
   uint32_t aliasAddr;
-  if (val) {
+  if (val != 0U) {
     aliasAddr = (uint32_t)addr + PER_REG_BLOCK_SET_OFFSET;
   } else {
     aliasAddr = (uint32_t)addr + PER_REG_BLOCK_CLR_OFFSET;

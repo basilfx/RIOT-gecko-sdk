@@ -80,16 +80,16 @@ void RAIL_GetVersion(RAIL_Version_t *version, bool verbose);
 
 /**
  * A global pointer to the head of a linked list of state buffers
- * \ref RAIL_Init() can utilize.
+ * \ref RAIL_Init() can use.
  *
- * RAIL internally provides one statically allocated RAM state buffer
- * for single protocol, and two for dynamic multiprotocol. If your
+ * RAIL internally provides one statically-allocated RAM state buffer
+ * for a single protocol and two for dynamic multiprotocol. If your
  * application needs more, they can be provided via \ref
- * RAIL_AddStateBuffer3() or RAIL_AddStateBuffer4() which use
+ * RAIL_AddStateBuffer3() or RAIL_AddStateBuffer4(), which use
  * internal buffers, or the more general \ref RAIL_AddStateBuffer().
  *
  * This symbol is WEAK in the RAIL library in case an application wants
- * to allocate and provide its own buffers, but such use is highly
+ * to allocate and provide its own buffers. However, this use is highly
  * discouraged.
  */
 extern RAIL_StateBufferEntry_t *RAIL_StateBufferHead;
@@ -175,7 +175,7 @@ RAIL_Status_t RAIL_UseDma(uint8_t channel);
  * Initialize RAIL.
  *
  * @param[in,out] railCfg The configuration and state structure for setting up
- *   the library, which contains memory and other options needed by RAIL.
+ *   the library, which contains memory and other options that RAIL needs.
  *   This structure must be allocated in application global read-write
  *   memory. RAIL may modify fields within or referenced by this structure
  *   during its operation.
@@ -261,7 +261,7 @@ RAIL_Status_t RAIL_ConfigPti(RAIL_Handle_t railHandle,
                              const RAIL_PtiConfig_t *ptiConfig);
 
 /**
- * Get the currently active PTI configuration.
+ * Get the currently-active PTI configuration.
  *
  * @param[in] railHandle A RAIL instance handle (currently not used).
  * @param[out] ptiConfig A configuration structure filled with the active
@@ -272,8 +272,8 @@ RAIL_Status_t RAIL_ConfigPti(RAIL_Handle_t railHandle,
  * to call this method after configuration to confirm which values were
  * actually set. As in RAIL_ConfigPti, railHandle is not used. This function
  * always returns the single active PTI configuration regardless of the
- * active protocol. For optimal future compatibility, pass in a chip
- * specific handle, such as \ref RAIL_EFR32_HANDLE.
+ * active protocol. For optimal future compatibility, pass in a
+ * chip-specific handle, such as \ref RAIL_EFR32_HANDLE.
  */
 RAIL_Status_t RAIL_GetPtiConfig(RAIL_Handle_t railHandle,
                                 RAIL_PtiConfig_t *ptiConfig);
@@ -331,13 +331,13 @@ RAIL_PtiProtocol_t RAIL_GetPtiProtocol(RAIL_Handle_t railHandle);
  *****************************************************************************/
 /**
  * @addtogroup Antenna_Control Antenna Control
- * @brief Basic APIs to control the Antenna functionality
+ * @brief Basic APIs to control the antenna functionality
  * @{
  */
 /**
  * Configure antenna path and pin locations.
  *
- * @warning This API must be called before any TX or RX occurs, otherwise
+ * @warning This API must be called before any TX or RX occurs. Otherwise,
  *   the antenna configurations for those functions will not take effect.
  *
  * @param[in] railHandle A RAIL instance handle.
@@ -356,7 +356,7 @@ RAIL_PtiProtocol_t RAIL_GetPtiProtocol(RAIL_Handle_t railHandle);
  *
  * Although a RAIL handle is included for potential future
  * expansion of this function, it is currently not used. That is,
- * only one Antenna configuration can be active on a
+ * only one antenna configuration can be active on a
  * chip, regardless of the number of protocols (unless the application
  * updates the configuration upon a protocol switch),
  * and the configuration is not saved in the RAIL instance. For optimal
@@ -373,7 +373,7 @@ RAIL_Status_t RAIL_ConfigAntenna(RAIL_Handle_t railHandle,
  * @param[out] rfPath Pointer to RF path.
  * @return A status code indicating success of the function call.
  *
- * If multiple protocols are used, this function will return
+ * If multiple protocols are used, this function returns
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
  * not active. In that case, the caller must attempt to re-call this function later,
  * for example when \ref RAIL_EVENT_CONFIG_SCHEDULED trigger.
@@ -533,10 +533,33 @@ RAIL_Status_t RAIL_PrepareChannel(RAIL_Handle_t railHandle, uint16_t channel);
  *   RAIL_STATUS_INVALID_CALL if the radio is not configured for any channel or
  *   RAIL_STATUS_INVALID_PARAMETER if channel parameter is NULL.
  *
- * This function returns the channel configured for use corresponding to the
- * specified RAIL handle whether or not the specified handle is the active one.
+ * This function returns the channel most recently specified in API calls that
+ * pass in a channel to tune to, namely \ref RAIL_PrepareChannel,
+ * \ref RAIL_StartTx, \ref RAIL_StartScheduledTx, \ref RAIL_StartCcaCsmaTx,
+ * \ref RAIL_StartCcaLbtTx, \ref RAIL_StartScheduledCcaCsmaTx,
+ * \ref RAIL_StartScheduledCcaLbtTx, \ref RAIL_StartRx, \ref RAIL_ScheduleRx,
+ * \ref RAIL_StartAverageRssi, \ref RAIL_StartTxStream, \ref RAIL_StartTxStreamAlt.
+ * It doesn't follow changes RAIL performs implicitly during channel hopping and
+ * mode switch.
  */
 RAIL_Status_t RAIL_GetChannel(RAIL_Handle_t railHandle, uint16_t *channel);
+
+/**
+ * Return the current RAIL channel.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[out] channel The channel for which RAIL is currently configured.
+ * @return RAIL_STATUS_NO_ERROR on success or
+ *   RAIL_STATUS_INVALID_CALL if the radio is not configured for any channel or
+ *   RAIL_STATUS_INVALID_PARAMETER if channel parameter is NULL.
+ *
+ * This function returns the channel the radio is currently tuned to if the
+ * specified RAIL handle is active. It returns the channel it will be tuned to
+ * during the next protocol switch if the handle is inactive.
+ * The channel returned may be different than what \ref RAIL_GetChannel returns
+ * when channel hopping or mode switch are involved.
+ */
+RAIL_Status_t RAIL_GetChannelAlt(RAIL_Handle_t railHandle, uint16_t *channel);
 
 /**
  * Return the symbol rate for the current PHY.
@@ -559,7 +582,7 @@ uint32_t RAIL_GetSymbolRate(RAIL_Handle_t railHandle);
  * @param[in] railHandle A RAIL instance handle.
  * @return The symbol rate in symbols per second or 0.
  *
- * This function is used to calculate the symbol rate when the radio configuration does
+ * This function calculates the symbol rate when the radio configuration does
  * not include that information. In general, this function should be
  * implemented automatically in the radio configuration as a stub.
  */
@@ -587,7 +610,7 @@ uint32_t RAIL_GetBitRate(RAIL_Handle_t railHandle);
  * @param[in] railHandle A RAIL instance handle.
  * @return The bit rate in bits per second or 0.
  *
- * This function is used to calculate the bit rate when the radio configuration does
+ * This function calculates the bit rate when the radio configuration does
  * not include that information. In general, this function should be
  * implemented automatically in the radio configuration as a stub.
  */
@@ -691,7 +714,7 @@ RAIL_Status_t RAIL_ConfigSyncWords(RAIL_Handle_t railHandle,
 /// @endcode
 ///
 /// If multiple software timers are needed to be run off of the one available
-/// hardware timer, you can enable a software multiplexing layer within RAIL
+/// hardware timer, enable a software multiplexing layer within RAIL
 /// using the \ref RAIL_ConfigMultiTimer() function. This will allow you to
 /// set up as many timers as you want using the RAIL_*MultiTimer() functions. See
 /// the example below for using the multitimer functionality.
@@ -768,7 +791,7 @@ RAIL_Status_t RAIL_SetTime(RAIL_Time_t time);
  * than calling RAIL_GetTime() in a loop.
  * @note
  * Passing large delay values may give unpredictable results or trigger
- * the Watchdog Reset.
+ * the Watchdog reset.
  * \n Also, this function will start the clocks required for the RAIL timebase if they
  * are not running, except between \ref RAIL_Sleep() and \ref RAIL_Wake()
  * where the timer must remain stopped.
@@ -2720,7 +2743,8 @@ RAIL_Status_t RAIL_StartTx(RAIL_Handle_t railHandle,
  * the middle of receiving a packet is also specified in this structure.
  *
  * Returns an error if a previous transmit is still in progress.
- * If changing channels, any ongoing packet reception is aborted.
+ * If changing channels, the channel is changed immediately and
+ * will abort any ongoing packet reception.
  *
  * In multiprotocol, ensure that the radio is properly yielded after this
  * operation completes. See \ref rail_radio_scheduler_yield for more details.
@@ -2765,7 +2789,10 @@ RAIL_Status_t RAIL_StartScheduledTx(RAIL_Handle_t railHandle,
  * of the transmit FIFO remain intact.
  *
  * Returns an error if a previous transmit is still in progress.
- * If changing channels, any ongoing packet reception is aborted.
+ * If changing channels, the channel is changed immediately and any ongoing
+ * packet reception is aborted.
+ *
+ * Returns an error if a scheduled RX is still in progress.
  *
  * In multiprotocol, ensure that the radio is properly yielded after this
  * operation completes. See \ref rail_radio_scheduler_yield for more details.
@@ -2810,7 +2837,10 @@ RAIL_Status_t RAIL_StartCcaCsmaTx(RAIL_Handle_t railHandle,
  * of the transmit FIFO remain intact.
  *
  * Returns an error if a previous transmit is still in progress.
- * If changing channels, any ongoing packet reception is aborted.
+ * If changing channels, the channel is changed immediately and any ongoing
+ * packet reception is aborted.
+ *
+ * Returns an error if a scheduled RX is still in progress.
  *
  * In multiprotocol, ensure that the radio is properly yielded after this
  * operation completes. See \ref rail_radio_scheduler_yield for more details.
@@ -2862,7 +2892,8 @@ RAIL_Status_t RAIL_StartCcaLbtTx(RAIL_Handle_t railHandle,
  * of the transmit FIFO remain intact.
  *
  * Returns an error if a previous transmit is still in progress.
- * If changing channels, any ongoing packet reception is aborted.
+ * If changing channels, the channel is changed immediately and any ongoing
+ * packet reception is aborted.
  *
  * In multiprotocol, ensure that the radio is properly yielded after this
  * operation completes. See \ref rail_radio_scheduler_yield for more details.
@@ -2915,7 +2946,8 @@ RAIL_Status_t RAIL_StartScheduledCcaCsmaTx(RAIL_Handle_t railHandle,
  * FIFO remain intact.
  *
  * Returns an error if a previous transmit is still in progress.
- * If changing channels, any ongoing packet reception is aborted.
+ * If changing channels, the channel is changed immediately and any ongoing
+ * packet reception is aborted.
  *
  * In multiprotocol, ensure that the radio is properly yielded after this
  * operation completes. See \ref rail_radio_scheduler_yield for more details.
@@ -3347,8 +3379,10 @@ RAIL_Status_t RAIL_StartRx(RAIL_Handle_t railHandle,
  * the start time to disabled. You can also terminate the receive
  * operation immediately using the RAIL_Idle() function. Note that relative
  * end times are always relative to the start unless no start time is
- * specified. If changing channels, aborts any ongoing packet transmission or
- * reception.
+ * specified. If changing channels, the channel is changed immediately and
+ * will abort any ongoing packet transmission or reception.
+ *
+ * Returns an error if a CSMA or LBT transmit is still in progress.
  *
  * In multiprotocol, ensure that you properly yield the radio after this
  * call. See \ref rail_radio_scheduler_yield for more details.
@@ -3811,7 +3845,7 @@ RAIL_Status_t RAIL_ReleaseRxPacket(RAIL_Handle_t railHandle,
  * RSSI received on your hardware and apply an offset in the application to
  * account for board and PHY parameters. When 'wait' is false, the radio needs
  * to be currently in RX and have been in there for a sufficient amount of time
- * for a fresh RSSI value to be read and returned. Otherwise the RSSI is
+ * for a fresh RSSI value to be read and returned. Otherwise, the RSSI is
  * considered stale and \ref RAIL_RSSI_INVALID is returned instead. When 'wait'
  * is true, if the radio is transitioning to or already in RX, this function
  * will wait for a valid RSSI to be read and return it. Otherwise, if the radio
@@ -3965,10 +3999,9 @@ int16_t RAIL_GetAverageRssi(RAIL_Handle_t railHandle);
  *  such as \ref RAIL_EFR32_HANDLE, can be used to set a chip level RSSI offset.
  *
  * @note: Setting a large rssiOffset may still cause the RSSI readings to
- *  underflow or overflow. If that happens, the RSSI value returned by
+ *  underflow. If that happens, the RSSI value returned by
  *  \ref RAIL_GetRssi, \ref RAIL_GetAverageRssi,
- *  \ref RAIL_GetChannelHoppingRssi etc. will be \ref RAIL_RSSI_LOWEST or
- *  \ref RAIL_RSSI_HIGHEST, respectively.
+ *  \ref RAIL_GetChannelHoppingRssi etc. will be \ref RAIL_RSSI_LOWEST
  */
 RAIL_Status_t RAIL_SetRssiOffset(RAIL_Handle_t railHandle, int8_t rssiOffset);
 
@@ -3984,6 +4017,50 @@ RAIL_Status_t RAIL_SetRssiOffset(RAIL_Handle_t railHandle, int8_t rssiOffset);
  * RSSI offset correction, if any.
  */
 int8_t RAIL_GetRssiOffset(RAIL_Handle_t railHandle);
+
+/**
+ * Set the RSSI detection threshold(in dBm) to trigger
+ * \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD.
+ *
+ * @param[in] railHandle a RAIL instance handle.
+ * @param[in] rssiThresholdDbm desired RSSI threshold(in dBm) over which the event
+ *   \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD is triggered.
+ * @return Status code indicating success of the function call.
+ *   Returns \ref RAIL_STATUS_INVALID_STATE in multiprotocol,
+ *   if the requested \ref RAIL_Handle_t is not active.
+ *   Returns \ref RAIL_STATUS_INVALID_CALL if called on parts on which this function
+ *   is not supported.
+ *
+ * When in receive, RSSI is sampled and if it exceeds the threshold,
+ * \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD is triggered.
+ *
+ * @note:
+ * If the radio is idled or this function is called with rssiThresholdDbm as
+ * \ref RAIL_RSSI_INVALID_DBM while RSSI detect is still in effect, a
+ * \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD may not occur and the detection is disabled.
+ * If the RSSI is already above threshold when this function is called then
+ * \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD will occur.
+ * Once the RSSI goes over the configured threshold and
+ * \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD occurs, this function needs to be
+ * called again to reactivate the RSSI threshold detection.
+ * This function is only available on series-2 Sub-GHz parts EFR32XG23 and EFR32XG25.
+ */
+RAIL_Status_t RAIL_SetRssiDetectThreshold(RAIL_Handle_t railHandle,
+                                          int8_t rssiThresholdDbm);
+
+/**
+ * Get the RSSI detection threshold(in dBm).
+ *
+ * @param[in] railHandle a RAIL instance handle.
+ * @return rssiThreshold (in dBm) corresponding to the current handle.
+ * @note:
+ * The function returns \ref RAIL_RSSI_INVALID_DBM when
+ * \ref RAIL_SetRssiDetectThreshold is not supported or disabled.
+ * In multiprotocol, the function returns \ref RAIL_RSSI_INVALID_DBM if railHandle
+ * is not active.
+ * This function is only available on series-2 Sub-GHz parts EFR32XG23 and EFR32XG25.
+ */
+int8_t RAIL_GetRssiDetectThreshold(RAIL_Handle_t railHandle);
 
 /**
  * Set up a callback function capable of converting a RX packet's LQI value
@@ -4829,7 +4906,7 @@ bool RAIL_IsRfSensed(RAIL_Handle_t railHandle);
  *
  * @note This feature/API is not supported on the EFR32XG1 family of chips.
  *       Use the compile time symbol \ref RAIL_SUPPORTS_CHANNEL_HOPPING or
- *       the runtume call \ref RAIL_SupportsChannelHopping() to check whether
+ *       the runtime call \ref RAIL_SupportsChannelHopping() to check whether
  *       the platform supports this feature.
  *
  * @note Calling this function will overwrite any settings configured with
@@ -4878,7 +4955,7 @@ RAIL_Status_t RAIL_EnableRxChannelHopping(RAIL_Handle_t railHandle,
  *
  * @note This feature/API is not supported on the EFR32XG1 family of chips.
  *       Use the compile time symbol \ref RAIL_SUPPORTS_CHANNEL_HOPPING or
- *       the runtume call \ref RAIL_SupportsChannelHopping() to check whether
+ *       the runtime call \ref RAIL_SupportsChannelHopping() to check whether
  *       the platform supports this feature.
  *
  * @note In multiprotocol, this function returns \ref RAIL_RSSI_INVALID
@@ -4973,7 +5050,7 @@ int16_t RAIL_GetChannelHoppingRssi(RAIL_Handle_t railHandle,
 ///
 /// @note This feature/API is not supported on the EFR32XG1 family of chips.
 ///       Use the compile time symbol \ref RAIL_SUPPORTS_CHANNEL_HOPPING or
-///       the runtume call \ref RAIL_SupportsChannelHopping() to check whether
+///       the runtime call \ref RAIL_SupportsChannelHopping() to check whether
 ///       the platform supports this feature.
 ///
 /// @note Calling this function will overwrite any settings configured with
@@ -4995,7 +5072,7 @@ RAIL_Status_t RAIL_ConfigRxDutyCycle(RAIL_Handle_t railHandle,
  *
  * @note This feature/API is not supported on the EFR32XG1 family of chips.
  *       Use the compile time symbol \ref RAIL_SUPPORTS_CHANNEL_HOPPING or
- *       the runtume call \ref RAIL_SupportsChannelHopping() to check whether
+ *       the runtime call \ref RAIL_SupportsChannelHopping() to check whether
  *       the platform supports this feature.
  *
  * @note Calling this function will overwrite any settings configured with
@@ -5202,7 +5279,7 @@ RAIL_Status_t RAIL_EnableDirectMode(RAIL_Handle_t railHandle,
  * @return \ref RAIL_STATUS_NO_ERROR on success and an error code on failure.
  *
  * This API enables or disables the modem and GPIOs for direct mode operation.
- * see /ref RAIL_ConfigDirectMode for information on selecting the
+ * see \ref RAIL_ConfigDirectMode for information on selecting the
  * correct hardware configuration.  If direct mode is enabled,
  * packets are output and input directly to the radio via GPIO
  * and RAIL packet handling is ignored.
@@ -5446,7 +5523,309 @@ RAIL_Status_t RAIL_Verify(RAIL_VerifyConfig_t *configVerify,
                           uint32_t durationUs,
                           bool restart);
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+/**
+ * A global pointer to the memory address of the internal RAIL hardware timer
+ * that drives the RAIL timebase.
+ *
+ * @note The corresponding timer tick value is not adjusted for overflow or the
+ *   clock period, and will simply be a register read. The ticks wrap after
+ *   about 17 minutes since it does not use the full 32-bit range.
+ *   For more details, check the documentation for \ref RAIL_TimerTick_t.
+ */
+extern const volatile RAIL_TimerTick_t *RAIL_TimerTick;
+
+/**
+ * Get elapsed time, in microseconds, between two \ref RAIL_TimerTick_t ticks.
+ *
+ * @param[in] startTick Tick recorded at the start of the operation.
+ * @param[in] endTick Tick recorded at the end of the operation.
+ *
+ * @return Returns the elapsed time, in microseconds, between two timer ticks.
+ */
+RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
+                                RAIL_TimerTick_t endTick);
+
+/**
+ * Get \ref RAIL_TimerTick_t tick corresponding to the \ref RAIL_Time_t time.
+ *
+ * @param[in] microseconds Time in microseconds.
+ *
+ * @return Returns the \ref RAIL_TimerTick_t tick corresponding to the
+ *   \ref RAIL_Time_t time.
+ */
+RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
+
+/**
+ * Enable Radio state change interrupt.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] enable Enable/disable Radio state change interrupt.
+ * @return Status code indicating success of the function call. Returns
+ *   \ref RAIL_STATUS_NO_ERROR once the interrupt has been enabled or disabled.
+ *
+ * @note If enabled, state change events are reported through the separate
+ *   RAILCb_RadioStateChanged() callback.
+ */
+RAIL_Status_t RAIL_EnableRadioStateChanged(RAIL_Handle_t railHandle,
+                                           bool enable);
+
+/**
+ * Get the current radio state.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return An enumeration, \ref RAIL_RadioStateEfr32_t, for the current radio
+ *   state.
+ *
+ */
+RAIL_RadioStateEfr32_t RAIL_GetRadioStateAlt(RAIL_Handle_t railHandle);
+
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
 /** @} */ // end of group Diagnostic
+
+/******************************************************************************
+ * Energy Friendly Front End Module (EFF)
+ *****************************************************************************/
+/**
+ * @addtogroup EFF Energy Friendly Front End Module (EFF)
+ * @brief APIs for configuring and controlling an attached Energy Friendly Front
+ * End Module (EFF).
+ *
+ * The EFF is a high-performance, transmit/receive (T/R) front end module (FEM)
+ * for sub-GHz EFR32 devices. RAIL includes built-in functionality to transmit
+ * and receive via an attached EFF. This functionality optimizes RF performance
+ * while ensuring that the EFF stays within safe operating temperature limits.
+ *
+ * Configuration and control of the EFF is performed by the \ref rail_util_eff.
+ *
+ * @note The EFF is only supported with EFR32XG25 devices.
+ * @{
+ */
+
+/**
+ * Configure the attached EFF device.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] config  A pointer to a \ref RAIL_EffConfig_t struct that contains
+ *                    configuration data for the EFF.
+ * @return Status code indicating success of the function call.
+ */
+
+RAIL_Status_t RAIL_ConfigEff(RAIL_Handle_t railHandle,
+                             const RAIL_EffConfig_t *config);
+
+/** Number of temperature values provided by \ref RAIL_GetTemperature(). */
+#define RAIL_TEMP_MEASURE_COUNT  (13U)
+
+/**
+ * Get the different temperature measurements in Kelvin done by sequencer or host.
+ * Values that are not populated yet or incorrect are set to 0.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[out] tempBuffer The address of the array that will contain temperatures.
+ *    tempBuffer array must be at least \ref RAIL_TEMP_MEASURE_COUNT int16_t.
+ * @param[in] reset Reset the EFF temperature values.
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetTemperature(RAIL_Handle_t railHandle,
+                                  int16_t tempBuffer[RAIL_TEMP_MEASURE_COUNT],
+                                  bool reset);
+
+/**
+ * Set the FEM maximum power for continuous TX and the duty cycle for TX operations
+ * from \ref RAIL_FemProtectionConfig_t.
+ * Default continuous TX power is defined at 200 deci-dBm and can be set to a
+ * maximum of 300 deci-dBm.
+ * Default duty cycle is defined at 50 percent and can be set to a maximum of
+ * 100 percent.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] newFemConfig Pointer to the new limits to use for the FEM protection configuration
+ * @return Status code indicating success of the function call.
+ *
+ * @note Setting the power for continuous TX and the duty cycle from
+ * \ref RAIL_FemProtectionConfig_t to 0 will apply their default value.
+ * For an ambient temperature above 70 degrees Celsius, it is recommended to use the default configuration.
+ */
+RAIL_Status_t RAIL_SetFemProtectionConfig(RAIL_Handle_t railHandle, const RAIL_FemProtectionConfig_t *newFemConfig);
+
+/**
+ * Get the FEM protection configuration.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[out] femConfig Current FEM protection configuration written to this pointer.
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetFemProtectionConfig(RAIL_Handle_t railHandle, RAIL_FemProtectionConfig_t *femConfig);
+
+/** Number of bytes provided by \ref RAIL_GetSetEffControl(). */
+#define RAIL_EFF_CONTROL_SIZE (52U)
+
+/**
+ * Get the different EFF Control measurements.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[out] tempBuffer The address of the target array.
+ *    tempBuffer array must be at least \ref RAIL_EFF_CONTROL_SIZE bytes.
+ * @param[in] reset Reset the EFF Control measurements.
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffControl(RAIL_Handle_t railHandle,
+                                    uint16_t tempBuffer[RAIL_EFF_CONTROL_SIZE / sizeof(uint16_t)],
+                                    bool reset);
+
+/**
+ * Copy the current FEM_DATA pin values into newMode. If changeMode is true,
+ * update FEM_DATA pin values with newMode first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newMode  A pointer to a uint8_t that will contain the FEM_DATA pin values
+ * @param[in] changeMode If true, use newMode to update FEM_DATA pin values
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffMode(RAIL_Handle_t railHandle,
+                                 uint8_t *newMode,
+                                 bool changeMode);
+
+/**
+ * Copy the current Rural to Urban trip voltage into newTrip. If changeTrip is true,
+ * update current Rural to Urban trip voltage with newTrip first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newTrip  A pointer to a uint16_t that will contain the Rural to Urban trip voltage, in millivolts
+ * @param[in] changeTrip If true, use newTrip to update current Rural to Urban trip voltage
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffRuralUrbanMv(RAIL_Handle_t railHandle,
+                                         uint16_t *newTrip,
+                                         bool changeTrip);
+
+/**
+ * Copy the current Urban to Bypass trip voltage into newTrip. If changeTrip is true,
+ * update current Urban to Bypass trip voltage with newTrip first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newTrip  A pointer to a uint16_t that will contain the Urban to Bypass trip voltage, in millivolts
+ * @param[in] changeTrip If true, use newTrip to update current Urban to Bypass trip voltage
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffUrbanBypassMv(RAIL_Handle_t railHandle,
+                                          uint16_t *newTrip,
+                                          bool changeTrip);
+
+/**
+ * Copy the current Urban dwell time into newDwellTime. If changeDwellTime is true,
+ * update current Urban dwell time with newDwellTime first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newDwellTime  A pointer to a uint16_t that will contain the Urban dwell
+ *   dwell time, in milliseconds
+ * @param[in] changeDwellTime If true, use newDwellTime to update current Urban dwell time
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffUrbanDwellTimeMs(RAIL_Handle_t railHandle,
+                                             uint32_t *newDwellTime,
+                                             bool changeDwellTime);
+
+/**
+ * Copy the current Bypass dwell time into newDwellTime. If changeDwellTime is true,
+ * update current Bypass dwell time with newDwellTime first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newDwellTime  A pointer to a uint16_t that will contain the Bypass dwell
+ *   dwell time, in milliseconds
+ * @param[in] changeDwellTime If true, use newDwellTime to update current Bypass dwell time
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffBypassDwellTimeMs(RAIL_Handle_t railHandle,
+                                              uint32_t *newDwellTime,
+                                              bool changeDwellTime);
+
+/**
+ * Copy the current CLPC Slow Loop values into newTarget and newSlope. If changeTarget is true,
+ * update current CLPC Slow Loop Target and Slope first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newTarget  A pointer to a uint16_t that will contain the CLPC Slow Loop Target
+ * @param[in,out] newSlope  A pointer to a uint16_t that will contain the CLPC Slow Loop Slope
+ * @param[in] changeValues If true, use newTarget and newGain to update the CLPC SLow Loop values
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetClpcSlowLoop(RAIL_Handle_t railHandle,
+                                      uint16_t *newTarget,
+                                      uint16_t *newSlope,
+                                      bool changeValues);
+
+/**
+ * Copy the current CLPC Fast Loop values into newTarget and newSlope. If changeTarget is true,
+ * update current CLPC Fast Loop Target and Slope first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newTarget  A pointer to a uint16_t that will contain the CLPC Fast Loop Target
+ * @param[in,out] newSlope  A pointer to a uint16_t that will contain the CLPC Fast Loop Slope
+ * @param[in] changeValues If true, use newTarget and newGain to update the CLPC Fast Loop values
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetClpcFastLoop(RAIL_Handle_t railHandle,
+                                      uint16_t *newTarget,
+                                      uint16_t *newSlope,
+                                      bool changeValues);
+
+/**
+ * Copy the current CLPC Enable in to newClpcEnable. If changeClpcEnable is true,
+ * update current CLPC Enable with newClpcEnable first.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newClpcEnable  A pointer to a uint8_t that will contain the CLPC Enable
+ * @param[in] changeClpcEnable If true, use newClpcEnable to update the current CLPC Enable
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetClpcEnable(RAIL_Handle_t railHandle,
+                                    uint8_t *newClpcEnable,
+                                    bool changeClpcEnable);
+
+/**
+ * Get and set the EFF temperature threshold.
+ *
+ * The EFR32 device periodically takes temperature measurements of the attached
+ * EFF device. If the EFF temperature ever exceeds the EFF temperature
+ * threshold, any active transmit operation is aborted and future transmit
+ * operations are blocked until the EFF temperature falls below the threshold.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newThreshold A pointer to a uint16_t that will contain the
+ *   EFF temperature threshold, in Kelvin
+ * @param[in] changeThreshold If true, use changeThreshold to update current
+ *   EFF temperature threshold
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetEffTempThreshold(RAIL_Handle_t railHandle,
+                                          uint16_t *newThreshold,
+                                          bool changeThreshold);
+
+/**
+ * Get and set the internal temperature threshold.
+ *
+ * The EFR32 device periodically takes measurements of its internal temperature
+ * when attached to an EFF device. If the internal temperature ever exceeds the
+ * internal temperature threshold, any active transmit operation is aborted and
+ * future transmit operations are blocked until the internal temperature falls
+ * below the threshold.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in,out] newThreshold A pointer to a uint16_t that will contain the
+ *   internal temperature threshold, in Kelvin
+ * @param[in] changeThreshold If true, use changeThreshold to update current
+ *   internal temperature threshold
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetInternalTempThreshold(RAIL_Handle_t railHandle,
+                                               uint16_t *newThreshold,
+                                               bool changeThreshold);
+
+/** @} */ // end of group EFF
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -5580,12 +5959,314 @@ RAIL_Status_t RAIL_StartThermistorMeasurement(RAIL_Handle_t railHandle);
 RAIL_Status_t RAIL_GetThermistorImpedance(RAIL_Handle_t railHandle,
                                           uint32_t *thermistorImpedance);
 
+/**
+ * Convert the thermistor impedance into temperature, in Celsius.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] thermistorImpedance Current thermistor impedance measurement in
+ *   Ohms.
+ * @param[out] thermistorTemperatureC Pointer to current thermistor temperature
+ *   in eighth of Celsius degree
+ * @return Status code indicating success of the function call.
+ *
+ * This function is provided in the rail_util_thermistor plugin to get
+ * accurate values from our boards thermistors. For a custom board, this
+ * function could be modified and re-implemented for other needs.
+ * The variable railHandle is only used to indicate to the user from where the
+ * function was called, so it is okay to use either a real protocol handle,
+ * or one of the chip-specific ones, such as \ref RAIL_EFR32_HANDLE.
+ *
+ * @note This plugin is mandatory on EFR32xG25 platform.
+ */
+RAIL_Status_t RAIL_ConvertThermistorImpedance(RAIL_Handle_t railHandle,
+                                              uint32_t thermistorImpedance,
+                                              int16_t *thermistorTemperatureC);
+
+/**
+ * Compute the crystal PPM deviation from the thermistor temperature.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] crystalTemperatureC Current crystal temperature.
+ * @param[out] crystalPPMError Pointer to current ppm error.
+ * @return Status code indicating success of the function call.
+ *
+ * This function is provided in the rail_util_thermistor plugin to get
+ * accurate values from our boards thermistor. For a custom board, this
+ * function could be modified and re-implemented for other needs.
+ * The variable railHandle is only used to indicate to the user from where the
+ * function was called, so it is okay to use either a real protocol handle,
+ * or one of the chip-specific ones, such as \ref RAIL_EFR32_HANDLE.
+ *
+ * @note This plugin is mandatory on EFR32xG25 platform.
+ */
+RAIL_Status_t RAIL_ComputeHFXOPPMError(RAIL_Handle_t railHandle,
+                                       int16_t crystalTemperatureC,
+                                       int8_t *crystalPPMError);
+
+/**
+ * Configure the GPIO for thermistor usage.
+ *
+ * @param railHandle A RAIL instance handle.
+ * @param[in] hfxoThermistorConfig The thermistor configuration pointing to
+ *   the GPIO port and pin to access.
+ * @return Status code indicating success of the function call.
+ *
+ * @note The port and pin that must be passed in \ref RAIL_HFXOThermistorConfig_t
+ * are GPIO_THMSW_EN_PORT and GPIO_THMSW_EN_PIN respectively.
+ */
+RAIL_Status_t RAIL_ConfigHFXOThermistor(RAIL_Handle_t railHandle,
+                                        const RAIL_HFXOThermistorConfig_t *hfxoThermistorConfig);
 /** @} */ // end of group External_Thermistor
 
 /**
  * @addtogroup Features
  * @{
  */
+
+/**
+ * Indicate whether RAIL supports 2.4 GHz band operation on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the 2.4 GHz band is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_2P4GHZ_BAND.
+ */
+bool RAIL_Supports2p4GHzBand(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports SubGHz band operation on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the SubGHz band is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_SUBGHZ_BAND.
+ */
+bool RAIL_SupportsSubGHzBand(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports dual 2.4 GHz and SubGHz band operation.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the dual band is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_DUAL_BAND.
+ */
+bool RAIL_SupportsDualBand(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports bit masked address filtering
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if bit masked address filtering is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time
+ * \ref RAIL_SUPPORTS_ADDR_FILTER_ADDRESS_BIT_MASK.
+ */
+bool RAIL_SupportsAddrFilterAddressBitMask(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports address filter mask information
+ * for incoming packets in
+ * \ref RAIL_RxPacketInfo_t::filterMask and
+ * \ref RAIL_IEEE802154_Address_t::filterMask.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if address filter information is supported; false otherwise
+ *   (in which case \ref RAIL_RxPacketInfo_t::filterMask value is undefined).
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_ADDR_FILTER_MASK.
+ */
+bool RAIL_SupportsAddrFilterMask(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports alternate TX power settings.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if alternate TX power settings are supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_SUPPORTS_ALTERNATE_TX_POWER.
+ */
+bool RAIL_SupportsAlternateTxPower(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports antenna diversity.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if antenna diversity is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY.
+ *
+ * @note Certain radio configurations may not support this feature even
+ *   if the chip in general claims to support it.
+ */
+bool RAIL_SupportsAntennaDiversity(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports AUXADC measurements on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if AUXADC measurements are supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_AUXADC.
+ */
+bool RAIL_SupportsAuxAdc(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports channel hopping on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if channel hopping is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_CHANNEL_HOPPING.
+ */
+bool RAIL_SupportsChannelHopping(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports direct mode.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if direct mode is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_SUPPORTS_DIRECT_MODE.
+ */
+bool RAIL_SupportsDirectMode(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports dual sync words.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if dual sync words are supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_DUAL_SYNC_WORDS.
+ *
+ * @note Certain radio configurations may not support this feature even
+ *   if the chip in general claims to support it.
+ */
+bool RAIL_SupportsDualSyncWords(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports EFF.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if EFF identifier is supported; false otherwise.
+ */
+bool RAIL_SupportsEff(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports thermistor measurements on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if thermistor measurements are supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
+ */
+bool RAIL_SupportsExternalThermistor(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports MFM protocol.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if MFM protocol is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_MFM.
+ */
+bool RAIL_SupportsMfm(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports OFDM band operation on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if OFDM operation is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_OFDM_PA.
+ */
+bool RAIL_SupportsOFDMPA(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports a high-precision LFRCO.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if high-precision LFRCO is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_PRECISION_LFRCO.
+ */
+bool RAIL_SupportsPrecisionLFRCO(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports radio entropy.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if radio entropy is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_RADIO_ENTROPY.
+ */
+bool RAIL_SupportsRadioEntropy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports RFSENSE Energy Detection Mode on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if RFSENSE Energy Detection Mode is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time
+ * \ref RAIL_SUPPORTS_RFSENSE_ENERGY_DETECTION.
+ */
+bool RAIL_SupportsRfSenseEnergyDetection(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports RFSENSE Selective(OOK) Mode on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if RFSENSE Selective(OOK) Mode is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK.
+ */
+bool RAIL_SupportsRfSenseSelectiveOok(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports configurable RSSI threshold
+ * set by \ref RAIL_SetRssiDetectThreshold().
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if setting configurable RSSI is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD.
+ */
+bool RAIL_SupportsRssiDetectThreshold(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports RX direct mode data to FIFO.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if direct mode data to FIFO is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO.
+ */
+bool RAIL_SupportsRxDirectModeDataToFifo(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports raw RX data
+ * sources other than \ref RAIL_RxDataSource_t::RX_PACKET_DATA.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if direct mode is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_RX_RAW_DATA.
+ */
+bool RAIL_SupportsRxRawData(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports SQ-based PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the SQ-based PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_SQ_PHY.
+ */
+bool RAIL_SupportsSQPhy(RAIL_Handle_t railHandle);
 
 /**
  * Indicate whether this chip supports a particular power mode (PA).
@@ -5627,6 +6308,412 @@ bool RAIL_SupportsTxPowerModeAlt(RAIL_Handle_t railHandle,
                                  RAIL_TxPowerMode_t *powerMode,
                                  RAIL_TxPowerLevel_t *maxPowerLevel,
                                  RAIL_TxPowerLevel_t *minPowerLevel);
+
+/**
+ * Indicate whether this chip supports automatic TX to TX transitions.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if TX to TX transitions are supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_TX_TO_TX.
+ */
+bool RAIL_SupportsTxToTx(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports the BLE protocol on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_PROTOCOL_BLE.
+ */
+bool RAIL_SupportsProtocolBLE(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE 1Mbps Non-Viterbi PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 1Mbps Non-Viterbi is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_1MBPS_NON_VITERBI.
+ */
+bool RAIL_BLE_Supports1MbpsNonViterbi(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE 1Mbps Viterbi PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 1Mbps Viterbi is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_1MBPS_VITERBI.
+ */
+bool RAIL_BLE_Supports1MbpsViterbi(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE 1Mbps operation.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 1Mbps operation is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_1MBPS.
+ */
+static inline
+bool RAIL_BLE_Supports1Mbps(RAIL_Handle_t railHandle)
+{
+  return (RAIL_BLE_Supports1MbpsNonViterbi(railHandle)
+          || RAIL_BLE_Supports1MbpsViterbi(railHandle));
+}
+
+/**
+ * Indicate whether this chip supports BLE 2Mbps Non-Viterbi PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 2Mbps Non-Viterbi is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_2MBPS_NON_VITERBI.
+ */
+bool RAIL_BLE_Supports2MbpsNonViterbi(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE 2Mbps Viterbi PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 2Mbps Viterbi is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_2MBPS_VITERBI.
+ */
+bool RAIL_BLE_Supports2MbpsViterbi(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE 2Mbps operation.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE 2Mbps operation is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_2MBPS.
+ */
+static inline
+bool RAIL_BLE_Supports2Mbps(RAIL_Handle_t railHandle)
+{
+  return (RAIL_BLE_Supports2MbpsNonViterbi(railHandle)
+          || RAIL_BLE_Supports2MbpsViterbi(railHandle));
+}
+
+/**
+ * Indicate whether this chip supports BLE Antenna Switching needed for
+ * Angle-of-Arrival receives or Angle-of-Departure transmits.
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE Antenna Switching is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_ANTENNA_SWITCHING.
+ */
+bool RAIL_BLE_SupportsAntennaSwitching(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE Coded PHY used for Long-Range.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE Coded PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_CODED_PHY.
+ */
+bool RAIL_BLE_SupportsCodedPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE CTE (Constant Tone Extension)
+ * needed for Angle-of-Arrival/Departure transmits.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE CTE is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_CTE.
+ */
+bool RAIL_BLE_SupportsCte(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE IQ Sampling needed for
+ * Angle-of-Arrival/Departure receives.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE IQ Sampling is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_IQ_SAMPLING.
+ */
+bool RAIL_BLE_SupportsIQSampling(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE PHY switch to RX
+ * functionality, which is used to switch BLE PHYs at a specific time
+ * to receive auxiliary packets.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE PHY switch to RX is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX.
+ */
+bool RAIL_BLE_SupportsPhySwitchToRx(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the Quuppa PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the Quuppa is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_QUUPPA.
+ */
+bool RAIL_BLE_SupportsQuuppa(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE signal identifier.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if signal identifier is supported; false otherwise.
+ */
+bool RAIL_BLE_SupportsSignalIdentifier(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports BLE Simulscan PHY used for simultaneous
+ * BLE 1Mbps and Coded PHY reception.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if BLE Simulscan PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_BLE_SUPPORTS_SIMULSCAN_PHY.
+ */
+bool RAIL_BLE_SupportsSimulscanPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 protocol.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the 802.15.4 protocol is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_PROTOCOL_IEEE802154.
+ */
+bool RAIL_SupportsProtocolIEEE802154(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 Wi-Fi Coexistence PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the 802.15.4 COEX PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY.
+ */
+bool RAIL_IEEE802154_SupportsCoexPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 PHY with custom settings.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the 802.15.4 PHY with custom settings is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY.
+ */
+bool RAIL_IEEE802154_SupportsCustom1Phy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4
+ * front end module optimized PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if a front end module is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_FEM_PHY.
+ */
+bool RAIL_IEEE802154_SupportsFemPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports canceling the frame-pending lookup
+ * event \ref RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND when the radio
+ * transitions to a state that renders the the reporting of this event moot
+ * (i.e., too late for the stack to influence the outgoing ACK).
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if canceling the lookup event is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP.
+ */
+bool RAIL_IEEE802154_SupportsCancelFramePendingLookup(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports early triggering of the frame-pending
+ * lookup event \ref RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND
+ * just after MAC address fields have been received.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if early triggering is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP.
+ */
+bool RAIL_IEEE802154_SupportsEarlyFramePendingLookup(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports dual PA mode on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the dual PA mode is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_DUAL_PA_CONFIG.
+ */
+bool RAIL_IEEE802154_SupportsDualPaConfig(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4E-2012 Enhanced ACKing.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4E Enhanced ACKing is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK.
+ */
+bool RAIL_IEEE802154_SupportsEEnhancedAck(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4E-2012 Multipurpose frame
+ * reception.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if Multipurpose frame reception is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES.
+ */
+bool RAIL_IEEE802154_SupportsEMultipurposeFrames(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4E-2012 feature
+ * subset needed for Zigbee R22 GB868.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4E GB868 subset is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868.
+ */
+bool RAIL_IEEE802154_SupportsESubsetGB868(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4G-2012 reception and
+ * transmission of frames with 4-byte CRC.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4G 4-byte CRC is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_4BYTE_CRC.
+ */
+bool RAIL_IEEE802154_SupportsG4ByteCrc(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4G dynamic FEC
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if dynamic FEC is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_DYNFEC.
+ */
+bool RAIL_IEEE802154_SupportsGDynFec(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports Wi-SUN mode switching
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if Wi-SUN mode switching is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_MODESWITCH.
+ */
+bool RAIL_IEEE802154_SupportsGModeSwitch(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4G-2012 feature
+ * subset needed for Zigbee R22 GB868.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4G GB868 subset is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868.
+ */
+bool RAIL_IEEE802154_SupportsGSubsetGB868(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4G-2012 reception
+ * of unwhitened frames.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4G unwhitened frame reception is supported;
+ *   false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX.
+ */
+bool RAIL_IEEE802154_SupportsGUnwhitenedRx(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4G-2012 transmission
+ * of unwhitened frames.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if 802.15.4G unwhitened frame transmit is supported;
+ *   false otherwise.
+ *
+ * Runtime refinement of compile-time \ref
+ * RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX.
+ */
+bool RAIL_IEEE802154_SupportsGUnwhitenedTx(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the Z-Wave protocol.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the Z-Wave protocol is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_PROTOCOL_ZWAVE.
+ */
+bool RAIL_SupportsProtocolZWave(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the Z-Wave concurrent PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the Z-Wave concurrent PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_ZWAVE_SUPPORTS_CONC_PHY.
+ */
+bool RAIL_ZWAVE_SupportsConcPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the Z-Wave energy detect PHY.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if the Z-Wave energy detect PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_ZWAVE_SUPPORTS_ED_PHY.
+ */
+bool RAIL_ZWAVE_SupportsEnergyDetectPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports Z-Wave Region in PTI.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if ZWAVE Region in PTI is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_ZWAVE_SUPPORTS_REGION_PTI.
+ */
+bool RAIL_ZWAVE_SupportsRegionPti(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports IEEE 802.15.4 signal identifier.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if signal identifier is supported; false otherwise.
+ */
+bool RAIL_IEEE802154_SupportsSignalIdentifier(RAIL_Handle_t railHandle);
 
 /** @} */ // end of group Features
 

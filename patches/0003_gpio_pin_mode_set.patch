@@ -1,7 +1,7 @@
-diff --git dist/emlib/inc/em_gpio.h dist/emlib/inc/em_gpio.h
+diff --git dist/platform/emlib/inc/em_gpio.h dist/platform/emlib/inc/em_gpio.h
 index 203bcf38..1acdf113 100644
---- dist/emlib/inc/em_gpio.h
-+++ dist/emlib/inc/em_gpio.h
+--- dist/platform/emlib/inc/em_gpio.h
++++ dist/platform/emlib/inc/em_gpio.h
 @@ -995,10 +995,36 @@ __STATIC_INLINE void GPIO_PinLock(GPIO_Port_TypeDef port, unsigned int pin)
  GPIO_Mode_TypeDef GPIO_PinModeGet(GPIO_Port_TypeDef port,
                                    unsigned int pin);
@@ -43,10 +43,10 @@ index 203bcf38..1acdf113 100644
  
  /***************************************************************************//**
   * @brief
-diff --git dist/emlib/src/em_gpio.c dist/emlib/src/em_gpio.c
+diff --git dist/platform/emlib/src/em_gpio.c dist/platform/emlib/src/em_gpio.c
 index 6aec2483..71573eb9 100644
---- dist/emlib/src/em_gpio.c
-+++ dist/emlib/src/em_gpio.c
+--- dist/platform/emlib/src/em_gpio.c
++++ dist/platform/emlib/src/em_gpio.c
 @@ -329,7 +329,8 @@ void GPIO_EM4WUExtIntConfig(GPIO_Port_TypeDef port,
  
  /***************************************************************************//**

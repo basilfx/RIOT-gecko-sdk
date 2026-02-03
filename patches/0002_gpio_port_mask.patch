@@ -1,7 +1,7 @@
-diff --git dist/emlib/inc/em_gpio.h dist/emlib/inc/em_gpio.h
+diff --git dist/platform/emlib/inc/em_gpio.h dist/platform/emlib/inc/em_gpio.h
 index 203bcf38..18e213c3 100644
---- dist/emlib/inc/em_gpio.h
-+++ dist/emlib/inc/em_gpio.h
+--- dist/platform/emlib/inc/em_gpio.h
++++ dist/platform/emlib/inc/em_gpio.h
 @@ -390,31 +390,31 @@ extern "C" {
  #endif
  

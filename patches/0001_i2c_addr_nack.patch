@@ -1,7 +1,7 @@
-diff --git dist/emlib/inc/em_i2c.h dist/emlib/inc/em_i2c.h
+diff --git dist/platform/emlib/inc/em_i2c.h dist/platform/emlib/inc/em_i2c.h
 index 74feec9e..b87e49b4 100644
---- dist/emlib/inc/em_i2c.h
-+++ dist/emlib/inc/em_i2c.h
+--- dist/platform/emlib/inc/em_i2c.h
++++ dist/platform/emlib/inc/em_i2c.h
 @@ -174,11 +174,12 @@ typedef enum {
    i2cTransferDone       = 0,    /**< Transfer completed successfully. */
  
@@ -20,10 +20,10 @@ index 74feec9e..b87e49b4 100644
  } I2C_TransferReturn_TypeDef;
  
  /*******************************************************************************
-diff --git dist/emlib/src/em_i2c.c dist/emlib/src/em_i2c.c
+diff --git dist/platform/emlib/src/em_i2c.c dist/platform/emlib/src/em_i2c.c
 index 723954b2..aa562cf0 100644
---- dist/emlib/src/em_i2c.c
-+++ dist/emlib/src/em_i2c.c
+--- dist/platform/emlib/src/em_i2c.c
++++ dist/platform/emlib/src/em_i2c.c
 @@ -579,7 +579,7 @@ I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
        case i2cStateAddrWFAckNack:
          if (pending & I2C_IF_NACK) {

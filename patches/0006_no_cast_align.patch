@@ -1,0 +1,272 @@
+diff --git dist/platform/emlib/src/em_crypto.c dist/platform/emlib/src/em_crypto.c
+index cef995cb7..f9178ffe8 100644
+--- dist/platform/emlib/src/em_crypto.c
++++ dist/platform/emlib/src/em_crypto.c
+@@ -242,7 +242,14 @@ void CRYPTO_DataWriteUnaligned(volatile uint32_t * reg,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     const uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_DataWrite(reg, (const uint32_t*)tmp_val_ptr);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -266,7 +273,14 @@ void CRYPTO_DataReadUnaligned(volatile uint32_t * reg,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_DataRead(reg, (uint32_t*)tmp_val_ptr);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -298,7 +312,14 @@ void CRYPTO_DDataReadUnaligned(CRYPTO_DDataReg_TypeDef ddataReg,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_DDataRead(ddataReg, (uint32_t*) tmp_val_ptr);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -334,7 +355,14 @@ void CRYPTO_QDataWriteUnaligned(CRYPTO_QDataReg_TypeDef qdataReg,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     const uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_QDataWrite(qdataReg, (const uint32_t*) tmp_val_ptr);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -422,7 +450,14 @@ void CRYPTO_KeyBufWriteUnaligned(CRYPTO_TypeDef          *crypto,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     const uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_KeyBufWrite(crypto, (uint32_t*)tmp_val_ptr, keyWidth);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -539,7 +574,14 @@ void CRYPTO_KeyReadUnaligned(CRYPTO_TypeDef *         crypto,
+     // compiler making incorrect assumptions in the case where val is un-
+     // aligned.
+     uint8_t * volatile tmp_val_ptr = val;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     CRYPTO_KeyRead(crypto, (uint32_t*)tmp_val_ptr, keyWidth);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ }
+ 
+@@ -654,9 +696,23 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
+   {
+     uint64_t msgLenInBits = msgLen << 3U;
+     temp = (uint32_t)(msgLenInBits >> 32U);
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     *(uint32_t*)&p8ShaBlock[56] = SWAP32(temp);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+     temp = (uint32_t)msgLenInBits & 0xFFFFFFFFUL;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     *(uint32_t*)&p8ShaBlock[60] = SWAP32(temp);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ 
+   /* Write block to QDATA1BIG. */
+@@ -679,11 +735,18 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
+     CRYPTO_DDataRead(&crypto->DDATA0BIG, tempDData);
+     memcpy(msgDigest, tempDData, sizeof(CRYPTO_SHA1_Digest_TypeDef));
+   } else {
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     ((uint32_t*)msgDigest)[0] = crypto->DDATA0BIG;
+     ((uint32_t*)msgDigest)[1] = crypto->DDATA0BIG;
+     ((uint32_t*)msgDigest)[2] = crypto->DDATA0BIG;
+     ((uint32_t*)msgDigest)[3] = crypto->DDATA0BIG;
+     ((uint32_t*)msgDigest)[4] = crypto->DDATA0BIG;
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+     crypto->DDATA0BIG;
+     crypto->DDATA0BIG;
+     crypto->DDATA0BIG;
+@@ -803,9 +866,23 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
+   {
+     uint64_t msgLenInBits = msgLen << 3;
+     temp = (uint32_t)(msgLenInBits >> 32);
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     *(uint32_t *)&p8ShaBlock[56] = SWAP32(temp);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+     temp = (uint32_t)msgLenInBits & 0xFFFFFFFFUL;
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     *(uint32_t *)&p8ShaBlock[60] = SWAP32(temp);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+ 
+   /* Write the final block to QDATA1BIG. */
+@@ -1559,7 +1636,14 @@ void CRYPTO_AES_CTR256(CRYPTO_TypeDef *  crypto,
+  ******************************************************************************/
+ void CRYPTO_AES_CTRUpdate32Bit(uint8_t * ctr)
+ {
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+   uint32_t * _ctr = (uint32_t *) ctr;
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+ 
+   _ctr[3] = __REV(__REV(_ctr[3]) + 1U);
+ }
+@@ -2336,7 +2420,14 @@ __STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *        crypto,
+     /* Optimized version, 15% faster for -O3. */
+     if (len > 0UL) {
+       /* Load first data and trigger encryption. */
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+       CRYPTO_DataWrite(inReg, (uint32_t *)in);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+       CRYPTO_InstructionSequenceExecute(crypto);
+ 
+       /* Do loop administration while CRYPTO engine is working. */
+@@ -2347,10 +2438,24 @@ __STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *        crypto,
+         /* Wait for the sequence to finish. */
+         CRYPTO_InstructionSequenceWait(crypto);
+         /* Save encrypted/decrypted data. */
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+         CRYPTO_DataRead(outReg, (uint32_t *)out);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+ 
+         /* Load next data and retrigger encryption asap. */
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+         CRYPTO_DataWrite(inReg, (uint32_t *)in);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+         CRYPTO_InstructionSequenceExecute(crypto);
+ 
+         /* Do loop administration while CRYPTO engine is working. */
+@@ -2362,7 +2467,14 @@ __STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *        crypto,
+       /* Wait for the sequence to finish. */
+       CRYPTO_InstructionSequenceWait(crypto);
+       /* Save last encrypted/decrypted data. */
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+       CRYPTO_DataRead(outReg, (uint32_t *)out);
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+     }
+   }
+ }
+diff --git dist/platform/emlib/src/em_msc.c dist/platform/emlib/src/em_msc.c
+index 8db099101..ea681dadd 100644
+--- dist/platform/emlib/src/em_msc.c
++++ dist/platform/emlib/src/em_msc.c
+@@ -630,10 +630,17 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
+     burstLen = SL_MIN(numBytes,
+                       ((addr + FLASH_PAGE_SIZE) & FLASH_PAGE_MASK) - addr);
+ 
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     if ((retVal = writeBurst(addr, (const uint32_t*)pData, burstLen))
+         != mscReturnOk) {
+       break;
+     }
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+ 
+     addr     += burstLen;
+     pData    += burstLen;
+diff --git dist/platform/emlib/src/em_se.c dist/platform/emlib/src/em_se.c
+index 649cec5ef..9fca08785 100644
+--- dist/platform/emlib/src/em_se.c
++++ dist/platform/emlib/src/em_se.c
+@@ -937,7 +937,14 @@ SE_Response_t SE_initOTP(SE_OTPInit_t *otp_init)
+   };
+ 
+   for (size_t i = 0; i < 5; i++) {
++#if defined(__GNUC__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wcast-align"
++#endif
+     parity = parity ^ ((uint32_t*)(&reservedSettings))[i];
++#if defined(__GNUC__)
++#pragma GCC diagnostic pop
++#endif
+   }
+   parameters[0] = parity;
+   parameters[1] = parameters[1] + sizeof(reservedSettings);

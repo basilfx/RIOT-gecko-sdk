@@ -2,7 +2,7 @@
 
 GECKO_SDK_USER="SiliconLabs"
 GECKO_SDK_REPO="gecko_sdk"
-GECKO_SDK_SHA1="1b1146884839bbfddaae34da39de8d780ed905b9" # Version 4.1.2
+GECKO_SDK_SHA1="90fc93e1f95a10c981f0e49ca6787192e82fd8f2" # Version 4.5.0
 GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}/archive/${GECKO_SDK_SHA1}.zip"
 
 DIST_DIR=$(pwd)/dist
@@ -21,41 +21,53 @@ unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}"
 mv "${TEMP_DIR}/${GECKO_SDK_REPO}-${GECKO_SDK_SHA1}" "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
-cp "${TEMP_DIR}/gecko_sdk/License.txt" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/common" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/emlib" "${DIST_DIR}"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/radio" "${DIST_DIR}"
+rsync -avp "${TEMP_DIR}/gecko_sdk/License.txt" "${DIST_DIR}/License.txt"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/common" "${DIST_DIR}/platform"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/Device" "${DIST_DIR}/platform"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/emlib" "${DIST_DIR}/platform"
+rsync -avp "${TEMP_DIR}/gecko_sdk/platform/radio" "${DIST_DIR}/platform"
 
 # Remove unneeded files.
-rm "${DIST_DIR}/emlib/emlib_core_validation.lua"
-rm -rf "${DIST_DIR}/common/component"
-rm -rf "${DIST_DIR}/common/component_catalog"
-rm -rf "${DIST_DIR}/common/config"
-rm -rf "${DIST_DIR}/common/errno"
-rm -rf "${DIST_DIR}/common/script"
-rm -rf "${DIST_DIR}/common/src"
-rm -rf "${DIST_DIR}/common/toolchain"
-rm -rf "${DIST_DIR}/emlib/component"
-rm -rf "${DIST_DIR}/emlib/config"
-rm -rf "${DIST_DIR}/emlib/host"
-rm -rf "${DIST_DIR}/emlib/init"
-rm -rf "${DIST_DIR}/radio/efr32_multiphy_configurator"
-rm -rf "${DIST_DIR}/radio/mac"
-rm -rf "${DIST_DIR}/radio/radio_configuration"
-rm "${DIST_DIR}/radio/rail_lib/modules.xml"
-rm -rf "${DIST_DIR}/radio/rail_lib/apps"
-rm -rf "${DIST_DIR}/radio/rail_lib/component"
-rm -rf "${DIST_DIR}/radio/rail_lib/hal"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/coexistence-stub"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/component"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/module"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/rail-library-mp"
-rm -rf "${DIST_DIR}/radio/rail_lib/plugin/plugin.info"
+rm "${DIST_DIR}/platform/common/example_signing_key.pem"
+rm "${DIST_DIR}/platform/common/example_signing_pubkey.pem"
+rm "${DIST_DIR}/platform/common/example-key-aes-ccm.txt"
+rm "${DIST_DIR}/platform/radio/rail_lib/modules.xml"
 
-find "${DIST_DIR}/radio/rail_lib/autogen/librail_release" -type f -name "*_iar.a" -delete
-find "${DIST_DIR}/radio/rail_lib/autogen/librail_release" -type f -name "*_iar_*.a" -delete
+rm -rf "${DIST_DIR}/platform/common/component_catalog"
+rm -rf "${DIST_DIR}/platform/common/component"
+rm -rf "${DIST_DIR}/platform/common/config"
+rm -rf "${DIST_DIR}/platform/common/errno"
+rm -rf "${DIST_DIR}/platform/common/postbuild_profile"
+rm -rf "${DIST_DIR}/platform/common/script"
+rm -rf "${DIST_DIR}/platform/common/toolchain"
+rm -rf "${DIST_DIR}/platform/Device/component"
+rm -rf "${DIST_DIR}/platform/Device/config"
+rm -rf "${DIST_DIR}/platform/emlib/component"
+rm -rf "${DIST_DIR}/platform/emlib/config"
+rm -rf "${DIST_DIR}/platform/emlib/host"
+rm -rf "${DIST_DIR}/platform/emlib/init"
+rm -rf "${DIST_DIR}/platform/radio/efr32_multiphy_configurator"
+rm -rf "${DIST_DIR}/platform/radio/mac"
+rm -rf "${DIST_DIR}/platform/radio/radio_configuration"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/apps"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/component"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/hal"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/coexistence-stub"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/coexistence"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/component"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/module"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/plugin.info"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/rail-library-mp"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/plugin/rail-library"
+rm -rf "${DIST_DIR}/platform/radio/rail_lib/tools"
+rm -rf "${DIST_DIR}/platform/radio/wifi"
+
+find "${DIST_DIR}/platform/Device/SiliconLabs" -type d \( -name "GCC" -o -name "IAR" \) -prune -print0 | xargs -0 rm -rf
+
+find "${DIST_DIR}/platform/common/src" -type f ! -path "${DIST_DIR}/platform/common/src/sl_assert.c" -delete
+find "${DIST_DIR}/platform/Device/SiliconLabs" -type f -name "startup_*.c" -delete
+find "${DIST_DIR}/platform/radio/rail_lib/autogen/librail_release" -type f -name "*_iar.a" -delete
+find "${DIST_DIR}/platform/radio/rail_lib/autogen/librail_release" -type f -name "*_iar_*.a" -delete
 
 # Ensure Unix line endings are used.
 find "${DIST_DIR}" -name "*.c" -type f -exec dos2unix -k -s -o {} ';'
@@ -71,19 +83,20 @@ find "${DIST_DIR}" -name "*.orig" -type f -delete
 
 # Rename IRQ handlers to match the RIOT-OS IRQ handlers.
 # IRQ handler symbols used by the blobs can be obtained with some CLI magic:
-# $ nm -g ${DIST_DIR}/radio/rail_lib/autogen/librail_release/*.a | grep IRQHandler | cut -d' ' -f3 | sort | uniq
-for BLOB_FILE in "${DIST_DIR}/radio/rail_lib/autogen/librail_release/"*".a"
+# $ nm -g ${DIST_DIR}/platform/radio/rail_lib/autogen/librail_release/*.a | grep IRQHandler | cut -d' ' -f3 | sort | uniq
+for BLOB_FILE in "${DIST_DIR}/platform/radio/rail_lib/autogen/librail_release/"*".a"
 do
     arm-none-eabi-objcopy "${BLOB_FILE}" \
         --redefine-sym AGC_IRQHandler=isr_agc \
         --redefine-sym BUFC_IRQHandler=isr_bufc \
         --redefine-sym EMUDG_IRQHandler=isr_emudg \
-        --redefine-sym EMU_IRQHandler=isr_emu \
         --redefine-sym FRC_IRQHandler=isr_frc \
         --redefine-sym FRC_PRI_IRQHandler=isr_frc_pri \
+        --redefine-sym FRCPRI_IRQHandler=isr_frcpri \
         --redefine-sym HOSTMAILBOX_IRQHandler=isr_hostmailbox \
         --redefine-sym MODEM_IRQHandler=isr_modem \
         --redefine-sym PRORTC_IRQHandler=isr_prortc \
+        --redefine-sym PRORTC_IRQHandlerOverride=isr_prortc_override \
         --redefine-sym PROTIMER_IRQHandler=isr_protimer \
         --redefine-sym RAC_RSM_IRQHandler=isr_rac_rsm \
         --redefine-sym RAC_SEQ_IRQHandler=isr_rac_seq \

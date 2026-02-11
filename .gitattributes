@@ -1,0 +1,3 @@
+* text eol=lf
+
+dist/radio/rail_lib/autogen/librail_release/*.a binary

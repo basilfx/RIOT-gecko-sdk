@@ -5,6 +5,7 @@
 #if defined(TIMER_COUNT) && (TIMER_COUNT > 0)
 
 #include "em_timer.h"
+#include "em_gpio_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,6 +13,9 @@ extern "C" {
 
 #if (_SILICON_LABS_32B_SERIES < 2)
 uint32_t TIMER_Channel2Route(uint8_t ch);
+#else
+void TIMER_CCRoute(TIMER_TypeDef *timer, uint8_t ch, GPIO_Port_TypeDef port,
+                   uint8_t pin);
 #endif
 
 uint32_t TIMER_Prescaler2Div(TIMER_Prescale_TypeDef prescaler);

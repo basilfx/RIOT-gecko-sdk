@@ -1,5 +1,10 @@
-#ifndef __SILICON_LABS_EM_RTCC_UTILS_H__
-#define __SILICON_LABS_EM_RTCC_UTILS_H__
+/***************************************************************************//**
+ * @file
+ * @brief Real Time Counter and Calendar (RTCC) utility API.
+ ******************************************************************************/
+
+#ifndef EM_RTCC_UTILS_H
+#define EM_RTCC_UTILS_H
 
 #include "em_device.h"
 #if defined( RTCC_COUNT ) && ( RTCC_COUNT == 1 )
@@ -9,11 +14,17 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
+ * @addtogroup rtcc_utils RTCC Utils - Real Time Counter/Calendar utilities
+ * @brief Real Time Counter and Calendar (RTCC) utility API
+ * @{
+ ******************************************************************************/
+
+/***************************************************************************//**
  * @brief
  *   Conversion macros for RTCC_DATE and RTCC_TIME registers.
  *
  * @note
- *   Values are expected to be in a valid within the date and time domain.
+ *   Values are expected to be valid within the date and time domain.
  *
  * @{
  ******************************************************************************/
@@ -41,7 +52,7 @@ extern "C" {
  *   Conversion macros for RTCC_CC_DATE and RTCC_CC_TIME registers.
  *
  * @note
- *   Values are expected to be in a valid within the date and time domain.
+ *   Values are expected to be valid within the date and time domain.
  *
  * @{
  ******************************************************************************/
@@ -60,9 +71,11 @@ extern "C" {
 #define RTCC_Channel_Month2BCD(x)  (((((x) / 10) << _RTCC_CC_DATE_MONTHT_SHIFT) | (((x) % 10) << _RTCC_CC_DATE_MONTHU_SHIFT)) & (_RTCC_CC_DATE_MONTHT_MASK | _RTCC_CC_DATE_MONTHU_MASK))
 /** @} */
 
+/** @} (end addtogroup rtcc_utils) */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* defined( RTCC_COUNT ) && ( RTCC_COUNT == 1 ) */
-#endif /* __SILICON_LABS_EM_RTCC_UTILS_H__ */
+#endif /* EM_RTCC_UTILS_H */

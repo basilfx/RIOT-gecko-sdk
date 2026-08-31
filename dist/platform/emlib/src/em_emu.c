@@ -157,7 +157,7 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 // Fix: Add a 14us delay coming back from EM2/3 sleep.
 #define ERRATA_FIX_EMU_E220_DECBOD_ENABLE
 
-#if defined (__GNUC__) && (__CORTEX_M == 0)
+#if defined (__GNUC__) && !defined (__clang__) && (__CORTEX_M == 0)
 // Assembly code specific to ARM Cortex-M0 with armgcc compiler.
 
 // Number of core cycles for a 14us delay with:

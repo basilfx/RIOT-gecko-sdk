@@ -35,3 +35,8 @@ Ignore cast-alignment warnings locally in `platform/emlib/src/em_crypto.c`, `pla
 * `em_msc.c` and `em_se.c` only fail for Cortex-M33.
 
 This change is compatible with the original source code.
+
+### 0007
+This patch excludes Clang from the Cortex-M0 branch of `ERRATA_FIX_EMU_E220_DELAY_CYCLES` in `platform/emlib/src/em_emu.c`, so that it uses the generic implementation instead. The branch is guarded by `__GNUC__`, which Clang also defines, but its delay loop uses `sub %0, %0, #1`, for which Thumb-1 has no encoding. The GNU assembler silently substitutes the flag-setting `subs`, whereas Clang rejects the instruction.
+
+This change is compatible with the original source code.

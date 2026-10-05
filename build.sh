@@ -3,29 +3,47 @@
 GECKO_SDK_USER="SiliconLabs"
 GECKO_SDK_REPO="gecko_sdk"
 GECKO_SDK_SHA1="90fc93e1f95a10c981f0e49ca6787192e82fd8f2" # Version 4.5.0
-GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}/archive/${GECKO_SDK_SHA1}.zip"
+GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}.git"
 
 DIST_DIR=$(pwd)/dist
 SRC_DIR=$(pwd)/src
-TEMP_DIR=$(pwd)/temp
+UPSTREAM_DIR=$(pwd)/upstream
 
-# Clear everything in the target folder.
+# Initialize the upstream repository, unless it already exists.
+if [ ! -d "${UPSTREAM_DIR}/.git" ]
+then
+    git init "${UPSTREAM_DIR}"
+    git -C "${UPSTREAM_DIR}" remote add origin "${GECKO_SDK_URL}"
+fi
+
+# Fetch the requested commit, unless it is already available.
+if ! git -C "${UPSTREAM_DIR}" cat-file -e "${GECKO_SDK_SHA1}^{commit}" 2>/dev/null
+then
+    git -C "${UPSTREAM_DIR}" fetch --depth 1 origin "${GECKO_SDK_SHA1}"
+fi
+
+# Reset the upstream repository to the requested commit and remove any
+# untracked or ignored files.
+git -C "${UPSTREAM_DIR}" checkout --force --detach "${GECKO_SDK_SHA1}"
+git -C "${UPSTREAM_DIR}" reset --hard "${GECKO_SDK_SHA1}"
+git -C "${UPSTREAM_DIR}" clean -ffdx
+
+# Fetch Git LFS objects, if the repository uses Git LFS.
+if grep -qs "filter=lfs" "${UPSTREAM_DIR}/.gitattributes"
+then
+    git -C "${UPSTREAM_DIR}" lfs pull
+fi
+
+# Clear everything in the distribution folder.
 rm -rf "${DIST_DIR}"
-rm -rf "${TEMP_DIR}"
 mkdir -p "${DIST_DIR}"
-mkdir -p "${TEMP_DIR}"
-
-# Download and extract Gecko SDK.
-wget -O "${TEMP_DIR}/gecko_sdk.zip" "${GECKO_SDK_URL}"
-unzip -o "${TEMP_DIR}/gecko_sdk.zip" -d "${TEMP_DIR}"
-mv "${TEMP_DIR}/${GECKO_SDK_REPO}-${GECKO_SDK_SHA1}" "${TEMP_DIR}/gecko_sdk"
 
 # Prepare distribution.
-rsync -avp "${TEMP_DIR}/gecko_sdk/License.txt" "${DIST_DIR}/License.txt"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/common" "${DIST_DIR}/platform"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/Device" "${DIST_DIR}/platform"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/emlib" "${DIST_DIR}/platform"
-rsync -avp "${TEMP_DIR}/gecko_sdk/platform/radio" "${DIST_DIR}/platform"
+rsync -avp "${UPSTREAM_DIR}/License.txt" "${DIST_DIR}/License.txt"
+rsync -avp "${UPSTREAM_DIR}/platform/common" "${DIST_DIR}/platform"
+rsync -avp "${UPSTREAM_DIR}/platform/Device" "${DIST_DIR}/platform"
+rsync -avp "${UPSTREAM_DIR}/platform/emlib" "${DIST_DIR}/platform"
+rsync -avp "${UPSTREAM_DIR}/platform/radio" "${DIST_DIR}/platform"
 
 # Remove unneeded files.
 rm "${DIST_DIR}/platform/common/example_signing_key.pem"
@@ -111,6 +129,3 @@ done
 
 # Copy additional source files (such as Makefiles, utilities).
 rsync -avp --ignore-existing "${SRC_DIR}/" "${DIST_DIR}"
-
-# Cleanup.
-rm -rf "${TEMP_DIR}"

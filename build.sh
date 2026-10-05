@@ -2,7 +2,7 @@
 
 GECKO_SDK_USER="SiliconLabs"
 GECKO_SDK_REPO="gecko_sdk"
-GECKO_SDK_SHA1="90fc93e1f95a10c981f0e49ca6787192e82fd8f2" # Version 4.5.0
+GECKO_SDK_SHA1="8a2efd2cb191cb250fd4c1e655b16b8a80be1997" # Version 4.5.1
 GECKO_SDK_URL="https://github.com/${GECKO_SDK_USER}/${GECKO_SDK_REPO}.git"
 
 DIST_DIR=$(pwd)/dist
